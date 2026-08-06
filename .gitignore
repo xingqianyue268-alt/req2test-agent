@@ -1,0 +1,29 @@
+# Python cache and build files
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+*.log
+
+# Virtual environments
+.venv/
+venv/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Generated outputs
+output/
+
+# IDE and operating system files
+.DS_Store
+.idea/
+.vscode/
+
+# Local assistant configuration
+.agents/
+.claude/

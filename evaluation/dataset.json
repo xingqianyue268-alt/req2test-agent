@@ -1,0 +1,20 @@
+[
+  {
+    "id": "login_and_profile",
+    "text": "# 用户中心\n1. 用户可以使用正确账号和密码登录。\n2. 密码错误时系统阻止登录。\n3. 登录后用户可以修改昵称并保存。",
+    "expected_modules": ["用户中心"],
+    "min_requirements": 3
+  },
+  {
+    "id": "supplier_management",
+    "text": "# 供应商管理\n1. 管理员可以新增供应商并填写名称、联系人和电话。\n2. 管理员可以根据名称查询供应商。\n3. 管理员可以修改供应商联系人。\n4. 管理员可以删除未关联采购记录的供应商。",
+    "expected_modules": ["供应商管理"],
+    "min_requirements": 4
+  },
+  {
+    "id": "trace_query",
+    "text": "# 溯源查询\n1. 用户输入溯源码后查看供应商、批次和检测信息。\n2. 查询不到溯源码时展示无匹配数据状态。",
+    "expected_modules": ["溯源查询"],
+    "min_requirements": 2
+  }
+]

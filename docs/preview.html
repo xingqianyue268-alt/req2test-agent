@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Req2Test Agent Preview</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;color:#172033;background:#f6f8fb}
+*{box-sizing:border-box}body{margin:0}.wrap{display:grid;grid-template-columns:280px 1fr;min-height:100vh}.side{background:#fff;border-right:1px solid #e6e9ef;padding:28px 22px}.main{padding:30px 36px}.brand{font-weight:750;font-size:22px}.muted{color:#6b7280;font-size:13px;line-height:1.6}.label{font-size:13px;font-weight:650;margin:22px 0 8px}.field,.btn,.upload{border:1px solid #d8dde7;border-radius:10px;padding:11px 12px;background:#fff;font-size:14px}.btn{background:#ff4b4b;color:#fff;border:0;font-weight:700;text-align:center;margin-top:16px}.title{font-size:32px;font-weight:780;margin-bottom:4px}.panel{background:#fff;border:1px solid #e7eaf0;border-radius:14px;padding:18px;margin-top:18px}.textarea{height:175px;white-space:pre-wrap;line-height:1.65;color:#374151}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}.metric{background:#fff;border:1px solid #e7eaf0;border-radius:14px;padding:16px}.metric strong{font-size:27px;display:block;margin-top:6px}.tabs{display:flex;gap:8px;margin-top:22px}.tab{padding:9px 15px;border-radius:9px;background:#fff;border:1px solid #e1e5ec;font-size:14px}.tab.active{border-color:#ff4b4b;color:#d73535}.case{background:#fff;border:1px solid #e7eaf0;border-radius:12px;margin-top:12px;overflow:hidden}.case h3{font-size:15px;margin:0;padding:14px 16px;background:#fafbfc}.meta{padding:10px 16px;color:#5d6677;font-size:13px}.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:10px 12px;border-top:1px solid #edf0f4;text-align:left;vertical-align:top}.table th{background:#fafbfc}.downloads{display:flex;gap:12px;margin-top:18px}.download{background:#fff;border:1px solid #d8dde7;border-radius:9px;padding:10px 14px;font-size:13px}@media(max-width:900px){.wrap{grid-template-columns:1fr}.side{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.main{padding:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<aside class="side">
+  <div class="brand">🧪 Req2Test Agent</div>
+  <div class="muted">中文需求文档多智能体测试设计平台</div>
+  <div class="label">生成模式</div><div class="field">演示模式</div>
+  <div class="label">测试类型</div>
+  <div class="field">☑ 正向用例<br>☑ 异常用例<br>☐ 边界用例</div>
+  <div class="label">最多生成用例数</div><div class="field">12</div>
+  <div class="label">最低评审分数</div><div class="field">85</div>
+</aside>
+<main class="main">
+  <div class="title">Req2Test Agent</div>
+  <div class="muted">上传需求清单、操作手册或产品需求说明，自动完成需求拆分、用例生成、质量评审与导出。</div>
+  <div class="panel upload">上传需求文档：food_traceability_requirements.md</div>
+  <div class="panel textarea"># 食品食材溯源系统
+
+## 用户登录
+1. 用户使用有效账号和密码登录系统，登录成功后进入系统首页。
+2. 密码输入错误时，系统应阻止登录并展示错误提示。
+
+## 供应商管理
+1. 管理员可以新增供应商……</div>
+  <div class="btn">生成并评审测试用例</div>
+  <div class="metrics">
+    <div class="metric"><span class="muted">需求项</span><strong>9</strong></div>
+    <div class="metric"><span class="muted">测试用例</span><strong>12</strong></div>
+    <div class="metric"><span class="muted">评审得分</span><strong>100</strong></div>
+    <div class="metric"><span class="muted">需求覆盖率</span><strong>100%</strong></div>
+  </div>
+  <div class="tabs"><div class="tab active">测试用例</div><div class="tab">需求拆分</div><div class="tab">评审报告</div><div class="tab">检索依据</div></div>
+  <div class="case">
+    <h3>TC-001｜验证用户使用有效账号和密码登录系统｜正向</h3>
+    <div class="meta">模块：用户登录　优先级：P1　来源需求：REQ-001</div>
+    <table class="table"><thead><tr><th>序号</th><th>输入/操作描述</th><th>预期结果</th></tr></thead><tbody>
+      <tr><td>1</td><td>定位登录功能入口</td><td>页面展示账号、密码和登录操作控件</td></tr>
+      <tr><td>2</td><td>输入有效账号和密码，点击登录</td><td>系统校验通过并进入授权后的页面</td></tr>
+      <tr><td>3</td><td>查看页面提示和登录状态</td><td>页面反馈清晰，登录会话状态正确</td></tr>
+    </tbody></table>
+  </div>
+  <div class="downloads"><div class="download">下载 Markdown</div><div class="download">下载 CSV</div><div class="download">下载 JSON</div></div>
+</main>
+</div>
+</body>
+</html>
