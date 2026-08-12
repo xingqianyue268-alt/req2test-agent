@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -7,19 +8,22 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Keep third-party dependencies in a dedicated Docker layer. Application source
-# changes will no longer invalidate this expensive network/download step.
+# Keep third-party dependencies in a dedicated layer and persist pip downloads
+# across interrupted/retried Docker builds. Source-code changes will not
+# invalidate this expensive network step.
 COPY requirements.txt ./
-RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=68" wheel \
-    && python -m pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install --upgrade pip "setuptools>=68" wheel \
+    && python -m pip install -r requirements.txt
 
-# Copy the project only after dependencies are installed, then install the local
-# package without resolving dependencies again.
+# Copy application source only after dependencies are ready. The local package
+# install resolves no dependencies, so normal source changes are fast to rebuild.
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY knowledge ./knowledge
 COPY samples ./samples
-RUN python -m pip install --no-cache-dir --no-build-isolation --no-deps .
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install --no-build-isolation --no-deps .
 
 EXPOSE 8000
 
