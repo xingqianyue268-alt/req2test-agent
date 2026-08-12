@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from typing import Any
+from urllib.parse import urlparse
 
 from .execution_models import HttpExecutionResult, HttpTestSpec
 
 
-def _json_contains(actual: Any, expected: Any, path: str = "$" ) -> list[str]:
+def _json_contains(actual: Any, expected: Any, path: str = "$") -> list[str]:
     """Return assertion failures when expected is not recursively contained in actual."""
 
     failures: list[str] = []
@@ -38,16 +40,42 @@ def _json_contains(actual: Any, expected: Any, path: str = "$" ) -> list[str]:
     return failures
 
 
+def _validate_execution_target(base_url: str) -> str:
+    """Restrict remote execution by default to reduce SSRF risk when API is deployed."""
+
+    parsed = urlparse(base_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise ValueError("HTTP Tool 的 base_url 必须是有效的 http:// 或 https:// 地址")
+    if parsed.username or parsed.password:
+        raise ValueError("base_url 不允许携带用户名或密码")
+
+    allow_remote = os.getenv("REQ2TEST_ALLOW_REMOTE_EXECUTION", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    configured = os.getenv(
+        "REQ2TEST_EXECUTION_ALLOWED_HOSTS",
+        "localhost,127.0.0.1,::1,api",
+    )
+    allowed_hosts = {item.strip().lower() for item in configured.split(",") if item.strip()}
+    hostname = parsed.hostname.lower()
+    if not allow_remote and hostname not in allowed_hosts:
+        raise ValueError(
+            f"目标主机 {hostname!r} 不在执行白名单中。"
+            "如确需测试远程环境，请设置 REQ2TEST_ALLOW_REMOTE_EXECUTION=true，"
+            "或将主机加入 REQ2TEST_EXECUTION_ALLOWED_HOSTS。"
+        )
+    return base_url.rstrip("/")
+
+
 class HttpApiTestTool:
     """Execute structured HTTP API checks against a caller-provided base URL."""
 
     name = "http_api_test"
 
     def __init__(self, base_url: str, timeout_seconds: float = 8.0, verify_tls: bool = True) -> None:
-        base_url = base_url.strip().rstrip("/")
-        if not base_url.startswith(("http://", "https://")):
-            raise ValueError("HTTP Tool 的 base_url 必须使用 http:// 或 https://")
-        self.base_url = base_url
+        self.base_url = _validate_execution_target(base_url.strip())
         self.timeout_seconds = timeout_seconds
         self.verify_tls = verify_tls
 
