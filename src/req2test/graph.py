@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 from .config import GenerationConfig, LLMSettings
+from .enhanced_nodes import analyse_requirements_node
 from .models import ReviewReport, RequirementItem, TestCase, WorkflowResult
 from .nodes import (
     WorkflowState,
-    analyse_requirements_node,
     design_cases_node,
     review_cases_node,
     revise_cases_node,
