@@ -1,27 +1,30 @@
 # Req2Test Agent
 
-面向中文需求文档的多智能体测试设计与异步任务平台。系统将需求清单、操作手册或产品需求说明转换为结构化测试用例，并执行覆盖率与完整性评审；同时支持 RabbitMQ/Celery 异步任务处理、Redis 状态管理、WebSocket 实时进度推送，以及基于 ChromaDB 的历史测试用例 RAG 检索增强。
+面向中文需求文档的多智能体 AI 测试设计与执行平台。系统将需求清单、操作手册或产品需求说明转换为结构化测试用例，结合历史测试资产进行 RAG 检索增强，并支持异步任务处理、真实 HTTP API 执行、Pytest 自动化执行和失败归因。
 
 ## 核心功能
 
 - 支持 TXT、Markdown、DOCX、可复制文本 PDF
-- 需求自动拆分与来源编号
+- 需求自动拆分、模块识别与来源追溯
 - 测试规则 + 历史测试用例混合知识库
 - ChromaDB 持久化向量检索
 - 无外部 Embedding API 的离线 Hashing Embedding
-- 向量检索不可用时自动回退本地字符二元组检索
+- 向量检索不可用时自动回退字符二元组检索
 - LangGraph 多节点 Agent 工作流
-- 评审低分自动修订
+- 需求分析、测试设计、质量评审和低分自动修订
 - 正向、异常、边界测试配置
-- Markdown、CSV、JSON 导出
-- Streamlit 同步演示界面
 - FastAPI 异步任务接口
 - RabbitMQ + Celery 后台任务队列
 - Redis 任务状态、进度和结果缓存
 - WebSocket 实时推送任务进度
 - 多 Worker 消费与公平预取配置
+- Tool Calling 执行规划层
+- HTTP API Test Tool 真实请求与断言
+- Pytest Runner 自动生成并执行接口测试脚本
+- 基于真实执行结果的失败归因
 - 云端模型与 Ollama 本地模型兼容
 - 无 API Key 的离线演示模式
+- Markdown、CSV、JSON 导出
 
 ## 系统架构
 
@@ -31,43 +34,103 @@ flowchart LR
     API --> MQ[RabbitMQ]
     MQ --> W1[Celery Worker 1]
     MQ --> W2[Celery Worker 2]
-    W1 --> RAG[Hybrid RAG Retriever]
-    W2 --> RAG
+
     Rules[测试规则] --> VDB[(ChromaDB)]
     Cases[历史测试用例] --> VDB
-    VDB --> RAG
+    VDB --> RAG[Hybrid RAG Retriever]
+
+    W1 --> RAG
+    W2 --> RAG
     RAG --> C[需求分析 Agent]
     C --> D[测试设计 Agent]
     D --> E[质量评审 Agent]
-    E -->|分数低于阈值| F[用例修订 Agent]
+    E -->|低于阈值| F[用例修订 Agent]
     F --> E
-    E -->|通过| G[结果输出]
+
+    E -->|通过| P[执行规划 / Tool Calling]
+    P --> H[HTTP API Test Tool]
+    P --> T[Pytest Runner]
+    H --> X[真实执行结果]
+    T --> X
+    X --> FA[失败归因]
+    FA --> OUT[最终报告]
+
     W1 --> Redis[(Redis)]
     W2 --> Redis
-    Redis --> WS[WebSocket 进度推送]
+    Redis --> WS[WebSocket]
     WS --> UI[实时任务页面]
 ```
 
-### RAG 检索链路
+## 三条核心链路
 
-系统启动后会把两类知识写入本地 ChromaDB：
+### 1. RAG 测试知识检索
+
+系统会把两类知识写入本地 ChromaDB：
 
 1. `knowledge/testing_rules.md`：测试设计规范与规则片段。
 2. `knowledge/historical_cases.jsonl`：历史测试用例、操作步骤和预期结果。
 
-用户提交需求后，`HybridKnowledgeRetriever` 优先对需求进行向量检索，返回最相关的测试规则和历史用例作为 Test Design Agent 的上下文；如果 ChromaDB 不可用，则自动回退到原有本地字符二元组 + 余弦相似度检索，保证演示模式仍可运行。
+用户提交需求后，`HybridKnowledgeRetriever` 优先进行向量检索，将相关测试规则和历史案例作为 Test Design Agent 的上下文；ChromaDB 不可用时自动回退到本地字符二元组 + 余弦相似度检索。
 
-当前默认使用确定性的 Hashing Embedding，不依赖外部 Embedding API，便于本地演示和自动化测试。后续可替换为模型 Embedding，而不改变工作流调用接口。
+当前默认使用确定性的 Hashing Embedding，不依赖外部 Embedding API，便于本地演示、CI 和离线测试。
 
-### 异步任务状态
+### 2. 异步任务与实时进度
 
-任务提交后会经历：
+任务状态大致经历：
 
 ```text
-queued → started → retrieval → analysis → design → review → revision(可选) → completed
+queued
+→ started
+→ retrieval
+→ analysis
+→ design
+→ review
+→ revision(可选)
+→ generation_completed
+→ tool_planning(可选)
+→ failure_analysis(可选)
+→ completed
 ```
 
-Redis 保存 `task_id`、任务状态、当前阶段、进度、结果和异常信息。若 Redis 不可用，开发环境会自动回退到进程内存存储，便于单机调试。
+Redis 保存 `task_id`、任务状态、当前阶段、进度、结果和异常信息；Redis 不可用时开发环境自动回退到内存状态存储。
+
+### 3. Tool Calling + 自动执行
+
+当 `execution_config.enabled=true` 时，生成阶段完成后继续执行：
+
+```text
+需求 + 已生成测试用例
+        ↓
+Execution Planner
+        ↓
+结构化 HttpTestSpec
+        ↓
+Tool Dispatcher
+   ├── HTTP API Test Tool
+   └── Pytest Runner
+        ↓
+真实 Status Code / JSON / Text / Pytest Result
+        ↓
+Failure Analyzer
+        ↓
+execution report
+```
+
+执行规划支持三种来源：
+
+- `provided_specs`：调用方明确提供结构化 `api_specs`，确定性最高。
+- `llm_tool_planner`：OpenAI-compatible / Ollama 模式下，由模型根据需求中的显式 API 契约生成执行规格。
+- `deterministic`：演示模式下直接解析形如 `GET /api/health 状态码: 200` 的接口描述。
+
+为避免模型“编接口”，LLM 规划结果会再次与原需求中明确出现的 HTTP 方法和路径进行白名单比对，不在需求中的 endpoint 会被丢弃。
+
+## 执行安全边界
+
+- HTTP Tool 只接受 `http://` / `https://` Base URL。
+- `HttpTestSpec.path` 必须是相对路径，禁止把完整 URL 混入用例 path。
+- Pytest Runner **不接受任意 Python 源码**；它只根据已校验的 `HttpTestSpec` 渲染固定测试模板，在临时目录中执行并设置硬超时。
+- LLM 失败归因只接收 method、path、状态码和断言失败信息，不发送完整响应正文或认证 Header。
+- 测试执行失败不会覆盖掉已经生成的测试用例；工具层异常会作为 execution warning 保存。
 
 ## 快速开始
 
@@ -86,27 +149,20 @@ Windows PowerShell：
 .venv\Scripts\Activate.ps1
 ```
 
-### 2. 初始化 / 重建 RAG 知识库
-
-安装项目后运行：
+### 2. 初始化 RAG 知识库
 
 ```bash
 req2test-kb rebuild
-```
-
-查看知识库统计：
-
-```bash
 req2test-kb stats
 ```
 
-直接验证向量检索：
+验证向量检索：
 
 ```bash
 req2test-kb search --query "用户使用正确账号密码登录" --top-k 3
 ```
 
-默认数据库保存在 `.req2test/chroma`，该目录不会提交到 Git。
+默认数据库位于 `.req2test/chroma`，不会提交到 Git。
 
 ### 3. 原有 Streamlit 同步页面
 
@@ -116,9 +172,9 @@ streamlit run app.py
 
 默认进入演示模式，不需要 API Key。
 
-### 4. 启动异步任务平台
+### 4. 启动完整异步平台
 
-推荐直接使用 Docker Compose：
+推荐使用 Docker Compose：
 
 ```bash
 docker compose up --build
@@ -131,11 +187,23 @@ docker compose up --build
 - RabbitMQ 管理页：`http://localhost:15672`，默认账号密码均为 `guest`
 - Redis：`localhost:6379`
 
-在 `/demo` 页面提交需求后，可看到任务从排队、知识检索、需求分析、测试设计、质量评审到完成的实时进度。
+`/demo` 页面包含一个内置被测接口 `/demo-target/health`，用于演示“生成测试 → HTTP Tool → Pytest → 结果汇总”的完整链路。
+
+如果 Docker Compose 中让 Worker 测试本项目内置接口，Base URL 使用：
+
+```text
+http://api:8000
+```
+
+本机直接启动 API + Worker 时使用：
+
+```text
+http://localhost:8000
+```
 
 ### 5. 不使用 Docker 时分别启动
 
-先启动本机 RabbitMQ 和 Redis，然后执行：
+先启动 RabbitMQ 和 Redis，然后：
 
 ```bash
 uvicorn req2test.api:app --reload --port 8000
@@ -147,9 +215,9 @@ uvicorn req2test.api:app --reload --port 8000
 celery -A req2test.worker.celery_app worker --loglevel=INFO --concurrency=2
 ```
 
-### 6. 异步 API 示例
+## API 示例
 
-提交任务：
+### 只生成测试用例
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/tasks \
@@ -157,15 +225,52 @@ curl -X POST http://localhost:8000/api/v1/tasks \
   -d '{"requirement_text":"用户可以新增供应商，保存后供应商显示在列表中。"}'
 ```
 
-返回：
+### 生成后自动执行显式 API 契约
+
+```bash
+curl -X POST http://localhost:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requirement_text":"GET /demo-target/health 状态码: 200 响应包含: {\"status\":\"ok\"}",
+    "execution_config":{
+      "enabled":true,
+      "base_url":"http://localhost:8000",
+      "run_http_tool":true,
+      "run_pytest":true
+    }
+  }'
+```
+
+也可以直接提供结构化 `api_specs`：
 
 ```json
 {
-  "task_id": "...",
-  "status_url": "/api/v1/tasks/...",
-  "ws_url": "/ws/tasks/..."
+  "execution_config": {
+    "enabled": true,
+    "base_url": "http://localhost:8000",
+    "api_specs": [
+      {
+        "case_id": "API-001",
+        "name": "健康检查",
+        "method": "GET",
+        "path": "/demo-target/health",
+        "expected_status": 200,
+        "expected_json_contains": {"status": "ok"}
+      }
+    ]
+  }
 }
 ```
+
+任务结果中的 `result.execution` 会包含：
+
+- `executable_cases`
+- `tool_calls`
+- `http_results`
+- `pytest_result`
+- `failure_analysis`
+- `summary`
+- `warnings`
 
 查询状态：
 
@@ -173,7 +278,7 @@ curl -X POST http://localhost:8000/api/v1/tasks \
 curl http://localhost:8000/api/v1/tasks/<task_id>
 ```
 
-WebSocket 地址：
+WebSocket：
 
 ```text
 ws://localhost:8000/ws/tasks/<task_id>
@@ -193,7 +298,7 @@ req2test samples/food_traceability_requirements.md --mode demo --out-dir output
 
 ## 使用 Ollama
 
-安装 Ollama 后拉取适合本机的中文模型，例如：
+例如：
 
 ```bash
 ollama pull qwen3:4b
@@ -207,7 +312,7 @@ Base URL：http://localhost:11434/v1
 API Key：ollama
 ```
 
-也可以复制环境变量模板：
+也可以：
 
 ```bash
 cp .env.example .env
@@ -220,6 +325,8 @@ pip install -e ".[dev]"
 pytest -q
 ```
 
+测试中包含本机临时 HTTP Server，用于验证 HTTP Tool 和 Pytest Runner 的真实请求链路，不访问公网。
+
 ## 项目结构
 
 ```text
@@ -230,7 +337,8 @@ req2test-agent/
 ├── knowledge/
 │   ├── testing_rules.md
 │   └── historical_cases.jsonl
-├── samples/food_traceability_requirements.md
+├── samples/
+│   └── food_traceability_requirements.md
 ├── src/req2test/
 │   ├── api.py
 │   ├── worker.py
@@ -242,48 +350,54 @@ req2test-agent/
 │   ├── rag_node.py
 │   ├── retrieval.py
 │   ├── kb_cli.py
+│   ├── execution_models.py
+│   ├── tool_calling.py
+│   ├── http_tool.py
+│   ├── pytest_runner.py
 │   ├── models.py
 │   ├── document_loader.py
 │   ├── exporters.py
 │   └── cli.py
 ├── tests/
 │   ├── test_async_platform.py
-│   └── test_rag.py
+│   ├── test_rag.py
+│   ├── test_tool_execution.py
+│   └── test_execution_pipeline.py
 └── docs/
 ```
 
 ## 工程化设计说明
 
-- `LangGraph`：负责编排需求分析、测试设计、质量评审和修订节点。
-- `ChromaDB`：持久化保存测试规则和历史测试用例的向量表示，为 Agent 提供检索增强上下文。
-- `HashingEmbedder`：使用中文字符二元组与英文 Token 的确定性哈希向量实现离线 Embedding，避免演示环境强依赖外部 Embedding 服务。
-- `HybridKnowledgeRetriever`：优先走 ChromaDB 向量检索；向量数据库异常时回退到本地余弦相似度检索。
-- `RabbitMQ`：作为任务消息队列，将耗时的测试生成流程从 HTTP 请求中解耦并进行削峰。
-- `Celery`：负责 Worker 消费、任务确认、失败重试和多 Worker 并发执行；设置 `worker_prefetch_multiplier=1`，避免单个 Worker 一次占用过多任务。
+- `LangGraph`：编排需求分析、测试设计、质量评审和修订节点。
+- `ChromaDB`：持久化测试规则与历史测试用例向量，提供 RAG 上下文。
+- `HashingEmbedder`：离线确定性 Embedding，降低演示环境外部依赖。
+- `HybridKnowledgeRetriever`：向量检索异常时回退轻量本地检索。
+- `RabbitMQ`：解耦 HTTP 请求与耗时 Agent 流程并进行任务削峰。
+- `Celery`：负责任务消费、重试与多 Worker 并发；`worker_prefetch_multiplier=1` 避免单 Worker 预取过多任务。
 - `Redis`：保存任务状态、实时进度和结果，同时作为 Celery Result Backend。
-- `WebSocket`：将任务阶段和进度实时推送到浏览器，避免前端长时间阻塞等待。
-- `FastAPI`：提供任务提交、状态查询、健康检查和 WebSocket 服务。
-- `Pydantic`：约束需求、测试用例、评审报告和 API 请求字段。
-- `Fallback`：模型失败时回退本地规则；向量检索失败时回退轻量检索；Redis 不可用时开发模式可回退内存状态存储。
+- `WebSocket`：实时推送任务阶段，避免前端长时间阻塞等待。
+- `Execution Planner`：把需求中的显式 API 契约转换为结构化 `HttpTestSpec`。
+- `HttpApiTestTool`：执行真实 HTTP 请求并校验状态码、JSON 子结构和正文关键字。
+- `PytestRunnerTool`：把同一批结构化规格渲染成固定 Pytest 模板并以子进程执行。
+- `Failure Analyzer`：结合真实状态码、连接异常和断言结果进行故障分类；OpenAI-compatible 模式可使用 LLM 进一步归因，失败时回退规则分析。
+- `Fallback`：模型、向量检索、Redis 或执行规划失败时均有对应降级路径。
 
 ## 下一阶段
 
-- Tool Calling：HTTP API Test Tool、Pytest Runner
-- 自动生成并执行接口测试脚本
-- UI 截图/原型图多模态需求分析
-- 接口限流、请求幂等与重复任务缓存
-- Jira/禅道同步
-- 人工确认与断点恢复
+- UI 截图 / 原型图多模态需求分析
+- 请求幂等、限流与重复任务缓存
+- OpenAPI / Swagger 自动导入接口契约
+- Jira / 禅道缺陷同步
+- 人工确认节点与断点恢复
+- 更完整的执行结果 Dashboard
 
 ## 可复现评估
-
-项目内置小型中文需求数据集，用于评估需求数量下限、模块识别、需求追溯覆盖率、结构完整度、重复标题率和运行耗时：
 
 ```bash
 python -m req2test.evaluate
 ```
 
-报告保存到 `output/evaluation_report.json`。这些指标主要用于检查输出结构、需求追溯和重复率，不代表真实业务环境中的测试有效性，实际使用仍需结合业务规则和人工评审。
+报告保存在 `output/evaluation_report.json`。这些指标用于检查输出结构、需求追溯和重复率，不代表真实业务环境中的测试有效性；真实项目仍需结合业务规则和人工评审。
 
 ## License
 
