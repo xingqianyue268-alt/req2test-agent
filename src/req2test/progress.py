@@ -11,12 +11,14 @@ from .models import ReviewReport, RequirementItem, TestCase, WorkflowResult
 
 ProgressCallback = Callable[[str, int, str], None]
 
+# Keep headroom after generation so the async worker can continue with the
+# Tool Calling / HTTP / Pytest execution stage before marking the task complete.
 _STAGE_PROGRESS = {
-    "retrieve_context": ("retrieval", 15, "正在检索测试规则"),
-    "analyse_requirements": ("analysis", 35, "正在拆分并分析需求"),
-    "design_cases": ("design", 65, "正在生成测试用例"),
-    "review_cases": ("review", 82, "正在执行质量评审"),
-    "revise_cases": ("revision", 90, "评审未通过，正在修订用例"),
+    "retrieve_context": ("retrieval", 12, "正在检索测试规则和历史测试用例"),
+    "analyse_requirements": ("analysis", 28, "正在拆分并分析需求"),
+    "design_cases": ("design", 52, "正在生成测试用例"),
+    "review_cases": ("review", 68, "正在执行质量评审"),
+    "revise_cases": ("revision", 76, "评审未通过，正在修订用例"),
 }
 
 
@@ -76,5 +78,5 @@ def run_workflow_with_progress(
         latest_state = graph.invoke(initial_state)
 
     if on_progress:
-        on_progress("completed", 100, "测试用例生成与评审已完成")
+        on_progress("generation_completed", 80, "测试用例生成与质量评审已完成")
     return _to_result(latest_state)
