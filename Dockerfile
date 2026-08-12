@@ -1,7 +1,9 @@
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=120
 
 WORKDIR /app
 
@@ -10,7 +12,11 @@ COPY src ./src
 COPY knowledge ./knowledge
 COPY samples ./samples
 
-RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir .
+# Install build tooling explicitly, then disable PEP 517 build isolation for the
+# local package. This avoids creating a second temporary build environment that
+# needs to download setuptools/wheel again during Docker builds.
+RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=68" wheel \
+    && python -m pip install --no-cache-dir --no-build-isolation .
 
 EXPOSE 8000
 
