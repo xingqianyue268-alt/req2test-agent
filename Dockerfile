@@ -25,6 +25,13 @@ COPY samples ./samples
 RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install --no-build-isolation --no-deps .
 
+# Celery warns when workers run as root. Use a dedicated unprivileged account
+# while keeping /app writable for the local Chroma persistence directory.
+RUN useradd --create-home --uid 10001 req2test \
+    && mkdir -p /app/.req2test \
+    && chown -R req2test:req2test /app
+USER req2test
+
 EXPOSE 8000
 
 CMD ["uvicorn", "req2test.api:app", "--host", "0.0.0.0", "--port", "8000"]
