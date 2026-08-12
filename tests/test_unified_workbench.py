@@ -15,11 +15,11 @@ def test_root_and_demo_expose_unified_workbench():
     assert root.status_code == 200
     assert demo.status_code == 200
     for marker in [
-        "从需求文档到可执行测试",
-        "AI 生成并评审测试用例",
+        "从需求到真实测试执行",
+        "AI 生成测试",
         "测试用例",
         "需求拆分",
-        "评审 & RAG",
+        "AI 评审 &amp; RAG",
         "执行结果",
     ]:
         assert marker in root.text
