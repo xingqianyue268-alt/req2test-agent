@@ -53,6 +53,7 @@ class ExecutionConfig(BaseModel):
     verify_tls: bool = True
     run_http_tool: bool = True
     run_pytest: bool = True
+    api_specs: list[HttpTestSpec] = Field(default_factory=list)
 
     @field_validator("base_url")
     @classmethod
