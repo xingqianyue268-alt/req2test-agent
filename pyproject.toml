@@ -36,6 +36,7 @@ dev = [
 
 [project.scripts]
 req2test = "req2test.cli:main"
+req2test-kb = "req2test.kb_cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
