@@ -7,6 +7,8 @@ import threading
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import pytest
+
 from req2test.config import LLMSettings
 from req2test.execution_models import ExecutionConfig, HttpExecutionResult, HttpTestSpec
 from req2test.http_tool import HttpApiTestTool
@@ -82,6 +84,13 @@ def test_http_api_tool_records_assertion_failure():
     assert result.passed is False
     assert result.status_code == 200
     assert any("状态码不一致" in item for item in result.failures)
+
+
+def test_http_api_tool_blocks_unapproved_remote_target(monkeypatch):
+    monkeypatch.setenv("REQ2TEST_ALLOW_REMOTE_EXECUTION", "false")
+    monkeypatch.setenv("REQ2TEST_EXECUTION_ALLOWED_HOSTS", "localhost,127.0.0.1,api")
+    with pytest.raises(ValueError, match="不在执行白名单"):
+        HttpApiTestTool("https://example.com")
 
 
 def test_pytest_runner_executes_generated_http_suite():
