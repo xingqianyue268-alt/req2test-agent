@@ -21,6 +21,7 @@ services:
       retries: 10
 
   api:
+    image: req2test-agent:dev
     build: .
     command: uvicorn req2test.api:app --host 0.0.0.0 --port 8000
     environment:
@@ -37,7 +38,7 @@ services:
         condition: service_healthy
 
   worker:
-    build: .
+    image: req2test-agent:dev
     command: celery -A req2test.worker.celery_app worker --loglevel=INFO --concurrency=2
     environment:
       REDIS_URL: redis://redis:6379/0
