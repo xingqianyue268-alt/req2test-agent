@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import os
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -13,11 +15,12 @@ from pydantic import BaseModel, Field
 
 from .config import GenerationConfig, LLMSettings
 from .demo_ui import DEMO_HTML
+from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
 from .task_store import task_store
 from .worker import generate_test_cases
 
-app = FastAPI(title="Req2Test Agent API", version="0.3.1")
+app = FastAPI(title="Req2Test Agent API", version="0.4.0")
 
 
 class TaskCreateRequest(BaseModel):
@@ -27,9 +30,21 @@ class TaskCreateRequest(BaseModel):
     execution_config: ExecutionConfig = Field(default_factory=ExecutionConfig)
 
 
+class DocumentParseRequest(BaseModel):
+    filename: str = Field(min_length=1)
+    content_base64: str = Field(min_length=1)
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "task_store": task_store.backend}
+
+
+@app.get("/", response_class=HTMLResponse)
+def home_page() -> str:
+    """Primary unified workbench entrypoint."""
+
+    return DEMO_HTML
 
 
 @app.get("/demo-target/health")
@@ -48,9 +63,35 @@ def demo_target_echo(payload: dict[str, Any]) -> dict[str, Any]:
 
 @app.get("/demo", response_class=HTMLResponse)
 def demo_page() -> str:
-    """Readable browser demo with execution summary and raw JSON fallback."""
+    """Backward-compatible alias for the unified browser workbench."""
 
     return DEMO_HTML
+
+
+@app.post("/api/v1/documents/parse")
+def parse_document(request: DocumentParseRequest) -> dict[str, Any]:
+    """Parse a supported requirement file without introducing multipart dependencies."""
+
+    suffix = Path(request.filename).suffix.lower()
+    if suffix not in SUPPORTED_SUFFIXES:
+        supported = ", ".join(sorted(SUPPORTED_SUFFIXES))
+        raise HTTPException(status_code=400, detail=f"暂不支持该文件类型，可使用：{supported}")
+    try:
+        content = base64.b64decode(request.content_base64, validate=True)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail="文件内容编码无效") from exc
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="单个需求文档不能超过 10 MB")
+    try:
+        text = load_document_bytes(content, suffix)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {
+        "filename": request.filename,
+        "suffix": suffix,
+        "characters": len(text),
+        "text": text,
+    }
 
 
 @app.post("/api/v1/tasks", status_code=202)
