@@ -1,144 +1,328 @@
-# Req2Test Agent
+# Req2Test Agent · AI 测试执行平台
 
-面向中文需求文档的多智能体测试设计平台。系统将需求清单、操作手册或产品需求说明转换为结构化测试用例，并执行覆盖率与完整性评审。
+面向中文需求文档的多智能体 AI 测试设计与执行平台。系统将需求解析、RAG 测试知识检索、测试用例生成、质量评审、真实 HTTP 执行、Pytest 自动化和失败归因串成一个可复现的测试闭环。
 
-## 核心功能
+![tests](https://github.com/xingqianyue268-alt/req2test-agent/actions/workflows/tests.yml/badge.svg)
 
-- 支持 TXT、Markdown、DOCX、可复制文本 PDF
-- 需求自动拆分与来源编号
-- 测试规则本地检索
-- 多节点 Agent 工作流
-- 评审低分自动修订
-- 正向、异常、边界测试配置
-- Markdown、CSV、JSON 导出
-- Streamlit 可视化界面
-- 云端模型与 Ollama 本地模型兼容
-- 无 API Key 的离线演示模式
+## 项目解决什么问题
+
+传统“LLM 生成测试用例”Demo 往往停留在文本输出。Req2Test Agent 进一步解决三个工程问题：
+
+1. **测试设计可追溯**：需求被结构化为 Requirement，每条测试用例保留来源需求，并通过质量评审节点检查覆盖率和完整性。
+2. **长任务可工程化运行**：FastAPI + RabbitMQ + Celery + Redis 将耗时 Agent 流程异步化，WebSocket 实时推送任务阶段。
+3. **生成结果可以真实执行**：Execution Planner 把需求中明确出现的 API 契约转换为 `HttpTestSpec`，再调用 HTTP Tool 与 Pytest Runner 执行，并根据真实结果进行失败归因。
+
+## 核心能力
+
+- TXT、Markdown、DOCX、可复制文本 PDF 需求解析
+- Requirement 自动拆分、模块识别与来源追溯
+- LangGraph 多 Agent：需求分析、测试设计、质量评审、自动修订
+- 正向 / 异常 / 边界测试配置
+- ChromaDB 持久化 RAG：测试规则 + 历史测试用例
+- 离线 Hashing Embedding，向量检索失败时回退本地轻量检索
+- FastAPI 异步任务接口
+- RabbitMQ + Celery 后台任务与多 Worker 消费
+- Redis 保存任务状态、实时进度与结果
+- WebSocket 实时任务进度
+- Tool Calling / Execution Planner
+- HTTP API Tool：真实请求、状态码、JSON 子结构和正文断言
+- Pytest Runner：根据结构化规格生成固定测试模板并真实执行
+- Failure Analyzer：连接、超时、认证、路由、422 契约校验、5xx、断言失败等归因
+- Demo / OpenAI-compatible / Ollama 运行模式
+- Markdown / CSV / JSON 导出
+- Docker Compose 一键启动演示环境
 
 ## 系统架构
 
 ```mermaid
 flowchart LR
-    A[需求文档] --> B[测试规则检索]
-    B --> C[需求分析 Agent]
-    C --> D[测试设计 Agent]
-    D --> E[质量评审 Agent]
-    E -->|分数低于阈值| F[用例修订 Agent]
-    F --> E
-    E -->|通过| G[多格式导出]
+    A[需求文档] --> API[FastAPI]
+    API --> MQ[RabbitMQ]
+    MQ --> W[Celery Worker]
+
+    Rules[测试规则] --> VDB[(ChromaDB)]
+    Cases[历史测试用例] --> VDB
+    VDB --> RAG[Hybrid Retriever]
+
+    W --> RAG
+    RAG --> RA[Requirement Agent]
+    RA --> TD[Test Design Agent]
+    TD --> QR[Quality Review Agent]
+    QR -->|低于阈值| RV[Revision Agent]
+    RV --> QR
+
+    QR -->|通过| P[Execution Planner]
+    P --> HT[HTTP API Tool]
+    P --> PT[Pytest Runner]
+    HT --> ER[Real Execution Results]
+    PT --> ER
+    ER --> FA[Failure Analyzer]
+    FA --> OUT[Dashboard / JSON]
+
+    W --> Redis[(Redis)]
+    Redis --> WS[WebSocket]
+    WS --> UI[实时任务页面]
 ```
+
+更详细的设计说明见 [`docs/architecture.md`](docs/architecture.md)。
+
+## 已完成的本地验收
+
+2026-08-12 在 macOS Apple Silicon + Docker Desktop 环境完成真实集成验收。
+
+### 自动化回归
+
+```text
+20 passed in 3.23s
+```
+
+### RAG
+
+- Chroma backend 正常
+- 15 条测试规则 / 历史案例成功入库
+- 登录类查询能够召回对应历史登录测试用例
+
+### Demo A：全通过链路
+
+```text
+HTTP 用例：2
+HTTP 通过：2
+HTTP 失败：0
+Pytest：PASS
+http_pass_rate：1.0
+```
+
+### Demo B：失败归因
+
+故意省略 POST 必填请求体：
+
+```text
+GET /demo-target/health：PASS，200 -> 200
+POST /demo-target/echo：FAIL，200 -> 422
+Pytest：FAIL
+Failure Analysis：contract_mismatch
+```
+
+完整验收记录见 [`docs/acceptance.md`](docs/acceptance.md)。
 
 ## 快速开始
 
-### 1. 创建环境
+### 1. 本地 Python 环境
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -e .
-```
-
-Windows PowerShell 激活命令：
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-### 2. 启动页面
-
-```bash
-streamlit run app.py
-```
-
-默认进入演示模式，不需要 API Key。页面会自动载入食品溯源系统示例需求。
-
-### 3. 命令行运行
-
-```bash
-req2test samples/food_traceability_requirements.md --mode demo --out-dir output
-```
-
-输出目录包含：
-
-- `test_cases.md`
-- `test_cases.csv`
-- `result.json`
-
-## 使用 Ollama
-
-安装 Ollama 后拉取适合本机的中文模型，例如：
-
-```bash
-ollama pull qwen3:4b
-```
-
-启动模型服务后，在页面中设置：
-
-```text
-模型名称：qwen3:4b
-Base URL：http://localhost:11434/v1
-API Key：ollama
-```
-
-也可以复制环境变量模板：
-
-```bash
-cp .env.example .env
-```
-
-## 运行测试
-
-```bash
 pip install -e ".[dev]"
 pytest -q
 ```
+
+支持 Python `>=3.10,<3.14`。
+
+### 2. 初始化 RAG 知识库
+
+```bash
+req2test-kb rebuild
+req2test-kb stats
+req2test-kb search --query "用户使用正确账号密码登录" --top-k 3
+```
+
+默认持久化目录为 `.req2test/chroma`，该目录不会提交到 Git。
+
+### 3. 启动完整异步平台
+
+首次构建：
+
+```bash
+docker compose build api
+docker compose up
+```
+
+之后如果只修改 `src/` 或 `knowledge/`，开发环境通过 `docker-compose.override.yml` 挂载本地代码，通常直接执行：
+
+```bash
+docker compose up
+```
+
+即可，无需重复下载整套 Python 依赖。
+
+启动后：
+
+- FastAPI：`http://localhost:8000`
+- 健康检查：`http://localhost:8000/health`
+- Demo Dashboard：`http://localhost:8000/demo`
+- RabbitMQ Management：`http://localhost:15672`，本地默认账号密码均为 `guest`
+- Redis：`localhost:6379`
+
+在 Docker Compose 中让 Worker 测试内置 Demo API 时，Base URL 使用：
+
+```text
+http://api:8000
+```
+
+## 两个推荐 Demo
+
+页面：`http://localhost:8000/demo`
+
+### 全通过 Demo
+
+```text
+GET /demo-target/health
+预期状态码：200
+响应包含：{"status":"ok"}
+
+POST /demo-target/echo
+请求体：{"message":"hello"}
+预期状态码：200
+响应包含：{"status":"ok"}
+```
+
+预期：2/2 HTTP PASS，Pytest PASS。
+
+### 失败归因 Demo
+
+```text
+GET /demo-target/health
+预期状态码：200
+响应包含：{"status":"ok"}
+
+POST /demo-target/echo
+预期状态码：200
+```
+
+因为 POST 缺少请求体，FastAPI 返回 422。平台应将该用例标记为 FAIL，并归因为 `contract_mismatch`，而不是把整个异步任务误判为系统失败。
+
+## API
+
+### 创建异步任务
+
+```bash
+curl -X POST http://localhost:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requirement_text":"GET /demo-target/health 状态码: 200 响应包含: {\"status\":\"ok\"}",
+    "execution_config":{
+      "enabled":true,
+      "base_url":"http://localhost:8000",
+      "run_http_tool":true,
+      "run_pytest":true
+    }
+  }'
+```
+
+返回 `task_id` 后可以查询：
+
+```text
+GET /api/v1/tasks/<task_id>
+WS  /ws/tasks/<task_id>
+```
+
+任务结果中的 `result.execution` 包含：
+
+- `executable_cases`
+- `tool_calls`
+- `http_results`
+- `pytest_result`
+- `failure_analysis`
+- `summary`
+- `warnings`
+
+## RAG 设计
+
+知识来源：
+
+- `knowledge/testing_rules.md`：测试设计规范
+- `knowledge/historical_cases.jsonl`：历史测试案例
+
+`HybridKnowledgeRetriever` 优先使用 ChromaDB。默认 Hashing Embedding 主要用于离线演示和确定性测试，它不等同于生产级语义 Embedding；真实业务可以替换为专用 Embedding 模型而不改变工作流接口。
+
+## Tool Calling 安全边界
+
+- Execution Planner 只接受需求文本中明确出现的 HTTP method/path。
+- LLM 规划结果会再次与原始 endpoint 白名单比对，过滤模型编造接口。
+- HTTP Tool 默认限制允许访问的 Host，降低 SSRF 风险。
+- `HttpTestSpec.path` 必须为相对路径。
+- Pytest Runner 不接受任意 Python 源码，只渲染固定模板，并设置执行超时。
+- Failure Analyzer 不向模型发送认证 Header 或完整响应正文。
+- 测试执行失败与平台任务失败分离：被测接口 FAIL 仍会保存完整执行报告。
+- Docker 中 API / Celery Worker 使用非 root 用户运行。
 
 ## 项目结构
 
 ```text
 req2test-agent/
 ├── app.py
-├── knowledge/testing_rules.md
-├── samples/food_traceability_requirements.md
+├── Dockerfile
+├── docker-compose.yml
+├── docker-compose.override.yml
+├── knowledge/
+│   ├── testing_rules.md
+│   └── historical_cases.jsonl
+├── samples/
 ├── src/req2test/
+│   ├── api.py
+│   ├── demo_ui.py
+│   ├── worker.py
+│   ├── task_store.py
+│   ├── progress.py
 │   ├── graph.py
-│   ├── nodes.py
-│   ├── models.py
+│   ├── enhanced_nodes.py
+│   ├── rag.py
+│   ├── rag_node.py
 │   ├── retrieval.py
-│   ├── document_loader.py
-│   ├── exporters.py
-│   └── cli.py
+│   ├── execution_models.py
+│   ├── tool_calling.py
+│   ├── http_tool.py
+│   ├── pytest_runner.py
+│   └── ...
 ├── tests/
-└── docs/
+├── docs/
+│   ├── architecture.md
+│   └── acceptance.md
+└── .github/workflows/tests.yml
 ```
 
-## 设计说明
+## 运行模式
 
-- `LangGraph`：负责编排节点、共享状态和评审条件路由。
-- `Pydantic`：约束需求、测试用例和评审报告字段。
-- `LocalRuleRetriever`：使用字符二元组与余弦相似度检索中文测试规则，无需向量服务。
-- `OpenAI-compatible API`：统一连接 OpenAI、兼容服务和 Ollama。
-- `Fallback`：模型失败时回退到本地规则，保证演示稳定。
+### Demo
 
-## 下一阶段
+默认本地演示模式，不需要 API Key。
 
-- Playwright MCP 自动执行用例
-- Chroma 历史用例库和相似用例去重
-- Jira/禅道同步
-- 人工确认与断点恢复
-- 生成自动化测试脚本
+### OpenAI-compatible / Ollama
+
+可通过 `.env` 或页面配置 OpenAI-compatible endpoint；Ollama 也可以使用兼容 API 接入。
+
+示例：
+
+```bash
+cp .env.example .env
+ollama pull qwen3:4b
+```
+
+## 设计取舍
+
+- **RabbitMQ**：把 HTTP 请求与耗时 Agent 工作流解耦，并支持任务削峰。
+- **Celery**：处理 Worker 消费、多任务并发与重试。
+- **Redis**：统一保存任务状态、进度与结果，同时作为 Celery Result Backend。
+- **WebSocket**：避免浏览器同步阻塞等待长任务。
+- **LangGraph**：显式表达 Agent 节点、状态和条件修订路径。
+- **Pydantic**：约束需求、测试用例和执行报告的数据结构。
+- **ChromaDB**：将历史测试资产接入生成流程，而不是只依赖 Prompt。
+- **规则降级**：模型、向量检索或 LLM 失败归因不可用时，仍能维持可演示主流程。
+
+## 当前边界与后续方向
+
+当前项目重点验证“需求 → 测试设计 → 自动执行 → 失败归因”的工程闭环，不将 Demo 环境包装成生产级测试平台。
+
+可继续扩展：
+
+- OpenAPI / Swagger 自动导入 API 契约
+- UI 截图 / 原型图多模态需求分析
+- 请求幂等、限流和重复任务缓存
+- Jira / 禅道缺陷同步
+- 人工确认节点与断点恢复
+- 更完整的历史执行趋势与质量 Dashboard
 
 ## License
 
 MIT
-
-## 可复现评估
-
-项目内置小型中文需求数据集，用于评估需求数量下限、模块识别、需求追溯覆盖率、结构完整度、重复标题率和运行耗时：
-
-```bash
-python -m req2test.evaluate
-```
-
-报告保存到 `output/evaluation_report.json`。这些指标主要用于检查输出结构、需求追溯和重复率，不代表真实业务环境中的测试有效性。实际使用时仍需结合业务规则和人工评审。

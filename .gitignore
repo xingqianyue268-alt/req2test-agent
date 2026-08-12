@@ -16,8 +16,9 @@ venv/
 !.env.example
 .streamlit/secrets.toml
 
-# Generated outputs
+# Generated outputs and local vector database
 output/
+.req2test/
 
 # IDE and operating system files
 .DS_Store

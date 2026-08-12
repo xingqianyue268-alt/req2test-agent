@@ -1,8 +1,8 @@
-"""A lightweight local retriever for testing rules.
+"""Knowledge retrieval for testing rules and historical test cases.
 
-The implementation deliberately avoids an embedding service so demo mode can run
-without an API key. It uses character bigrams plus cosine similarity, which is
-sufficient for short Chinese testing guidelines.
+Vector retrieval is preferred when Chroma is available. The original local
+character-bigram retriever remains as a zero-dependency fallback so demo mode
+continues to work in restricted environments.
 """
 
 from __future__ import annotations
@@ -45,6 +45,8 @@ def _cosine_similarity(left: Counter[str], right: Counter[str]) -> float:
 
 
 class LocalRuleRetriever:
+    """Lightweight retriever used as an offline fallback."""
+
     def __init__(self, sections: list[str]):
         if not sections:
             raise ValueError("知识库不能为空")
@@ -64,3 +66,35 @@ class LocalRuleRetriever:
             reverse=True,
         )
         return [section for section, _ in ranked[: max(1, top_k)]]
+
+
+class HybridKnowledgeRetriever:
+    """Prefer persistent Chroma vector search and fall back to local rules."""
+
+    def __init__(self, rule_path: str | Path):
+        self.rule_path = Path(rule_path)
+        self.local = LocalRuleRetriever.from_markdown(self.rule_path)
+        self.backend = "local"
+
+    def retrieve(self, query: str, top_k: int = 4) -> list[str]:
+        try:
+            from .rag import get_default_knowledge_base
+
+            knowledge_base = get_default_knowledge_base()
+            matches = knowledge_base.search(query, top_k=top_k)
+            if matches:
+                self.backend = "chroma"
+                return [self._format_match(match) for match in matches]
+        except Exception:  # noqa: BLE001 - vector search is an optional enhancement
+            self.backend = "local"
+
+        return self.local.retrieve(query, top_k=min(top_k, 3))
+
+    @staticmethod
+    def _format_match(match: dict) -> str:
+        metadata = match.get("metadata", {})
+        kind = metadata.get("kind", "knowledge")
+        source = metadata.get("source", "unknown")
+        similarity = match.get("similarity")
+        similarity_text = "" if similarity is None else f"，相似度={similarity:.3f}"
+        return f"[RAG:{kind}｜来源={source}{similarity_text}]\n{match.get('text', '')}"

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "req2test-agent"
-version = "0.1.0"
-description = "面向中文需求文档的多智能体测试用例设计平台"
+version = "0.3.0"
+description = "面向中文需求文档的多智能体测试设计、异步执行与失败归因平台"
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 license = {text = "MIT"}
@@ -19,17 +19,24 @@ dependencies = [
   "pydantic>=2.8,<3.0",
   "python-dotenv>=1.0,<2.0",
   "python-docx>=1.1,<2.0",
-  "pypdf>=5.0,<7.0"
+  "pypdf>=5.0,<7.0",
+  "fastapi>=0.115,<1.0",
+  "uvicorn[standard]>=0.32,<1.0",
+  "celery>=5.4,<6.0",
+  "redis>=5.2,<7.0",
+  "chromadb>=1.0,<2.0",
+  "httpx>=0.28,<1.0",
+  "pytest>=8.0,<10.0"
 ]
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8.0,<10.0",
   "ruff>=0.9,<1.0"
 ]
 
 [project.scripts]
 req2test = "req2test.cli:main"
+req2test-kb = "req2test.kb_cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

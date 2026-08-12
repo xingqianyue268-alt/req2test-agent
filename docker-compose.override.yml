@@ -1,0 +1,13 @@
+services:
+  api:
+    environment:
+      PYTHONPATH: /app/src
+    volumes:
+      - ./src:/app/src:ro
+      - ./knowledge:/app/knowledge:ro
+  worker:
+    environment:
+      PYTHONPATH: /app/src
+    volumes:
+      - ./src:/app/src:ro
+      - ./knowledge:/app/knowledge:ro

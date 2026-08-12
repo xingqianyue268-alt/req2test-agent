@@ -1,0 +1,70 @@
+name: tests
+
+on:
+  push:
+    branches: [main, feature/async-task-platform]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run regression tests
+        run: pytest -q
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build application image
+        run: docker compose build api
+
+      - name: Start compose stack
+        run: docker compose up -d
+
+      - name: Wait for FastAPI health endpoint
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:8000/health > /tmp/health.json; then
+              cat /tmp/health.json
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose ps
+          docker compose logs api worker redis rabbitmq
+          exit 1
+
+      - name: Verify Celery worker responds
+        run: docker compose exec -T worker celery -A req2test.worker.celery_app inspect ping
+
+      - name: Verify application runs as non-root
+        run: |
+          test "$(docker compose exec -T api id -u | tr -d '\r')" != "0"
+          test "$(docker compose exec -T worker id -u | tr -d '\r')" != "0"
+
+      - name: Show compose status
+        run: docker compose ps
+
+      - name: Stop compose stack
+        if: always()
+        run: docker compose down -v
