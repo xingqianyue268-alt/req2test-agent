@@ -76,10 +76,18 @@ def test_422_is_classified_as_contract_mismatch_when_validation_evidence_is_pres
     assert "接口契约" in analyses[0].suggestion
 
 
-def test_demo_ui_contains_readable_execution_dashboard_and_raw_json_fallback():
-    assert "执行结果" in DEMO_HTML
-    assert "HTTP 用例" in DEMO_HTML
-    assert "失败归因" in DEMO_HTML
-    assert "查看原始 JSON" in DEMO_HTML
-    assert "载入全通过 Demo" in DEMO_HTML
-    assert "载入失败归因 Demo" in DEMO_HTML
+def test_demo_ui_contains_design_execution_dashboard_and_raw_json_fallback():
+    for marker in [
+        "新建测试任务",
+        "AI 生成并评审测试用例",
+        "测试用例",
+        "需求拆分",
+        "评审 & RAG",
+        "执行结果",
+        "HTTP 用例",
+        "失败归因",
+        "原始 JSON",
+        "API 全通过示例",
+        "API 失败归因示例",
+    ]:
+        assert marker in DEMO_HTML
