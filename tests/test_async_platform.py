@@ -12,7 +12,7 @@ def test_task_store_falls_back_to_memory():
     assert store.get("task-1")["progress"] == 35
 
 
-def test_demo_workflow_emits_progress():
+def test_demo_workflow_emits_generation_progress_with_execution_headroom():
     events = []
     result = run_workflow_with_progress(
         "用户可以新增供应商并保存，保存后供应商显示在列表中。",
@@ -23,5 +23,5 @@ def test_demo_workflow_emits_progress():
     assert result.requirements
     assert result.test_cases
     assert events[0][0] == "started"
-    assert events[-1][0] == "completed"
-    assert events[-1][1] == 100
+    assert events[-1][0] == "generation_completed"
+    assert events[-1][1] == 80
