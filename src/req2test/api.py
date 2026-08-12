@@ -7,6 +7,7 @@ import os
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from .config import GenerationConfig, LLMSettings
@@ -25,6 +26,51 @@ class TaskCreateRequest(BaseModel):
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "task_store": task_store.backend}
+
+
+@app.get("/demo", response_class=HTMLResponse)
+def demo_page() -> str:
+    """Small zero-build demo page that shows WebSocket task progress in real time."""
+    return """
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Req2Test Async Demo</title>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;max-width:900px;margin:40px auto;padding:0 20px;background:#f6f7f9;color:#202124}
+.card{background:white;border-radius:14px;padding:24px;box-shadow:0 4px 18px rgba(0,0,0,.06);margin-bottom:18px}
+textarea{width:100%;height:180px;box-sizing:border-box;padding:12px;border:1px solid #d0d5dd;border-radius:8px}
+button{margin-top:12px;padding:10px 18px;border:0;border-radius:8px;background:#111827;color:#fff;cursor:pointer}
+progress{width:100%;height:20px}.meta{font-size:14px;color:#667085}.result{white-space:pre-wrap;max-height:360px;overflow:auto;background:#f9fafb;padding:12px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="card"><h1>Req2Test Agent · 异步任务演示</h1><p class="meta">FastAPI + RabbitMQ/Celery + Redis + WebSocket + LangGraph</p>
+<textarea id="req">用户可以新增供应商，填写供应商名称、联系人和联系电话后保存。保存成功后供应商出现在列表中。</textarea>
+<button onclick="submitTask()">提交异步任务</button></div>
+<div class="card"><div id="status">等待提交</div><progress id="progress" max="100" value="0"></progress><p id="message" class="meta"></p><div id="result" class="result"></div></div>
+<script>
+async function submitTask(){
+  const requirement_text=document.getElementById('req').value;
+  const resp=await fetch('/api/v1/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requirement_text})});
+  const data=await resp.json();
+  if(!resp.ok){document.getElementById('status').textContent='提交失败';document.getElementById('message').textContent=JSON.stringify(data);return;}
+  document.getElementById('status').textContent='Task ID: '+data.task_id;
+  const scheme=location.protocol==='https:'?'wss':'ws';
+  const ws=new WebSocket(`${scheme}://${location.host}${data.ws_url}`);
+  ws.onmessage=(event)=>{
+    const state=JSON.parse(event.data);
+    document.getElementById('progress').value=state.progress||0;
+    document.getElementById('message').textContent=`${state.stage||''} · ${state.message||''}`;
+    if(state.result){document.getElementById('result').textContent=JSON.stringify(state.result,null,2);}
+    if(state.error){document.getElementById('result').textContent=state.error;}
+  };
+}
+</script>
+</body></html>
+"""
 
 
 @app.post("/api/v1/tasks", status_code=202)
