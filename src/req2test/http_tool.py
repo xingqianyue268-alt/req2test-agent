@@ -110,6 +110,15 @@ class HttpApiTestTool:
                     f"状态码不一致：期望 {spec.expected_status}，实际 {response.status_code}"
                 )
 
+            # FastAPI and many validation frameworks use 422 when the request
+            # reaches the route but the body/query does not satisfy the declared
+            # contract. Preserve that evidence so failure attribution can classify
+            # it as a contract/test-data problem rather than a generic assertion.
+            if response.status_code == 422:
+                failures.append(
+                    "请求数据校验未通过：可能缺少必填请求体/参数，或字段类型不符合接口契约"
+                )
+
             if spec.expected_json_contains:
                 try:
                     payload = response.json()
