@@ -10,11 +10,11 @@ from .nodes import (
     WorkflowState,
     analyse_requirements_node,
     design_cases_node,
-    retrieve_context_node,
     review_cases_node,
     revise_cases_node,
     route_after_review,
 )
+from .rag_node import retrieve_context_node
 
 try:
     from langgraph.graph import END, START, StateGraph
