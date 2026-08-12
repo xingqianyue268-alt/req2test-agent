@@ -23,7 +23,8 @@ dependencies = [
   "fastapi>=0.115,<1.0",
   "uvicorn[standard]>=0.32,<1.0",
   "celery>=5.4,<6.0",
-  "redis>=5.2,<7.0"
+  "redis>=5.2,<7.0",
+  "chromadb>=1.0,<2.0"
 ]
 
 [project.optional-dependencies]
