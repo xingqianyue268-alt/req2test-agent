@@ -7,16 +7,19 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Keep third-party dependencies in a dedicated Docker layer. Application source
+# changes will no longer invalidate this expensive network/download step.
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=68" wheel \
+    && python -m pip install --no-cache-dir -r requirements.txt
+
+# Copy the project only after dependencies are installed, then install the local
+# package without resolving dependencies again.
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY knowledge ./knowledge
 COPY samples ./samples
-
-# Install build tooling explicitly, then disable PEP 517 build isolation for the
-# local package. This avoids creating a second temporary build environment that
-# needs to download setuptools/wheel again during Docker builds.
-RUN python -m pip install --no-cache-dir --upgrade pip "setuptools>=68" wheel \
-    && python -m pip install --no-cache-dir --no-build-isolation .
+RUN python -m pip install --no-cache-dir --no-build-isolation --no-deps .
 
 EXPOSE 8000
 
