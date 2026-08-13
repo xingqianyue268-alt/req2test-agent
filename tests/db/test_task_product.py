@@ -95,7 +95,32 @@ def _payload(*, failed=False):
         if failed
         else []
     )
+    diagnosis_v2 = {
+        "trace_id": "trace-product",
+        "summary": {
+            "failure_count": 1 if failed else 0,
+            "category_distribution": {"contract_mismatch": 1} if failed else {},
+            "primary_failure_category": "contract_mismatch" if failed else None,
+        },
+        "diagnoses": (
+            [
+                {
+                    "case_id": "API-002",
+                    "category": "contract_mismatch",
+                    "confidence": "high",
+                    "probable_cause": "Request validation failed with HTTP 422",
+                    "evidence_refs": ["evidence-422"],
+                    "evidence_summary": ["Request reached endpoint but failed validation"],
+                    "suggestion": "Compare required fields and request types",
+                    "diagnosis_source": "rule",
+                }
+            ]
+            if failed
+            else []
+        ),
+    }
     return {
+        "trace_id": "trace-product",
         "requirements": [
             {
                 "requirement_id": "REQ-001",
@@ -136,6 +161,31 @@ def _payload(*, failed=False):
                 "exit_code": 1 if failed else 0,
             },
             "failure_analysis": failure,
+            "failure_analysis_v2": diagnosis_v2,
+            "diagnostic_evidence": (
+                [
+                    {
+                        "evidence_id": "evidence-422",
+                        "trace_id": "trace-product",
+                        "task_id": "task-product",
+                        "case_id": "API-002",
+                        "execution_id": "API-002",
+                        "stage": "http_validation",
+                        "evidence_type": "validation",
+                        "timestamp": "2026-08-13T00:00:00Z",
+                        "summary": "Request reached endpoint but failed validation",
+                        "details": {
+                            "expected_status": 200,
+                            "actual_status": 422,
+                            "validation_error": "missing body.message",
+                        },
+                        "severity": "error",
+                    }
+                ]
+                if failed
+                else []
+            ),
+            "evidence_collection_overhead_ms": 0.7,
             "warnings": [],
         },
         "errors": [],
@@ -162,6 +212,8 @@ def _task(db_session, owner, *, title, status="completed", created_at=None, fail
                 "http_pass_rate": 0.0 if failed else 1.0,
                 "pytest_passed": not failed,
                 "failure_analysis_count": 1 if failed else 0,
+                "primary_failure_category": "contract_mismatch" if failed else None,
+                "failure_category_counts": {"contract_mismatch": 1} if failed else {},
             }
             if payload
             else None
@@ -262,6 +314,8 @@ def test_structured_detail_permissions_pass_failure_raw_and_postgres_priority(
         store._memory.clear()
         failure_body = client.get(f"/api/v1/tasks/{failed.id}").json()
         assert failure_body["failure_analysis"][0]["category"] == "contract_mismatch"
+        assert failure_body["failure_analysis_v2"]["diagnoses"][0]["confidence"] == "high"
+        assert "diagnostic_evidence" not in failure_body["raw_payload"]["execution"]
         assert store.get(str(failed.id))["status"] == "completed"
         client.post("/api/v1/auth/logout")
 
@@ -295,5 +349,36 @@ def test_task_product_routes_are_protected_and_include_local_exports(db_session,
         assert "EXPORT CSV" in detail.text
         assert "EXPORT JSON" in detail.text
         assert "/api/v1/tasks/" in detail.text
+        assert "VIEW EVIDENCE / 查看详细证据" in detail.text
+        assert "PRIMARY FAILURE" in history.text
+    finally:
+        api_module.app.dependency_overrides.clear()
+
+
+def test_diagnostics_api_ownership_admin_access_and_redis_fallback(db_session, monkeypatch):
+    client, _, store = _client(db_session, monkeypatch)
+    user_a = _user(db_session, "diagnostics-a@example.com")
+    user_b = _user(db_session, "diagnostics-b@example.com")
+    _user(db_session, "diagnostics-admin@example.com", role="admin")
+    failed = _task(db_session, user_a, title="Timeout-style diagnosis", failed=True)
+    try:
+        _login(client, user_a.email)
+        store._memory.clear()
+        response = client.get(f"/api/v1/tasks/{failed.id}/diagnostics")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["trace_id"] == "trace-product"
+        assert body["summary"]["primary_failure_category"] == "contract_mismatch"
+        assert body["diagnoses"][0]["evidence_refs"] == ["evidence-422"]
+        assert body["evidence"][0]["details"]["actual_status"] == 422
+        assert store.get(str(failed.id))["status"] == "completed"
+        client.post("/api/v1/auth/logout")
+
+        _login(client, user_b.email)
+        assert client.get(f"/api/v1/tasks/{failed.id}/diagnostics").status_code == 404
+        client.post("/api/v1/auth/logout")
+
+        _login(client, "diagnostics-admin@example.com")
+        assert client.get(f"/api/v1/tasks/{failed.id}/diagnostics").status_code == 200
     finally:
         api_module.app.dependency_overrides.clear()

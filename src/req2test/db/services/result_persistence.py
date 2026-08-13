@@ -110,6 +110,11 @@ def bound_result_payload(payload: dict[str, Any], max_bytes: int | None = None) 
             "enabled": execution.get("enabled"),
             "summary": execution.get("summary", {}),
             "failure_analysis": execution.get("failure_analysis", []),
+            "failure_analysis_v2": execution.get("failure_analysis_v2", {}),
+            "diagnostic_evidence": execution.get("diagnostic_evidence", [])[:50],
+            "evidence_collection_overhead_ms": execution.get(
+                "evidence_collection_overhead_ms", 0.0
+            ),
             "pytest_result": execution.get("pytest_result"),
             "warnings": execution.get("warnings", []),
         },
@@ -125,6 +130,7 @@ def bound_result_payload(payload: dict[str, Any], max_bytes: int | None = None) 
         "execution": {
             "summary": compact["execution"]["summary"],
             "failure_analysis": compact["execution"]["failure_analysis"],
+            "failure_analysis_v2": compact["execution"]["failure_analysis_v2"],
         },
         "errors": compact["errors"][:10],
         "truncated": True,
@@ -144,6 +150,7 @@ def build_result_summary(payload: dict[str, Any], final_status: str) -> dict[str
     review = payload.get("review") or {}
     execution = payload.get("execution") or {}
     execution_summary = execution.get("summary") or {}
+    diagnosis_summary = (execution.get("failure_analysis_v2") or {}).get("summary") or {}
     return {
         "total_requirements": len(requirements),
         "total_test_cases": len(test_cases),
@@ -154,7 +161,13 @@ def build_result_summary(payload: dict[str, Any], final_status: str) -> dict[str
         "failed_http_cases": execution_summary.get("failed_http_cases", 0),
         "http_pass_rate": execution_summary.get("http_pass_rate"),
         "pytest_passed": execution_summary.get("pytest_passed"),
-        "failure_analysis_count": len(execution.get("failure_analysis") or []),
+        "failure_analysis_count": int(
+            diagnosis_summary.get("failure_count")
+            if diagnosis_summary.get("failure_count") is not None
+            else len(execution.get("failure_analysis") or [])
+        ),
+        "primary_failure_category": diagnosis_summary.get("primary_failure_category"),
+        "failure_category_counts": diagnosis_summary.get("category_distribution") or {},
         "final_status": final_status,
     }
 
@@ -205,10 +218,17 @@ class ResultPersistenceService:
             persisted_cases[record.case_id] = record.id
 
         execution = bounded_payload.get("execution") or {}
+        diagnoses = (execution.get("failure_analysis_v2") or {}).get("diagnoses") or []
         failure_categories = {
-            item.get("case_id"): item.get("category")
-            for item in execution.get("failure_analysis") or []
+            item.get("case_id"): item.get("category") for item in diagnoses
         }
+        failure_categories.update(
+            {
+                item.get("case_id"): item.get("category")
+                for item in execution.get("failure_analysis") or []
+                if item.get("case_id") not in failure_categories
+            }
+        )
         specs = {
             item.get("case_id"): item for item in execution.get("executable_cases") or []
         }

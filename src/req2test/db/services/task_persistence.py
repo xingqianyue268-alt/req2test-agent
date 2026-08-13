@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from copy import deepcopy
 from collections.abc import Callable, Mapping
 from datetime import datetime
 from math import ceil
@@ -146,6 +147,8 @@ def task_to_list_item(task: TaskORM, *, include_user: bool = False) -> dict[str,
             "failure_analysis_count": int(
                 summary.get("failure_analysis_count") or 0
             ),
+            "primary_failure_category": summary.get("primary_failure_category"),
+            "failure_category_counts": summary.get("failure_category_counts") or {},
         },
     }
     if include_user:
@@ -157,6 +160,9 @@ def task_to_list_item(task: TaskORM, *, include_user: bool = False) -> dict[str,
 def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
     payload = task.result_payload or state.get("result") or {}
     execution = payload.get("execution") or {}
+    public_payload = deepcopy(payload)
+    public_execution = public_payload.get("execution") or {}
+    public_execution.pop("diagnostic_evidence", None)
     detail = {
         **state,
         "trace_id": payload.get("trace_id") or str(task.id),
@@ -184,15 +190,24 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
             "pytest_result": execution.get("pytest_result"),
         },
         "failure_analysis": execution.get("failure_analysis") or [],
+        "failure_analysis_v2": execution.get("failure_analysis_v2") or {
+            "trace_id": payload.get("trace_id") or str(task.id),
+            "summary": {
+                "failure_count": 0,
+                "category_distribution": {},
+                "primary_failure_category": None,
+            },
+            "diagnoses": [],
+        },
         "warnings": [
             *(payload.get("warnings") or []),
             *(execution.get("warnings") or []),
         ],
         "errors": payload.get("errors") or [],
-        "raw_payload": payload,
+        "raw_payload": public_payload,
     }
     # Preserve the Phase 4B response for existing polling and Workbench clients.
-    detail["result"] = payload or None
+    detail["result"] = public_payload or None
     return detail
 
 
@@ -350,6 +365,43 @@ class TaskPersistenceService:
             return None
         task = task_repository.get_task(session, uuid.UUID(task_id))
         return task_to_detail(task, state) if task else None
+
+    def get_task_diagnostics(
+        self,
+        session: Session,
+        task_id: str,
+        *,
+        user_id: uuid.UUID | None = None,
+        is_admin: bool = False,
+        allow_anonymous: bool = False,
+    ) -> dict[str, Any] | None:
+        state = self.get_task_state(
+            session,
+            task_id,
+            user_id=user_id,
+            is_admin=is_admin,
+            allow_anonymous=allow_anonymous,
+        )
+        if state is None:
+            return None
+        try:
+            task = task_repository.get_task(session, uuid.UUID(task_id))
+        except ValueError:
+            return None
+        if task is None:
+            return None
+        payload = task.result_payload or state.get("result") or {}
+        execution = payload.get("execution") or {}
+        analysis = execution.get("failure_analysis_v2") or {}
+        return {
+            "trace_id": payload.get("trace_id") or str(task.id),
+            "summary": analysis.get("summary") or {},
+            "diagnoses": analysis.get("diagnoses") or [],
+            "evidence": execution.get("diagnostic_evidence") or [],
+            "evidence_collection_overhead_ms": execution.get(
+                "evidence_collection_overhead_ms", 0.0
+            ),
+        }
 
     def list_task_states(
         self,

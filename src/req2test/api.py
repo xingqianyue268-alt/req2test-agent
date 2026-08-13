@@ -543,6 +543,27 @@ def get_task(
     return state
 
 
+@app.get("/api/v1/tasks/{task_id}/diagnostics")
+def get_task_diagnostics(
+    task_id: str,
+    db: Session = Depends(get_db),
+    current_user: UserORM | None = Depends(task_actor),
+):
+    try:
+        diagnostics = task_persistence.get_task_diagnostics(
+            db,
+            task_id,
+            user_id=current_user.id if current_user else None,
+            is_admin=bool(current_user and current_user.role == "admin"),
+            allow_anonymous=current_user is None and get_settings().allow_anonymous_demo,
+        )
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail="PostgreSQL diagnostics lookup failed") from exc
+    if diagnostics is None:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    return diagnostics
+
+
 @app.websocket("/ws/tasks/{task_id}")
 async def task_progress(
     websocket: WebSocket, task_id: str, db: Session = Depends(get_db)

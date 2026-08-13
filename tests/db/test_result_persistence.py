@@ -52,6 +52,7 @@ def _payload(*, passed=True, status_code=200, category=None):
                 "suggestion": "核对请求体",
             }
         ]
+    diagnosis_category = category or "contract_mismatch"
     return {
         "requirements": [
             {
@@ -116,6 +117,33 @@ def _payload(*, passed=True, status_code=200, category=None):
                 "generated_test_file": "/tmp/generated.py",
             },
             "failure_analysis": analyses,
+            "failure_analysis_v2": {
+                "trace_id": "trace-result",
+                "summary": {
+                    "failure_count": int(not passed),
+                    "category_distribution": (
+                        {diagnosis_category: 1} if not passed else {}
+                    ),
+                    "primary_failure_category": diagnosis_category if not passed else None,
+                },
+                "diagnoses": (
+                    [
+                        {
+                            "case_id": "TC-001",
+                            "category": diagnosis_category,
+                            "confidence": "high",
+                            "probable_cause": "evidence-backed cause",
+                            "evidence_refs": ["ev-1"],
+                            "evidence_summary": ["observed failure"],
+                            "suggestion": "apply evidence-specific fix",
+                            "diagnosis_source": "rule",
+                        }
+                    ]
+                    if not passed
+                    else []
+                ),
+            },
+            "diagnostic_evidence": [],
             "summary": {
                 "status": "completed",
                 "total_http_cases": 1,
@@ -188,8 +216,10 @@ def test_atomic_finalization_persists_case_execution_summary_and_payload(db_sess
         "failed_http_cases": 0,
         "http_pass_rate": 1.0,
         "pytest_passed": True,
-        "failure_analysis_count": 0,
-        "final_status": "completed",
+            "failure_analysis_count": 0,
+            "primary_failure_category": None,
+            "failure_category_counts": {},
+            "final_status": "completed",
     }
     assert completed.result_payload["execution"]["pytest_result"]["passed"] is True
     headers = completed.result_payload["execution"]["executable_cases"][0]["headers"]
@@ -247,6 +277,19 @@ def test_failure_category_and_full_analysis_are_persisted(db_session):
     analysis = completed.result_payload["execution"]["failure_analysis"][0]
     assert analysis["category"] == "contract_mismatch"
     assert analysis["suggestion"] == "核对请求体"
+    assert completed.result_summary["primary_failure_category"] == "contract_mismatch"
+
+
+def test_execution_failure_category_prefers_v2_diagnosis(db_session):
+    task = _business_task(db_session, celery_task_id="delivery")
+    payload = _payload(passed=False, status_code=None, category="timeout")
+    completed = ResultPersistenceService().finalize_completed(db_session, str(task.id), payload)
+    db_session.commit()
+    execution = db_session.scalar(
+        select(ExecutionORM).where(ExecutionORM.task_id == task.id)
+    )
+    assert execution.failure_category == "timeout"
+    assert completed.result_summary["failure_category_counts"] == {"timeout": 1}
 
 
 def test_sanitizer_and_payload_size_limits():
@@ -344,5 +387,7 @@ def test_result_summary_stays_small():
         "http_pass_rate",
         "pytest_passed",
         "failure_analysis_count",
+        "primary_failure_category",
+        "failure_category_counts",
         "final_status",
     }
