@@ -109,10 +109,11 @@ body[data-view=workbench] .app-main{overflow:hidden}.workbench-view.route-view{m
     <a class="wordmark" href="/workbench">REQ<span>2</span>TEST</a>
     <nav class="nav-links" aria-label="主要导航">
       <a class="__WORKBENCH_ACTIVE__" href="/workbench"><span class="en-ui">WORKBENCH</span><span class="zh-ui">/ 工作台</span></a>
+      <a href="/tasks"><span class="en-ui">TASKS</span><span class="zh-ui">/ 测试任务</span></a>
       <a class="__WORKFLOW_ACTIVE__" href="/workflow"><span class="en-ui">HOW IT WORKS</span><span class="zh-ui">/ 工作流程</span></a>
       <a class="__SYSTEM_ACTIVE__" href="/system"><span class="en-ui">SYSTEM</span><span class="zh-ui">/ 系统状态</span></a>
     </nav>
-    <div class="nav-meta"><div class="system-online"><span class="status-dot" id="headerHealthDot"></span><span id="headerHealthText"><span class="en-ui">SYSTEM · CHECKING</span><span class="zh-ui"> / 系统检查中</span></span></div><div class="auth-user" id="authUser"><button class="auth-trigger" type="button" id="authTrigger"><span id="authEmail">ACCOUNT</span><span class="admin-mark" id="adminMark">ADMIN</span></button><div class="auth-menu"><a href="/workbench">MY TASKS / 我的任务</a><button type="button" onclick="logoutUser()">LOG OUT / 退出</button></div></div></div>
+    <div class="nav-meta"><div class="system-online"><span class="status-dot" id="headerHealthDot"></span><span id="headerHealthText"><span class="en-ui">SYSTEM · CHECKING</span><span class="zh-ui"> / 系统检查中</span></span></div><div class="auth-user" id="authUser"><button class="auth-trigger" type="button" id="authTrigger"><span id="authEmail">ACCOUNT</span><span class="admin-mark" id="adminMark">ADMIN</span></button><div class="auth-menu"><a href="/tasks">MY TASKS / 我的任务</a><button type="button" onclick="logoutUser()">LOG OUT / 退出</button></div></div></div>
   </header>
 
   <main class="app-main" id="top">

@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 import uuid
 from collections.abc import Callable, Mapping
+from datetime import datetime
+from math import ceil
 from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -122,6 +124,74 @@ def task_to_projection(task: TaskORM) -> dict[str, Any]:
             "execution_enabled": bool(task.execution_config.get("enabled", False)),
         },
     }
+
+
+def task_to_list_item(task: TaskORM, *, include_user: bool = False) -> dict[str, Any]:
+    summary = task.result_summary or {}
+    item = {
+        "id": str(task.id),
+        "task_id": str(task.id),
+        "title": task.title,
+        "status": task.status,
+        "stage": task.stage,
+        "progress": task.progress,
+        "created_at": task.created_at.isoformat() if task.created_at else None,
+        "completed_at": task.completed_at.isoformat() if task.completed_at else None,
+        "summary": {
+            "total_test_cases": int(summary.get("total_test_cases") or 0),
+            "review_score": summary.get("review_score"),
+            "http_pass_rate": summary.get("http_pass_rate"),
+            "pytest_passed": summary.get("pytest_passed"),
+            "failure_analysis_count": int(
+                summary.get("failure_analysis_count") or 0
+            ),
+        },
+    }
+    if include_user:
+        item["user_id"] = str(task.user_id) if task.user_id else None
+        item["user_email"] = task.user.email if task.user else None
+    return item
+
+
+def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
+    payload = task.result_payload or state.get("result") or {}
+    execution = payload.get("execution") or {}
+    detail = {
+        **state,
+        "task": {
+            "id": str(task.id),
+            "title": task.title,
+            "requirement_text": task.requirement_text,
+            "status": task.status,
+            "stage": task.stage,
+            "progress": task.progress,
+            "created_at": task.created_at.isoformat() if task.created_at else None,
+            "updated_at": task.updated_at.isoformat() if task.updated_at else None,
+            "completed_at": task.completed_at.isoformat() if task.completed_at else None,
+            "error": task.error,
+        },
+        "requirements": payload.get("requirements") or [],
+        "test_cases": payload.get("test_cases") or [],
+        "review": payload.get("review") or {},
+        "rag": {"retrieved_context": payload.get("retrieved_context") or []},
+        "execution": {
+            "enabled": execution.get("enabled", False),
+            "summary": execution.get("summary") or {},
+            "executable_cases": execution.get("executable_cases") or [],
+            "http_results": execution.get("http_results") or [],
+            "pytest_result": execution.get("pytest_result"),
+        },
+        "failure_analysis": execution.get("failure_analysis") or [],
+        "warnings": [
+            *(payload.get("warnings") or []),
+            *(execution.get("warnings") or []),
+        ],
+        "errors": payload.get("errors") or [],
+        "raw_payload": payload,
+    }
+    # Preserve the Phase 4B response for existing polling and Workbench clients.
+    detail["result"] = payload or None
+    return detail
 
 
 Publisher = Callable[[list[Any], bool], str]
@@ -253,6 +323,27 @@ class TaskPersistenceService:
             return durable_state
         return live_state
 
+    def get_task_detail(
+        self,
+        session: Session,
+        task_id: str,
+        *,
+        user_id: uuid.UUID | None = None,
+        is_admin: bool = False,
+        allow_anonymous: bool = False,
+    ) -> dict[str, Any] | None:
+        state = self.get_task_state(
+            session,
+            task_id,
+            user_id=user_id,
+            is_admin=is_admin,
+            allow_anonymous=allow_anonymous,
+        )
+        if state is None:
+            return None
+        task = task_repository.get_task(session, uuid.UUID(task_id))
+        return task_to_detail(task, state) if task else None
+
     def list_task_states(
         self,
         session: Session,
@@ -261,15 +352,31 @@ class TaskPersistenceService:
         is_admin: bool,
         page: int,
         page_size: int,
-    ) -> list[dict[str, Any]]:
-        records = task_repository.list_tasks(
+        status: str | None = None,
+        created_from: datetime | None = None,
+        created_to: datetime | None = None,
+        keyword: str | None = None,
+    ) -> dict[str, Any]:
+        records, total = task_repository.search_tasks(
             session,
             user_id=user_id,
             include_all=is_admin,
             offset=(page - 1) * page_size,
             limit=page_size,
+            status=status,
+            created_from=created_from,
+            created_to=created_to,
+            keyword=keyword,
         )
-        return [task_to_projection(task) for task in records]
+        return {
+            "items": [
+                task_to_list_item(task, include_user=is_admin) for task in records
+            ],
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "pages": ceil(total / page_size) if total else 0,
+        }
 
     def _compensate_failure(
         self, session: Session, task_id: uuid.UUID, *, stage: str, error: BaseException

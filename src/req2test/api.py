@@ -6,6 +6,7 @@ import asyncio
 import base64
 import os
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,7 @@ from .db.services.task_persistence import (
 )
 from .db.session import database_is_ready, get_db
 from .demo_ui import render_demo_html
+from .task_ui import render_tasks_html
 from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
 from .readiness import rabbitmq_is_ready, redis_is_ready
@@ -80,6 +82,22 @@ def task_actor(
     return current_user
 
 
+def _web_user(request: Request, db: Session) -> UserORM | None:
+    token = request.cookies.get("req2test_access_token")
+    if not token:
+        return None
+    try:
+        payload = decode_access_token(token)
+        user = user_repository.get_user_by_id(db, uuid.UUID(payload["sub"]))
+    except (InvalidAccessToken, ValueError, TypeError):
+        return None
+    return user if user and user.is_active else None
+
+
+def _login_redirect(request: Request) -> RedirectResponse:
+    return RedirectResponse(url=f"/login?next={request.url.path}", status_code=307)
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     """Liveness: report only whether the FastAPI process can respond."""
@@ -111,19 +129,25 @@ def home_page() -> RedirectResponse:
 
 @app.get("/workbench", response_class=HTMLResponse)
 def workbench_page(request: Request, db: Session = Depends(get_db)):
-    token = request.cookies.get("req2test_access_token")
-    if not token:
-        return RedirectResponse(url="/login?next=/workbench", status_code=307)
-    try:
-        payload = decode_access_token(token)
-        user = user_repository.get_user_by_id(db, uuid.UUID(payload["sub"]))
-    except (InvalidAccessToken, ValueError, TypeError):
-        user = None
-    if user is None or not user.is_active:
-        response = RedirectResponse(url="/login?next=/workbench", status_code=307)
+    if _web_user(request, db) is None:
+        response = _login_redirect(request)
         response.delete_cookie("req2test_access_token", path="/")
         return response
     return render_demo_html("workbench")
+
+
+@app.get("/tasks", response_class=HTMLResponse)
+def tasks_page(request: Request, db: Session = Depends(get_db)):
+    if _web_user(request, db) is None:
+        return _login_redirect(request)
+    return render_tasks_html()
+
+
+@app.get("/tasks/{task_id}", response_class=HTMLResponse)
+def task_detail_page(task_id: uuid.UUID, request: Request, db: Session = Depends(get_db)):
+    if _web_user(request, db) is None:
+        return _login_redirect(request)
+    return render_tasks_html(str(task_id))
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -227,22 +251,28 @@ def create_task(
 def list_tasks(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    status: str | None = Query(default=None, pattern="^(queued|running|completed|failed)$"),
+    created_from: datetime | None = None,
+    created_to: datetime | None = None,
+    keyword: str | None = Query(default=None, max_length=255),
     db: Session = Depends(get_db),
     current_user: UserORM | None = Depends(task_actor),
 ):
     if current_user is None:
-        return {"items": [], "page": page, "page_size": page_size}
-    return {
-        "items": task_persistence.list_task_states(
-            db,
-            user_id=current_user.id,
-            is_admin=current_user.role == "admin",
-            page=page,
-            page_size=page_size,
-        ),
-        "page": page,
-        "page_size": page_size,
-    }
+        return {"items": [], "page": page, "page_size": page_size, "total": 0, "pages": 0}
+    if created_from and created_to and created_from > created_to:
+        raise HTTPException(status_code=422, detail="created_from must not exceed created_to")
+    return task_persistence.list_task_states(
+        db,
+        user_id=current_user.id,
+        is_admin=current_user.role == "admin",
+        page=page,
+        page_size=page_size,
+        status=status,
+        created_from=created_from,
+        created_to=created_to,
+        keyword=keyword,
+    )
 
 
 @app.get("/api/v1/tasks/{task_id}")
@@ -252,7 +282,7 @@ def get_task(
     current_user: UserORM | None = Depends(task_actor),
 ):
     try:
-        state = task_persistence.get_task_state(
+        state = task_persistence.get_task_detail(
             db,
             task_id,
             user_id=current_user.id if current_user else None,

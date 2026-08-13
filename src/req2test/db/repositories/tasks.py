@@ -6,8 +6,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import Select, select
-from sqlalchemy.orm import Session
+from sqlalchemy import Select, func, or_, select
+from sqlalchemy.orm import Session, selectinload
 
 from ..models import TaskORM
 
@@ -136,8 +136,48 @@ def list_tasks(
     offset: int = 0,
     limit: int = 50,
 ) -> list[TaskORM]:
+    records, _ = search_tasks(
+        session,
+        user_id=user_id,
+        include_all=include_all,
+        offset=offset,
+        limit=limit,
+    )
+    return records
+
+
+def search_tasks(
+    session: Session,
+    *,
+    user_id: uuid.UUID | None = None,
+    include_all: bool = False,
+    offset: int = 0,
+    limit: int = 50,
+    status: str | None = None,
+    created_from: datetime | None = None,
+    created_to: datetime | None = None,
+    keyword: str | None = None,
+) -> tuple[list[TaskORM], int]:
     statement: Select[tuple[TaskORM]] = select(TaskORM)
     if not include_all:
         statement = statement.where(TaskORM.user_id == user_id)
+    if status:
+        statement = statement.where(TaskORM.status == status)
+    if created_from:
+        statement = statement.where(TaskORM.created_at >= created_from)
+    if created_to:
+        statement = statement.where(TaskORM.created_at <= created_to)
+    if keyword and keyword.strip():
+        pattern = f"%{keyword.strip()}%"
+        statement = statement.where(
+            or_(TaskORM.title.ilike(pattern), TaskORM.requirement_text.ilike(pattern))
+        )
+    total = session.scalar(select(func.count()).select_from(statement.subquery())) or 0
+    if include_all:
+        statement = statement.options(selectinload(TaskORM.user))
     statement = statement.order_by(TaskORM.created_at.desc()).offset(offset).limit(limit)
-    return list(session.scalars(statement))
+    return list(session.scalars(statement)), int(total)
+
+
+def count_tasks(session: Session) -> int:
+    return int(session.scalar(select(func.count(TaskORM.id))) or 0)
