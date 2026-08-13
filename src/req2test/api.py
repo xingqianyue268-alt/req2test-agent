@@ -242,6 +242,28 @@ def demo_target_echo(payload: dict[str, Any]) -> dict[str, Any]:
     return {"status": "ok", "received": payload}
 
 
+@app.get("/demo-target/timeout")
+async def demo_target_timeout(delay_seconds: float = Query(default=1.25, ge=0.6, le=3.0)):
+    """Local-only deterministic latency fixture for Failure Analysis V2."""
+
+    await asyncio.sleep(delay_seconds)
+    return {"status": "late", "delay_seconds": delay_seconds}
+
+
+@app.get("/demo-target/protected")
+def demo_target_protected():
+    """Credential-free 401 fixture; it never accepts or logs real credentials."""
+
+    raise HTTPException(status_code=401, detail="Demo authentication required")
+
+
+@app.get("/demo-target/upstream-error")
+def demo_target_upstream_error():
+    """Deterministic target-service 500 fixture, distinct from platform exceptions."""
+
+    raise HTTPException(status_code=500, detail="Demo upstream service failure")
+
+
 @app.get("/demo", response_class=HTMLResponse)
 def demo_page() -> str:
     """Backward-compatible alias for the unified browser workbench."""

@@ -1,10 +1,13 @@
 """Regression tests for API-contract grouping, 422 attribution and demo UI."""
 
+from fastapi.testclient import TestClient
+
 from req2test.config import LLMSettings
 from req2test.demo_ui import DEMO_HTML
 from req2test.enhanced_nodes import analyse_demo_requirements
 from req2test.execution_models import ExecutionConfig, HttpExecutionResult
 from req2test.tool_calling import analyse_failures, extract_explicit_http_specs
+from req2test.api import app
 
 
 MULTILINE_CONTRACT = """
@@ -94,3 +97,14 @@ def test_demo_ui_contains_design_execution_dashboard_and_raw_json_fallback():
         "API 失败归因示例",
     ]:
         assert marker in DEMO_HTML
+
+
+def test_failure_v2_demo_target_fixtures_are_local_and_deterministic():
+    client = TestClient(app)
+    assert client.get("/demo-target/protected").status_code == 401
+    upstream = client.get("/demo-target/upstream-error")
+    assert upstream.status_code == 500
+    assert upstream.json()["detail"] == "Demo upstream service failure"
+    delayed = client.get("/demo-target/timeout?delay_seconds=0.6")
+    assert delayed.status_code == 200
+    assert delayed.json()["delay_seconds"] == 0.6

@@ -210,3 +210,16 @@ def test_large_nested_evidence_is_truncated_before_persistence():
     assert cleaned["response_excerpt"].endswith("…[truncated]")
     assert len(cleaned["events"]) == 51
     assert "items truncated" in cleaned["events"][-1]
+
+
+def test_evidence_overhead_measures_collection_work_not_elapsed_wall_time():
+    import time
+
+    collector = EvidenceCollector(_context())
+    time.sleep(0.02)
+    collector.add(
+        EvidenceType.SYSTEM,
+        stage="measurement",
+        summary="one bounded event",
+    )
+    assert collector.overhead_ms() < 10

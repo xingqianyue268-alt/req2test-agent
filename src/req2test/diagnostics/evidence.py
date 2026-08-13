@@ -165,7 +165,7 @@ class EvidenceCollector:
     def __init__(self, context: TraceContext) -> None:
         self.context = context
         self._items: list[FailureEvidence] = []
-        self._started = time.perf_counter()
+        self._overhead_seconds = 0.0
 
     @property
     def items(self) -> list[FailureEvidence]:
@@ -181,6 +181,7 @@ class EvidenceCollector:
         severity: EvidenceSeverity = EvidenceSeverity.INFO,
         context: TraceContext | None = None,
     ) -> FailureEvidence:
+        started = time.perf_counter()
         active = context or self.context
         item = FailureEvidence(
             trace_id=active.trace_id,
@@ -195,6 +196,7 @@ class EvidenceCollector:
             severity=severity,
         )
         self._items.append(item)
+        self._overhead_seconds += time.perf_counter() - started
         return item
 
     def collect_http(self, spec: HttpTestSpec, result: HttpExecutionResult) -> None:
@@ -395,4 +397,4 @@ class EvidenceCollector:
         return [item.model_dump(mode="json") for item in self._items]
 
     def overhead_ms(self) -> float:
-        return round((time.perf_counter() - self._started) * 1000, 3)
+        return round(self._overhead_seconds * 1000, 3)
