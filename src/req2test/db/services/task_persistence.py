@@ -16,7 +16,16 @@ from ..repositories import tasks as task_repository
 
 
 TERMINAL_STATUSES = {"completed", "failed"}
-SENSITIVE_KEY_PARTS = {"api_key", "authorization", "cookie", "password", "secret", "token"}
+SENSITIVE_KEY_PARTS = {
+    "api_key",
+    "authorization",
+    "cookie",
+    "credential",
+    "password",
+    "private_key",
+    "secret",
+    "token",
+}
 
 
 class TaskPersistenceError(RuntimeError):
@@ -43,8 +52,12 @@ def _is_sensitive_key(key: Any) -> bool:
     normalized = _normalized_key(key)
     if normalized in SENSITIVE_KEY_PARTS:
         return True
+    if "api_key" in normalized or "private_key" in normalized:
+        return True
     parts = set(normalized.split("_"))
-    return bool(parts & {"authorization", "cookie", "password", "secret", "token"})
+    return bool(
+        parts & {"authorization", "cookie", "credential", "password", "secret", "token"}
+    )
 
 
 def sanitize_config(value: Any) -> Any:
@@ -76,7 +89,8 @@ def safe_error_summary(error: BaseException) -> str:
     summary = str(error).replace("\n", " ").strip() or error.__class__.__name__
     summary = re.sub(r"://[^/@\s]+:[^/@\s]+@", "://***:***@", summary)
     summary = re.sub(
-        r"(?i)(api[_-]?key|authorization|cookie|password|secret|token)\s*[=:]\s*[^\s,;]+",
+        r"(?i)(api[_-]?key|authorization|cookie|credential|password|"
+        r"private[_-]?(?:credential|key)|secret|token)\s*[=:]\s*[^\s,;]+",
         r"\1=***",
         summary,
     )
