@@ -8,6 +8,13 @@ from .evidence import (
     TraceContext,
     sanitize_evidence,
 )
+from .classifier import (
+    DiagnosisConfidence,
+    FailureAnalysisV2,
+    FailureDiagnosis,
+    RootCauseCategory,
+    classify_failures,
+)
 
 __all__ = [
     "EvidenceCollector",
@@ -16,4 +23,9 @@ __all__ = [
     "FailureEvidence",
     "TraceContext",
     "sanitize_evidence",
+    "DiagnosisConfidence",
+    "FailureAnalysisV2",
+    "FailureDiagnosis",
+    "RootCauseCategory",
+    "classify_failures",
 ]

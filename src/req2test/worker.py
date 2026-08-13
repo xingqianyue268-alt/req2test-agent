@@ -228,16 +228,18 @@ def generate_test_cases(
                     llm_settings=settings,
                     config=execution,
                     trace_context=trace_context,
+                    initial_evidence=evidence.dump(),
                 )
-                evidence.collect_worker(
+                finish_evidence = EvidenceCollector(trace_context)
+                finish_evidence.collect_worker(
                     event="finished",
                     stage="execution_completed",
                     retry_count=int(getattr(self.request, "retries", 0) or 0),
                 )
-                execution_report.diagnostic_evidence.extend(evidence.dump())
+                execution_report.diagnostic_evidence.extend(finish_evidence.dump())
                 execution_report.evidence_collection_overhead_ms = round(
                     execution_report.evidence_collection_overhead_ms
-                    + evidence.overhead_ms(),
+                    + finish_evidence.overhead_ms(),
                     3,
                 )
                 payload["execution"] = execution_report.model_dump()

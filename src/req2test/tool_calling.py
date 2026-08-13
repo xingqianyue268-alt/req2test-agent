@@ -24,6 +24,7 @@ from .execution_models import (
 )
 from .http_tool import HttpApiTestTool
 from .diagnostics.evidence import EvidenceCollector, TraceContext
+from .diagnostics.classifier import classify_failures
 from .llm import build_chat_model, invoke_json
 from .models import WorkflowResult
 from .pytest_runner import PytestRunnerTool
@@ -417,5 +418,16 @@ def execute_with_tools(
         "failure_analysis_count": len(report.failure_analysis),
     }
     report.diagnostic_evidence.extend(collector.dump())
+    analysis_v2 = classify_failures(
+        report.diagnostic_evidence,
+        trace_id=context.trace_id,
+    )
+    report.failure_analysis_v2 = analysis_v2.model_dump(mode="json")
+    report.summary.update(
+        {
+            "primary_failure_category": analysis_v2.summary.primary_failure_category,
+            "failure_category_counts": analysis_v2.summary.category_distribution,
+        }
+    )
     report.evidence_collection_overhead_ms = collector.overhead_ms()
     return report

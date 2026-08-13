@@ -131,3 +131,4 @@ class ExecutionReport(BaseModel):
     trace_id: str | None = None
     diagnostic_evidence: list[dict[str, Any]] = Field(default_factory=list)
     evidence_collection_overhead_ms: float = 0.0
+    failure_analysis_v2: dict[str, Any] = Field(default_factory=dict)
