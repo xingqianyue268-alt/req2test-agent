@@ -77,6 +77,9 @@ class HttpExecutionResult(BaseModel):
     duration_ms: float | None = None
     failures: list[str] = Field(default_factory=list)
     response_excerpt: str = ""
+    response_content_type: str | None = None
+    validation_error: str | None = None
+    timed_out: bool = False
     error: str | None = None
 
 
@@ -125,3 +128,7 @@ class ExecutionReport(BaseModel):
     failure_analysis: list[FailureAnalysis] = Field(default_factory=list)
     summary: dict[str, Any] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
+    trace_id: str | None = None
+    diagnostic_evidence: list[dict[str, Any]] = Field(default_factory=list)
+    evidence_collection_overhead_ms: float = 0.0
+    failure_analysis_v2: dict[str, Any] = Field(default_factory=dict)

@@ -8,10 +8,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .config import GenerationConfig, LLMSettings
-from .document_loader import load_document
-from .exporters import to_csv_bytes, to_json_text, to_markdown
-from .graph import run_workflow
+from ..config import GenerationConfig, LLMSettings
+from ..document_loader import load_document
+from ..exporters import to_csv_bytes, to_json_text, to_markdown
+from ..graph import run_workflow
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -19,7 +19,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("input", help="需求文件路径，支持 txt/md/docx/pdf")
     parser.add_argument("--mode", choices=["demo", "openai_compatible"], default="demo")
     parser.add_argument("--model", default=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))
-    parser.add_argument("--base-url", default=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"))
+    parser.add_argument(
+        "--base-url", default=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+    )
     parser.add_argument("--api-key", default=os.getenv("OPENAI_API_KEY", ""))
     parser.add_argument("--max-cases", type=int, default=12)
     parser.add_argument("--positive-only", action="store_true")
@@ -57,7 +59,3 @@ def main() -> None:
         print("运行提示：")
         for error in result.errors:
             print(f"- {error}")
-
-
-if __name__ == "__main__":
-    main()

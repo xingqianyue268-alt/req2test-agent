@@ -203,13 +203,38 @@ class ChromaKnowledgeBase:
                     "text": text or "",
                     "metadata": metadata or {},
                     "distance": distance,
-                    "similarity": None if distance is None else max(0.0, 1.0 - float(distance)),
+                    # Chroma's default squared-L2 distance over normalized vectors
+                    # maps back to cosine similarity as 1 - distance / 2.
+                    "similarity": None
+                    if distance is None
+                    else max(0.0, min(1.0, 1.0 - float(distance) / 2.0)),
                 }
             )
         return output
 
     def count(self) -> int:
         return self.collection.count()
+
+    def get(self, document_id: str) -> dict[str, Any] | None:
+        result = self.collection.get(
+            ids=[document_id], include=["documents", "metadatas"]
+        )
+        ids = result.get("ids", [])
+        if not ids:
+            return None
+        documents = result.get("documents") or []
+        metadatas = result.get("metadatas") or []
+        return {
+            "document_id": ids[0],
+            "text": documents[0] if documents else "",
+            "metadata": metadatas[0] if metadatas else {},
+        }
+
+    def delete(self, document_id: str) -> None:
+        self.collection.delete(ids=[document_id])
+
+    def delete_where(self, metadata_key: str, value: str) -> None:
+        self.collection.delete(where={metadata_key: value})
 
     def stats(self) -> dict[str, Any]:
         return {
@@ -250,6 +275,4 @@ def get_default_knowledge_base() -> ChromaKnowledgeBase:
     if not persist_directory.is_absolute():
         persist_directory = Path.cwd() / persist_directory
     collection_name = os.getenv("REQ2TEST_CHROMA_COLLECTION", "req2test_knowledge")
-    knowledge_base = ChromaKnowledgeBase(persist_directory, collection_name=collection_name)
-    knowledge_base.seed_default_documents(force=False)
-    return knowledge_base
+    return ChromaKnowledgeBase(persist_directory, collection_name=collection_name)

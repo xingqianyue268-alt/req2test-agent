@@ -1,0 +1,227 @@
+"""SQLAlchemy repository for the Task aggregate."""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timezone
+from typing import Any
+
+from sqlalchemy import Select, func, or_, select
+from sqlalchemy.orm import Session, selectinload
+
+from ..models import TaskORM
+
+
+def create_task(session: Session, **values: Any) -> TaskORM:
+    task = TaskORM(**values)
+    session.add(task)
+    session.flush()
+    return task
+
+
+def get_task(session: Session, task_id: uuid.UUID) -> TaskORM | None:
+    return session.get(TaskORM, task_id)
+
+
+def get_task_for_update(session: Session, task_id: uuid.UUID) -> TaskORM | None:
+    statement = select(TaskORM).where(TaskORM.id == task_id).with_for_update()
+    return session.scalar(statement)
+
+
+def set_celery_task_id(session: Session, task_id: uuid.UUID, celery_task_id: str) -> TaskORM:
+    task = get_task_for_update(session, task_id)
+    if task is None:
+        raise LookupError(f"Task {task_id} does not exist")
+    if task.celery_task_id and task.celery_task_id != celery_task_id:
+        raise ValueError(
+            f"Task {task_id} belongs to Celery delivery {task.celery_task_id}, "
+            f"not {celery_task_id}"
+        )
+    if task.celery_task_id == celery_task_id:
+        return task
+    task.celery_task_id = celery_task_id
+    task.state_version += 1
+    session.flush()
+    return task
+
+
+def bind_worker_delivery(
+    session: Session, task_id: uuid.UUID, celery_task_id: str
+) -> tuple[TaskORM, bool]:
+    """Self-heal a missing Celery id, while rejecting a conflicting delivery."""
+
+    task = get_task_for_update(session, task_id)
+    if task is None:
+        raise LookupError(f"Task {task_id} does not exist")
+    if task.celery_task_id and task.celery_task_id != celery_task_id:
+        raise ValueError(
+            f"Task {task_id} belongs to Celery delivery {task.celery_task_id}, "
+            f"not {celery_task_id}"
+        )
+    if task.celery_task_id == celery_task_id:
+        return task, False
+    task.celery_task_id = celery_task_id
+    task.state_version += 1
+    session.flush()
+    return task, True
+
+
+def claim_worker_attempt(
+    session: Session,
+    task_id: uuid.UUID,
+    celery_task_id: str,
+    retry_count: int,
+) -> tuple[TaskORM, bool]:
+    """Claim one real execution attempt using the existing Task row lock and version."""
+
+    task = get_task_for_update(session, task_id)
+    if task is None:
+        raise LookupError(f"Task {task_id} does not exist")
+    if task.celery_task_id != celery_task_id:
+        raise ValueError(
+            f"Task {task_id} belongs to Celery delivery {task.celery_task_id}, "
+            f"not {celery_task_id}"
+        )
+    if task.status in {"completed", "failed"}:
+        return task, False
+
+    summary = dict(task.result_summary or {})
+    reliability = dict(summary.get("task_reliability") or {})
+    active_retry = reliability.get("active_retry_count")
+    if active_retry is not None and int(active_retry) >= retry_count:
+        return task, False
+
+    reliability.update(
+        {
+            "retry_count": retry_count,
+            "active_retry_count": retry_count,
+            "max_retries": reliability.get("max_retries", 3),
+            "dead_lettered": False,
+        }
+    )
+    summary["task_reliability"] = reliability
+    task.status = "running"
+    task.stage = "worker_start"
+    task.progress = max(task.progress, 5)
+    task.error = None
+    task.result_summary = summary
+    task.state_version += 1
+    session.flush()
+    return task, True
+
+
+def update_task_state(
+    session: Session,
+    task_id: uuid.UUID,
+    *,
+    status: str,
+    stage: str,
+    progress: int | None = None,
+    error: str | None = None,
+    result_summary: dict[str, Any] | None = None,
+    result_payload: dict[str, Any] | None = None,
+    completed_at: datetime | None = None,
+) -> TaskORM:
+    task = get_task_for_update(session, task_id)
+    if task is None:
+        raise LookupError(f"Task {task_id} does not exist")
+    if task.status in {"completed", "failed"}:
+        return task
+    task.status = status
+    task.stage = stage
+    if progress is not None:
+        task.progress = progress
+    task.error = error
+    if result_summary is not None:
+        task.result_summary = result_summary
+    if result_payload is not None:
+        task.result_payload = result_payload
+    if completed_at is not None:
+        task.completed_at = completed_at
+    task.state_version += 1
+    session.flush()
+    return task
+
+
+def finalize_task(
+    session: Session,
+    task_id: uuid.UUID,
+    *,
+    status: str,
+    stage: str,
+    progress: int,
+    result_summary: dict[str, Any],
+    result_payload: dict[str, Any],
+    error: str | None = None,
+) -> TaskORM:
+    task = update_task_state(
+        session,
+        task_id,
+        status=status,
+        stage=stage,
+        progress=progress,
+        result_summary=result_summary,
+        result_payload=result_payload,
+        error=error,
+        completed_at=datetime.now(timezone.utc),
+    )
+    # ``updated_at`` is generated by PostgreSQL on UPDATE. Load all terminal
+    # values before the transaction-scoped Session closes so the Worker can
+    # safely build the Redis projection after the durable commit.
+    session.refresh(task)
+    return task
+
+
+def list_tasks(
+    session: Session,
+    *,
+    user_id: uuid.UUID | None = None,
+    include_all: bool = False,
+    offset: int = 0,
+    limit: int = 50,
+) -> list[TaskORM]:
+    records, _ = search_tasks(
+        session,
+        user_id=user_id,
+        include_all=include_all,
+        offset=offset,
+        limit=limit,
+    )
+    return records
+
+
+def search_tasks(
+    session: Session,
+    *,
+    user_id: uuid.UUID | None = None,
+    include_all: bool = False,
+    offset: int = 0,
+    limit: int = 50,
+    status: str | None = None,
+    created_from: datetime | None = None,
+    created_to: datetime | None = None,
+    keyword: str | None = None,
+) -> tuple[list[TaskORM], int]:
+    statement: Select[tuple[TaskORM]] = select(TaskORM)
+    if not include_all:
+        statement = statement.where(TaskORM.user_id == user_id)
+    if status:
+        statement = statement.where(TaskORM.status == status)
+    if created_from:
+        statement = statement.where(TaskORM.created_at >= created_from)
+    if created_to:
+        statement = statement.where(TaskORM.created_at <= created_to)
+    if keyword and keyword.strip():
+        pattern = f"%{keyword.strip()}%"
+        statement = statement.where(
+            or_(TaskORM.title.ilike(pattern), TaskORM.requirement_text.ilike(pattern))
+        )
+    total = session.scalar(select(func.count()).select_from(statement.subquery())) or 0
+    if include_all:
+        statement = statement.options(selectinload(TaskORM.user))
+    statement = statement.order_by(TaskORM.created_at.desc()).offset(offset).limit(limit)
+    return list(session.scalars(statement)), int(total)
+
+
+def count_tasks(session: Session) -> int:
+    return int(session.scalar(select(func.count(TaskORM.id))) or 0)

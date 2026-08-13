@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.7
 FROM python:3.11-slim
 
+ARG PIP_INDEX_URL
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -20,7 +22,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # install resolves no dependencies, so normal source changes are fast to rebuild.
 COPY pyproject.toml README.md ./
 COPY src ./src
+COPY alembic.ini ./
+COPY alembic ./alembic
 COPY knowledge ./knowledge
+COPY knowledge_seed ./knowledge_seed
 COPY samples ./samples
 RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install --no-build-isolation --no-deps .
