@@ -7,24 +7,45 @@ import base64
 import os
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from .config import GenerationConfig, LLMSettings
-from .db.session import database_is_ready
+from .db.services.task_persistence import (
+    DatabasePersistenceError,
+    LiveProjectionUnavailable,
+    TaskDispatchError,
+    TaskPersistenceService,
+)
+from .db.session import database_is_ready, get_db
 from .demo_ui import render_demo_html
 from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
+from .readiness import rabbitmq_is_ready, redis_is_ready
 from .task_store import task_store
 from .worker import generate_test_cases
 
 app = FastAPI(title="Req2Test Agent API", version="0.4.0")
 
 
+def _publish_task(task_args: list[Any], eager: bool) -> str:
+    result = (
+        generate_test_cases.apply(args=task_args)
+        if eager
+        else generate_test_cases.delay(*task_args)
+    )
+    return str(result.id or task_args[0])
+
+
+task_persistence = TaskPersistenceService(task_store, _publish_task)
+
+
 class TaskCreateRequest(BaseModel):
+    title: str | None = None
     requirement_text: str = Field(min_length=1)
     llm_settings: LLMSettings = Field(default_factory=LLMSettings)
     generation_config: GenerationConfig = Field(default_factory=GenerationConfig)
@@ -40,19 +61,22 @@ class DocumentParseRequest(BaseModel):
 def health() -> dict[str, str]:
     """Liveness: report only whether the FastAPI process can respond."""
 
-    return {"status": "ok"}
+    return {"status": "ok", "task_store": task_store.backend}
 
 
 @app.get("/ready")
 def ready() -> dict[str, Any]:
-    """Readiness foundation; Redis and RabbitMQ checks follow in task integration."""
+    """Report whether every dependency required for new asynchronous tasks is ready."""
 
-    if not database_is_ready():
-        raise HTTPException(
-            status_code=503,
-            detail={"status": "not_ready", "checks": {"database": "down"}},
-        )
-    return {"status": "ready", "checks": {"database": "ready"}}
+    checks = {
+        "database": "ok" if database_is_ready() else "down",
+        "redis": "ok" if redis_is_ready(task_store) else "down",
+        "rabbitmq": "ok" if rabbitmq_is_ready() else "down",
+    }
+    payload = {"ready": all(value == "ok" for value in checks.values()), "checks": checks}
+    if not payload["ready"]:
+        raise HTTPException(status_code=503, detail=payload)
+    return payload
 
 
 @app.get("/", include_in_schema=False)
@@ -125,29 +149,22 @@ def parse_document(request: DocumentParseRequest) -> dict[str, Any]:
 
 
 @app.post("/api/v1/tasks", status_code=202)
-def create_task(request: TaskCreateRequest) -> dict[str, str]:
-    task_id = str(uuid4())
-    task_store.create(
-        task_id,
-        payload={
-            "source": "api",
-            "execution_enabled": request.execution_config.enabled,
-        },
-    )
-
-    task_args = [
-        task_id,
-        request.requirement_text,
-        request.llm_settings.model_dump(),
-        request.generation_config.model_dump(),
-        request.execution_config.model_dump(),
-    ]
+def create_task(request: TaskCreateRequest, db: Session = Depends(get_db)) -> dict[str, str]:
     eager = os.getenv("REQ2TEST_EAGER_TASKS", "false").lower() in {"1", "true", "yes"}
-    if eager:
-        generate_test_cases.apply(args=task_args)
-    else:
-        async_result = generate_test_cases.delay(*task_args)
-        task_store.update(task_id, celery_task_id=async_result.id)
+    try:
+        task = task_persistence.create_and_dispatch(
+            db,
+            requirement_text=request.requirement_text,
+            title=request.title,
+            llm_settings=request.llm_settings.model_dump(),
+            generation_config=request.generation_config.model_dump(),
+            execution_config=request.execution_config.model_dump(),
+            eager=eager,
+        )
+    except (DatabasePersistenceError, LiveProjectionUnavailable, TaskDispatchError) as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    task_id = str(task.id)
 
     return {
         "task_id": task_id,
@@ -157,8 +174,11 @@ def create_task(request: TaskCreateRequest) -> dict[str, str]:
 
 
 @app.get("/api/v1/tasks/{task_id}")
-def get_task(task_id: str):
-    state = task_store.get(task_id)
+def get_task(task_id: str, db: Session = Depends(get_db)):
+    try:
+        state = task_persistence.get_task_state(db, task_id)
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail="PostgreSQL task lookup failed") from exc
     if state is None:
         raise HTTPException(status_code=404, detail="任务不存在")
     return state

@@ -65,7 +65,12 @@ def schema_connection(postgres_engine: Engine, migrated_schema: str) -> Iterator
 @pytest.fixture()
 def db_session(schema_connection: Connection) -> Iterator[Session]:
     transaction = schema_connection.begin()
-    session = Session(bind=schema_connection, autoflush=False, expire_on_commit=False)
+    session = Session(
+        bind=schema_connection,
+        autoflush=False,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
+    )
     try:
         yield session
     finally:

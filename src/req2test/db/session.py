@@ -37,6 +37,16 @@ def session_scope() -> Iterator[Session]:
         session.close()
 
 
+def get_db() -> Iterator[Session]:
+    """Yield one synchronous Session for a FastAPI request."""
+
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
 def database_is_ready() -> bool:
     """Return whether the configured PostgreSQL database accepts a trivial query."""
 

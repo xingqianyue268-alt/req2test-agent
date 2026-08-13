@@ -19,6 +19,7 @@ venv/
 # Generated outputs and local vector database
 output/
 .req2test/
+artifacts/
 
 # IDE and operating system files
 .DS_Store

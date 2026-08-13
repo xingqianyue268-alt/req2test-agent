@@ -59,6 +59,7 @@ services:
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       REQ2TEST_MODE: demo
+      REQ2TEST_ENV: production
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-req2test}:${POSTGRES_PASSWORD:-req2test_dev}@postgres:5432/${POSTGRES_DB:-req2test}
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
@@ -83,6 +84,7 @@ services:
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       REQ2TEST_MODE: demo
+      REQ2TEST_ENV: production
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-req2test}:${POSTGRES_PASSWORD:-req2test_dev}@postgres:5432/${POSTGRES_DB:-req2test}
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
