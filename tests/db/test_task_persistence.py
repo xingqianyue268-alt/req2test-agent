@@ -139,10 +139,10 @@ def test_get_redis_hit_miss_stale_and_terminal_database_priority(db_session):
     live = store.get(task_id)
     live["message"] = "live redis"
     store.set(task_id, live)
-    assert service.get_task_state(db_session, task_id)["message"] == "live redis"
+    assert service.get_task_state(db_session, task_id, allow_anonymous=True)["message"] == "live redis"
 
     store._memory.pop(task_id)
-    fallback = service.get_task_state(db_session, task_id)
+    fallback = service.get_task_state(db_session, task_id, allow_anonymous=True)
     assert fallback["task_id"] == task_id
     assert store.get(task_id)["state_version"] == task.state_version
 
@@ -150,7 +150,7 @@ def test_get_redis_hit_miss_stale_and_terminal_database_priority(db_session):
     stale["state_version"] = 1
     stale["stage"] = "old"
     store.set(task_id, stale)
-    assert service.get_task_state(db_session, task_id)["stage"] == "queued"
+    assert service.get_task_state(db_session, task_id, allow_anonymous=True)["stage"] == "queued"
 
     terminal = update_task_state(
         db_session, task.id, status="failed", stage="dispatch_failed", error="down"
@@ -159,6 +159,6 @@ def test_get_redis_hit_miss_stale_and_terminal_database_priority(db_session):
     running = task_to_projection(terminal)
     running.update(status="running", stage="started", state_version=999)
     store.set(task_id, running)
-    result = service.get_task_state(db_session, task_id)
+    result = service.get_task_state(db_session, task_id, allow_anonymous=True)
     assert result["status"] == "failed"
     assert result["stage"] == "dispatch_failed"

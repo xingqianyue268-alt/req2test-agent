@@ -64,6 +64,18 @@ def test_progress_check_constraint(db_session):
         db_session.flush()
 
 
+def test_user_role_check_constraint(db_session):
+    with pytest.raises(IntegrityError), db_session.begin_nested():
+        db_session.add(
+            UserORM(
+                email="invalid-role@example.com",
+                password_hash="not-used",
+                role="owner",
+            )
+        )
+        db_session.flush()
+
+
 def test_required_unique_constraints(db_session):
     user_a = UserORM(email="team@example.com", password_hash="hash-a")
     user_b = UserORM(email="team@example.com", password_hash="hash-b")

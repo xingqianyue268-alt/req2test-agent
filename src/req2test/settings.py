@@ -28,9 +28,33 @@ class Settings:
     db_pool_size: int
     db_max_overflow: int
     db_pool_timeout: int
+    environment: str
+    jwt_secret_key: str
+    jwt_algorithm: str
+    jwt_access_token_expire_minutes: int
+    allow_anonymous_demo: bool
+    auth_cookie_secure: bool
 
     @classmethod
     def from_env(cls) -> "Settings":
+        environment = os.getenv("REQ2TEST_ENV", "local").strip().lower()
+        jwt_secret = os.getenv(
+            "JWT_SECRET_KEY", "development-only-change-me-before-production"
+        )
+        dangerous_secrets = {
+            "",
+            "changeme",
+            "secret",
+            "development-only-change-me-before-production",
+            "replace-with-a-random-production-secret",
+        }
+        if environment == "production" and jwt_secret.strip().lower() in dangerous_secrets:
+            raise ValueError("JWT_SECRET_KEY must be set to a secure unique value in production")
+        if environment == "production" and len(jwt_secret.strip()) < 32:
+            raise ValueError("JWT_SECRET_KEY must contain at least 32 characters in production")
+        algorithm = os.getenv("JWT_ALGORITHM", "HS256").strip().upper()
+        if algorithm not in {"HS256", "HS384", "HS512"}:
+            raise ValueError("JWT_ALGORITHM must be HS256, HS384, or HS512")
         return cls(
             database_url=os.getenv(
                 "DATABASE_URL",
@@ -39,6 +63,18 @@ class Settings:
             db_pool_size=_positive_int("DB_POOL_SIZE", 5),
             db_max_overflow=_positive_int("DB_MAX_OVERFLOW", 10, allow_zero=True),
             db_pool_timeout=_positive_int("DB_POOL_TIMEOUT", 30),
+            environment=environment,
+            jwt_secret_key=jwt_secret,
+            jwt_algorithm=algorithm,
+            jwt_access_token_expire_minutes=_positive_int(
+                "JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 30
+            ),
+            allow_anonymous_demo=os.getenv("ALLOW_ANONYMOUS_DEMO", "false").lower()
+            in {"1", "true", "yes"},
+            auth_cookie_secure=os.getenv(
+                "AUTH_COOKIE_SECURE", "true" if environment == "production" else "false"
+            ).lower()
+            in {"1", "true", "yes"},
         )
 
 

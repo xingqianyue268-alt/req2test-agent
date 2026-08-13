@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import OperationalError
@@ -17,6 +18,7 @@ def _client_with_session(db_session):
         yield db_session
 
     api_module.app.dependency_overrides[get_db] = override_db
+    api_module.app.dependency_overrides[api_module.task_actor] = lambda: None
     return TestClient(api_module.app)
 
 
@@ -61,6 +63,11 @@ def test_get_redis_miss_falls_back_to_postgres(db_session, monkeypatch):
     )
     store._memory.clear()
     monkeypatch.setattr(api_module, "task_persistence", service)
+    monkeypatch.setattr(
+        api_module,
+        "get_settings",
+        lambda: SimpleNamespace(allow_anonymous_demo=True),
+    )
     client = _client_with_session(db_session)
     try:
         response = client.get(f"/api/v1/tasks/{task.id}")
@@ -99,6 +106,7 @@ def test_post_database_failure_does_not_write_redis_or_publish(monkeypatch):
         yield _BrokenSession()
 
     api_module.app.dependency_overrides[get_db] = broken_db
+    api_module.app.dependency_overrides[api_module.task_actor] = lambda: None
     try:
         response = TestClient(api_module.app).post(
             "/api/v1/tasks", json={"requirement_text": "DB failure"}

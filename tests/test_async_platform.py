@@ -6,7 +6,9 @@ from req2test.task_store import TaskStore, TaskStoreUnavailable
 
 
 def test_task_store_falls_back_to_memory():
-    store = TaskStore(redis_url="redis://127.0.0.1:1/0")
+    store = TaskStore(
+        redis_url="redis://127.0.0.1:1/0", allow_memory_fallback=True
+    )
     state = store.create("task-1")
     assert state["status"] == "queued"
     updated = store.update("task-1", status="running", progress=35)

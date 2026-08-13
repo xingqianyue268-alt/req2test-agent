@@ -16,12 +16,13 @@ def test_root_redirects_to_real_workbench_route():
 
 
 def test_real_product_routes_share_shell_and_render_only_their_page():
-    workbench = client.get("/workbench")
+    protected = client.get("/workbench", follow_redirects=False)
+    assert protected.status_code == 307
+    assert protected.headers["location"] == "/login?next=/workbench"
+    workbench = client.get("/demo")
     workflow = client.get("/workflow")
     system = client.get("/system")
-    demo = client.get("/demo")
-    assert [response.status_code for response in (workbench, workflow, system, demo)] == [
-        200,
+    assert [response.status_code for response in (workbench, workflow, system)] == [
         200,
         200,
         200,
@@ -59,7 +60,7 @@ def test_real_product_routes_share_shell_and_render_only_their_page():
 
 
 def test_workbench_preserves_existing_generation_and_result_features():
-    root = client.get("/workbench")
+    root = client.get("/demo")
     for marker in [
         "FROM",
         "REQUIREMENT",
@@ -85,6 +86,19 @@ def test_workbench_preserves_existing_generation_and_result_features():
         assert marker in DEMO_HTML
 
     assert render_demo_html("workbench") == DEMO_HTML
+
+
+def test_login_and_register_pages_match_editorial_auth_experience():
+    login = client.get("/login")
+    register = client.get("/register")
+    assert login.status_code == register.status_code == 200
+    assert "WELCOME\nBACK." in login.text
+    assert "LOGIN / 登录" in login.text
+    assert "CREATE ACCOUNT / 注册账户" in login.text
+    assert "CREATE\nACCOUNT." in register.text
+    assert "CONFIRM PASSWORD" in register.text
+    assert "localStorage" not in login.text
+    assert "req2test_access_token" not in login.text
 
 
 def test_parse_text_document_for_workbench():

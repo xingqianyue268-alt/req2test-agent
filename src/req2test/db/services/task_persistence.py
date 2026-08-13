@@ -142,12 +142,14 @@ class TaskPersistenceService:
         generation_config: dict[str, Any],
         execution_config: dict[str, Any],
         eager: bool,
+        user_id: uuid.UUID | None = None,
     ) -> TaskORM:
         task_id = uuid.uuid4()
         try:
             task = task_repository.create_task(
                 session,
                 id=task_id,
+                user_id=user_id,
                 title=generate_task_title(requirement_text, title),
                 requirement_text=requirement_text,
                 status="queued",
@@ -212,7 +214,15 @@ class TaskPersistenceService:
             pass
         return task
 
-    def get_task_state(self, session: Session, task_id: str) -> dict[str, Any] | None:
+    def get_task_state(
+        self,
+        session: Session,
+        task_id: str,
+        *,
+        user_id: uuid.UUID | None = None,
+        is_admin: bool = False,
+        allow_anonymous: bool = False,
+    ) -> dict[str, Any] | None:
         try:
             parsed_id = uuid.UUID(task_id)
         except ValueError:
@@ -226,6 +236,10 @@ class TaskPersistenceService:
         task = task_repository.get_task(session, parsed_id)
         if task is None:
             return None
+        owns_task = user_id is not None and task.user_id == user_id
+        anonymous_task = allow_anonymous and user_id is None and task.user_id is None
+        if not (is_admin or owns_task or anonymous_task):
+            return None
 
         durable_state = task_to_projection(task)
         if live_state is None:
@@ -238,6 +252,24 @@ class TaskPersistenceService:
             self._best_effort_rebuild(task_id, durable_state)
             return durable_state
         return live_state
+
+    def list_task_states(
+        self,
+        session: Session,
+        *,
+        user_id: uuid.UUID,
+        is_admin: bool,
+        page: int,
+        page_size: int,
+    ) -> list[dict[str, Any]]:
+        records = task_repository.list_tasks(
+            session,
+            user_id=user_id,
+            include_all=is_admin,
+            offset=(page - 1) * page_size,
+            limit=page_size,
+        )
+        return [task_to_projection(task) for task in records]
 
     def _compensate_failure(
         self, session: Session, task_id: uuid.UUID, *, stage: str, error: BaseException

@@ -324,7 +324,7 @@ def test_terminal_redis_miss_restores_full_postgres_payload(db_session):
     db_session.commit()
     store = TaskStore(redis_url="redis://127.0.0.1:1/0", allow_memory_fallback=True)
     read_service = TaskPersistenceService(store, lambda args, eager: "unused")
-    state = read_service.get_task_state(db_session, str(task.id))
+    state = read_service.get_task_state(db_session, str(task.id), allow_anonymous=True)
     assert state["status"] == "completed"
     assert state["result"]["test_cases"][0]["case_id"] == "TC-001"
     assert store.get(str(task.id))["result"] == state["result"]

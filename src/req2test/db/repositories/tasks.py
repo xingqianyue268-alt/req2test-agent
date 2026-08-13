@@ -128,8 +128,16 @@ def finalize_task(
     return task
 
 
-def list_tasks(session: Session, *, offset: int = 0, limit: int = 50) -> list[TaskORM]:
-    statement: Select[tuple[TaskORM]] = (
-        select(TaskORM).order_by(TaskORM.created_at.desc()).offset(offset).limit(limit)
-    )
+def list_tasks(
+    session: Session,
+    *,
+    user_id: uuid.UUID | None = None,
+    include_all: bool = False,
+    offset: int = 0,
+    limit: int = 50,
+) -> list[TaskORM]:
+    statement: Select[tuple[TaskORM]] = select(TaskORM)
+    if not include_all:
+        statement = statement.where(TaskORM.user_id == user_id)
+    statement = statement.order_by(TaskORM.created_at.desc()).offset(offset).limit(limit)
     return list(session.scalars(statement))

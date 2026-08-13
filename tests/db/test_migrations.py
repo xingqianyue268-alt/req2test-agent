@@ -28,6 +28,8 @@ def test_migration_created_tables_constraints_and_foreign_keys(
 
     task_checks = {item["name"] for item in inspector.get_check_constraints("tasks")}
     assert "ck_tasks_progress_range" in task_checks
+    user_checks = {item["name"] for item in inspector.get_check_constraints("users")}
+    assert "ck_users_role_allowed" in user_checks
 
     task_indexes = {item["name"]: item for item in inspector.get_indexes("tasks")}
     assert task_indexes["uq_tasks_celery_task_id_not_null"]["unique"] is True
