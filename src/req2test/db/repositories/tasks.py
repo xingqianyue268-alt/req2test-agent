@@ -66,6 +66,50 @@ def bind_worker_delivery(
     return task, True
 
 
+def claim_worker_attempt(
+    session: Session,
+    task_id: uuid.UUID,
+    celery_task_id: str,
+    retry_count: int,
+) -> tuple[TaskORM, bool]:
+    """Claim one real execution attempt using the existing Task row lock and version."""
+
+    task = get_task_for_update(session, task_id)
+    if task is None:
+        raise LookupError(f"Task {task_id} does not exist")
+    if task.celery_task_id != celery_task_id:
+        raise ValueError(
+            f"Task {task_id} belongs to Celery delivery {task.celery_task_id}, "
+            f"not {celery_task_id}"
+        )
+    if task.status in {"completed", "failed"}:
+        return task, False
+
+    summary = dict(task.result_summary or {})
+    reliability = dict(summary.get("task_reliability") or {})
+    active_retry = reliability.get("active_retry_count")
+    if active_retry is not None and int(active_retry) >= retry_count:
+        return task, False
+
+    reliability.update(
+        {
+            "retry_count": retry_count,
+            "active_retry_count": retry_count,
+            "max_retries": reliability.get("max_retries", 3),
+            "dead_lettered": False,
+        }
+    )
+    summary["task_reliability"] = reliability
+    task.status = "running"
+    task.stage = "worker_start"
+    task.progress = max(task.progress, 5)
+    task.error = None
+    task.result_summary = summary
+    task.state_version += 1
+    session.flush()
+    return task, True
+
+
 def update_task_state(
     session: Session,
     task_id: uuid.UUID,

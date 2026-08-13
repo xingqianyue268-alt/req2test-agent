@@ -9,6 +9,7 @@ from sqlalchemy.exc import OperationalError
 import req2test.worker as worker_module
 from req2test.db.models import ExecutionORM, TestCaseORM as CaseORM
 from req2test.db.repositories import tasks
+from req2test.db.services.task_persistence import task_to_detail
 from req2test.execution_models import (
     ExecutionReport,
     HttpExecutionResult,
@@ -140,6 +141,12 @@ def _prepare_worker(monkeypatch, db_session, *, celery_id="delivery-1"):
     return task, store
 
 
+def test_celery_acknowledgement_settings_support_safe_redelivery():
+    assert worker_module.celery_app.conf.task_acks_late is True
+    assert worker_module.celery_app.conf.task_reject_on_worker_lost is True
+    assert worker_module.celery_app.conf.worker_prefetch_multiplier == 1
+
+
 def test_worker_persists_lifecycle_and_terminal_db_before_redis(db_session, monkeypatch):
     task, store = _prepare_worker(monkeypatch, db_session)
     events = []
@@ -175,7 +182,7 @@ def test_worker_persists_lifecycle_and_terminal_db_before_redis(db_session, monk
             {"enabled": True, "base_url": "http://api:8000"},
         ],
         task_id="delivery-1",
-        throw=True,
+        throw=False,
     ).get()
 
     db_session.refresh(task)
@@ -216,6 +223,108 @@ def test_worker_duplicate_delivery_reuses_terminal_rows(db_session, monkeypatch)
     ) == 1
 
 
+def test_worker_duplicate_active_delivery_does_not_execute_tools(db_session, monkeypatch):
+    task, _ = _prepare_worker(monkeypatch, db_session)
+    with worker_module.session_scope() as session:
+        _, claimed = worker_module.result_persistence.claim_attempt(
+            session, str(task.id), "delivery-1", 0
+        )
+    assert claimed is True
+
+    calls = {"workflow": 0, "tools": 0}
+    monkeypatch.setattr(
+        worker_module,
+        "run_workflow_with_progress",
+        lambda **kwargs: calls.__setitem__("workflow", calls["workflow"] + 1),
+    )
+    monkeypatch.setattr(
+        worker_module,
+        "execute_with_tools",
+        lambda **kwargs: calls.__setitem__("tools", calls["tools"] + 1),
+    )
+    result = worker_module.generate_test_cases.apply(
+        args=[str(task.id), "GET /health", {"mode": "demo"}, {}, {}],
+        task_id="delivery-1",
+        throw=True,
+    ).get()
+
+    assert result["duplicate_delivery"] is True
+    assert calls == {"workflow": 0, "tools": 0}
+    assert db_session.scalar(
+        select(func.count()).select_from(CaseORM).where(CaseORM.task_id == task.id)
+    ) == 0
+    assert db_session.scalar(
+        select(func.count()).select_from(ExecutionORM).where(ExecutionORM.task_id == task.id)
+    ) == 0
+
+
+def test_worker_retries_transient_failure_then_succeeds(db_session, monkeypatch):
+    task, store = _prepare_worker(monkeypatch, db_session)
+    calls = {"workflow": 0}
+
+    def flaky_workflow(**kwargs):
+        calls["workflow"] += 1
+        if calls["workflow"] == 1:
+            raise OperationalError("SELECT", {}, ConnectionError("database unavailable"))
+        kwargs["on_progress"]("generation_completed", 80, "generated")
+        return _workflow_result()
+
+    monkeypatch.setattr(worker_module, "run_workflow_with_progress", flaky_workflow)
+    monkeypatch.setattr(worker_module, "execute_with_tools", lambda **kwargs: _execution_report())
+    result = worker_module.generate_test_cases.apply(
+        args=[
+            str(task.id),
+            "GET /health",
+            {"mode": "demo"},
+            {"max_cases": 4},
+            {"enabled": True, "base_url": "http://api:8000"},
+        ],
+        task_id="delivery-1",
+        throw=False,
+    ).get()
+
+    db_session.refresh(task)
+    assert calls["workflow"] == 2
+    assert task.status == "completed"
+    assert task.result_summary["task_reliability"] == {
+        "retry_count": 1,
+        "max_retries": 3,
+        "dead_lettered": False,
+        "final_failure_reason": None,
+    }
+    assert result["task_reliability"]["retry_count"] == 1
+    assert store.get(str(task.id))["retry_count"] == 1
+
+
+def test_worker_exhausted_transient_failure_is_dead_lettered(db_session, monkeypatch):
+    task, store = _prepare_worker(monkeypatch, db_session)
+    calls = {"workflow": 0}
+
+    def unavailable_workflow(**kwargs):
+        calls["workflow"] += 1
+        raise OperationalError("SELECT", {}, ConnectionError("database unavailable"))
+
+    monkeypatch.setattr(worker_module, "run_workflow_with_progress", unavailable_workflow)
+    result = worker_module.generate_test_cases.apply(
+        args=[str(task.id), "GET /health", {"mode": "demo"}, {}, {"enabled": False}],
+        task_id="delivery-1",
+        throw=False,
+    )
+
+    assert result.failed()
+    db_session.refresh(task)
+    assert calls["workflow"] == 4
+    assert task.status == "failed"
+    assert task.stage == "dead_lettered"
+    assert task.result_summary["task_reliability"]["retry_count"] == 3
+    assert task.result_summary["task_reliability"]["dead_lettered"] is True
+    assert task.result_summary["task_reliability"]["final_failure_reason"]
+    assert store.get(str(task.id))["dead_lettered"] is True
+    detail = task_to_detail(task, store.get(str(task.id)))
+    assert detail["task"]["reliability"]["retry_count"] == 3
+    assert detail["task"]["reliability"]["dead_lettered"] is True
+
+
 def test_worker_rejects_conflicting_celery_delivery(db_session, monkeypatch):
     task, _ = _prepare_worker(monkeypatch, db_session, celery_id="owner-delivery")
     called = []
@@ -233,7 +342,7 @@ def test_worker_rejects_conflicting_celery_delivery(db_session, monkeypatch):
     assert task.celery_task_id == "owner-delivery"
 
 
-def test_final_commit_failure_does_not_mark_redis_completed_or_rerun_http(
+def test_final_commit_failure_retries_persistence_without_rerun_http(
     db_session, monkeypatch
 ):
     task, store = _prepare_worker(monkeypatch, db_session)
@@ -268,16 +377,20 @@ def test_final_commit_failure_does_not_mark_redis_completed_or_rerun_http(
     assert result.failed()
     assert calls == {"workflow": 1, "tools": 1}
     state = store.get(str(task.id))
-    assert state["status"] == "running"
-    assert state["stage"] == "persistence_pending"
+    assert state["status"] == "failed"
+    assert state["stage"] == "dead_lettered"
+    assert state["retry_count"] == 3
     db_session.refresh(task)
-    assert task.status == "running"
+    assert task.status == "failed"
+    assert task.stage == "dead_lettered"
 
 
 def test_worker_business_failure_persists_failed_terminal(db_session, monkeypatch):
     task, store = _prepare_worker(monkeypatch, db_session)
+    calls = {"workflow": 0}
 
     def fail_workflow(**kwargs):
+        calls["workflow"] += 1
         raise RuntimeError("authorization=Bearer-private generation exploded")
 
     monkeypatch.setattr(worker_module, "run_workflow_with_progress", fail_workflow)
@@ -291,5 +404,42 @@ def test_worker_business_failure_persists_failed_terminal(db_session, monkeypatc
     assert task.status == "failed"
     assert task.stage == "generation_failed"
     assert task.completed_at is not None
+    assert calls["workflow"] == 1
+    assert task.result_summary["task_reliability"]["retry_count"] == 0
+    assert task.result_summary["task_reliability"]["dead_lettered"] is False
     assert "Bearer-private" not in task.error
     assert store.get(str(task.id))["status"] == "failed"
+
+
+def test_worker_business_http_failure_is_completed_without_retry(db_session, monkeypatch):
+    task, _ = _prepare_worker(monkeypatch, db_session)
+    calls = {"workflow": 0, "tools": 0}
+
+    def workflow(**kwargs):
+        calls["workflow"] += 1
+        kwargs["on_progress"]("generation_completed", 80, "generated")
+        return _workflow_result()
+
+    def tools(**kwargs):
+        calls["tools"] += 1
+        return _execution_report(passed=False, status=422, failure=True)
+
+    monkeypatch.setattr(worker_module, "run_workflow_with_progress", workflow)
+    monkeypatch.setattr(worker_module, "execute_with_tools", tools)
+    worker_module.generate_test_cases.apply(
+        args=[
+            str(task.id),
+            "POST /echo",
+            {"mode": "demo"},
+            {"max_cases": 4},
+            {"enabled": True, "base_url": "http://api:8000"},
+        ],
+        task_id="delivery-1",
+        throw=True,
+    ).get()
+
+    db_session.refresh(task)
+    assert calls == {"workflow": 1, "tools": 1}
+    assert task.status == "completed"
+    assert task.result_summary["task_reliability"]["retry_count"] == 0
+    assert task.result_summary["task_reliability"]["dead_lettered"] is False

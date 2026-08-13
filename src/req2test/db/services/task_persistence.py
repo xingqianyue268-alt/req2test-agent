@@ -108,6 +108,7 @@ def task_to_projection(task: TaskORM) -> dict[str, Any]:
         "failed": "任务提交失败",
         "completed": "任务已完成",
     }
+    reliability = (task.result_summary or {}).get("task_reliability") or {}
     return {
         "task_id": str(task.id),
         "trace_id": str(task.id),
@@ -121,6 +122,8 @@ def task_to_projection(task: TaskORM) -> dict[str, Any]:
         "updated_at": task.updated_at.isoformat() if task.updated_at else None,
         "result": task.result_payload,
         "error": task.error,
+        "retry_count": int(reliability.get("retry_count") or 0),
+        "dead_lettered": bool(reliability.get("dead_lettered", False)),
         "payload": {
             "source": "api",
             "execution_enabled": bool(task.execution_config.get("enabled", False)),
@@ -130,6 +133,7 @@ def task_to_projection(task: TaskORM) -> dict[str, Any]:
 
 def task_to_list_item(task: TaskORM, *, include_user: bool = False) -> dict[str, Any]:
     summary = task.result_summary or {}
+    reliability = summary.get("task_reliability") or {}
     item = {
         "id": str(task.id),
         "task_id": str(task.id),
@@ -149,6 +153,9 @@ def task_to_list_item(task: TaskORM, *, include_user: bool = False) -> dict[str,
             ),
             "primary_failure_category": summary.get("primary_failure_category"),
             "failure_category_counts": summary.get("failure_category_counts") or {},
+            "retry_count": int(reliability.get("retry_count") or 0),
+            "dead_lettered": bool(reliability.get("dead_lettered", False)),
+            "final_failure_reason": reliability.get("final_failure_reason"),
         },
     }
     if include_user:
@@ -163,6 +170,7 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
     public_payload = deepcopy(payload)
     public_execution = public_payload.get("execution") or {}
     public_execution.pop("diagnostic_evidence", None)
+    reliability = (task.result_summary or {}).get("task_reliability") or {}
     detail = {
         **state,
         "trace_id": payload.get("trace_id") or str(task.id),
@@ -177,6 +185,12 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
             "updated_at": task.updated_at.isoformat() if task.updated_at else None,
             "completed_at": task.completed_at.isoformat() if task.completed_at else None,
             "error": task.error,
+            "reliability": {
+                "retry_count": int(reliability.get("retry_count") or 0),
+                "max_retries": int(reliability.get("max_retries") or 3),
+                "dead_lettered": bool(reliability.get("dead_lettered", False)),
+                "final_failure_reason": reliability.get("final_failure_reason"),
+            },
         },
         "requirements": payload.get("requirements") or [],
         "test_cases": payload.get("test_cases") or [],

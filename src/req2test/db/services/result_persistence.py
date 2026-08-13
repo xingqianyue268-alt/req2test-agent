@@ -151,6 +151,7 @@ def build_result_summary(payload: dict[str, Any], final_status: str) -> dict[str
     execution = payload.get("execution") or {}
     execution_summary = execution.get("summary") or {}
     diagnosis_summary = (execution.get("failure_analysis_v2") or {}).get("summary") or {}
+    reliability = payload.get("task_reliability") or {}
     return {
         "total_requirements": len(requirements),
         "total_test_cases": len(test_cases),
@@ -168,6 +169,12 @@ def build_result_summary(payload: dict[str, Any], final_status: str) -> dict[str
         ),
         "primary_failure_category": diagnosis_summary.get("primary_failure_category"),
         "failure_category_counts": diagnosis_summary.get("category_distribution") or {},
+        "task_reliability": {
+            "retry_count": int(reliability.get("retry_count") or 0),
+            "max_retries": int(reliability.get("max_retries") or 3),
+            "dead_lettered": bool(reliability.get("dead_lettered", False)),
+            "final_failure_reason": reliability.get("final_failure_reason"),
+        },
         "final_status": final_status,
     }
 
@@ -181,6 +188,51 @@ class ResultPersistenceService:
             return task_repository.bind_worker_delivery(session, parsed_id, celery_task_id)
         except ValueError as exc:
             raise CeleryDeliveryConflict(str(exc)) from exc
+
+    def claim_attempt(
+        self, session: Session, task_id: str, celery_task_id: str, retry_count: int
+    ) -> tuple[TaskORM, bool]:
+        try:
+            return task_repository.claim_worker_attempt(
+                session, uuid.UUID(task_id), celery_task_id, retry_count
+            )
+        except (LookupError, ValueError) as exc:
+            raise CeleryDeliveryConflict(str(exc)) from exc
+
+    def record_retry(
+        self,
+        session: Session,
+        task_id: str,
+        error: BaseException,
+        *,
+        retry_count: int,
+        max_retries: int,
+        countdown_seconds: int,
+    ) -> TaskORM:
+        task = task_repository.get_task_for_update(session, uuid.UUID(task_id))
+        if task is None:
+            raise LookupError(f"Task {task_id} does not exist")
+        if task.status in {"completed", "failed"}:
+            return task
+        summary = dict(task.result_summary or {})
+        reliability = dict(summary.get("task_reliability") or {})
+        reliability.update(
+            {
+                "retry_count": retry_count,
+                "max_retries": max_retries,
+                "dead_lettered": False,
+                "last_failure_reason": safe_error_summary(error),
+                "next_retry_in_seconds": countdown_seconds,
+            }
+        )
+        summary["task_reliability"] = reliability
+        task.status = "running"
+        task.stage = "retrying"
+        task.error = safe_error_summary(error)
+        task.result_summary = summary
+        task.state_version += 1
+        session.flush()
+        return task
 
     def persist_milestone(
         self, session: Session, task_id: str, *, status: str, stage: str, progress: int
@@ -284,4 +336,25 @@ class ResultPersistenceService:
             result_summary=build_result_summary(payload, "failed"),
             result_payload=payload,
             error=safe_error_summary(error),
+        )
+
+    def finalize_dead_lettered(
+        self,
+        session: Session,
+        task_id: str,
+        error: BaseException,
+        partial_payload: dict[str, Any] | None = None,
+        *,
+        retry_count: int,
+        max_retries: int,
+    ) -> TaskORM:
+        payload = dict(partial_payload or {})
+        payload["task_reliability"] = {
+            "retry_count": retry_count,
+            "max_retries": max_retries,
+            "dead_lettered": True,
+            "final_failure_reason": safe_error_summary(error),
+        }
+        return self.finalize_failed(
+            session, task_id, error, payload, stage="dead_lettered"
         )

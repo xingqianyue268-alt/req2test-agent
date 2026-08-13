@@ -219,6 +219,12 @@ def test_atomic_finalization_persists_case_execution_summary_and_payload(db_sess
             "failure_analysis_count": 0,
             "primary_failure_category": None,
             "failure_category_counts": {},
+            "task_reliability": {
+                "retry_count": 0,
+                "max_retries": 3,
+                "dead_lettered": False,
+                "final_failure_reason": None,
+            },
             "final_status": "completed",
     }
     assert completed.result_payload["execution"]["pytest_result"]["passed"] is True
@@ -389,5 +395,6 @@ def test_result_summary_stays_small():
         "failure_analysis_count",
         "primary_failure_category",
         "failure_category_counts",
+        "task_reliability",
         "final_status",
     }

@@ -20,7 +20,7 @@ from .db.session import session_scope
 from .execution_models import ExecutionConfig, ExecutionReport
 from .diagnostics.evidence import EvidenceCollector, TraceContext
 from .progress import run_workflow_with_progress
-from .task_store import task_store
+from .task_store import TaskStoreUnavailable, task_store
 from .tool_calling import execute_with_tools
 
 logger = logging.getLogger(__name__)
@@ -29,6 +29,15 @@ result_persistence = ResultPersistenceService()
 
 class FinalPersistenceError(RuntimeError):
     """Retryable error raised after execution results have been cached in Redis."""
+
+
+class DuplicateDeliveryInFlight(RuntimeError):
+    """A broker redelivery arrived while the same real attempt is still claimed."""
+
+
+MAX_TASK_RETRIES = int(os.getenv("CELERY_TASK_MAX_RETRIES", "3"))
+RETRY_BACKOFF_BASE_SECONDS = int(os.getenv("CELERY_RETRY_BACKOFF_BASE_SECONDS", "2"))
+RETRY_BACKOFF_MAX_SECONDS = int(os.getenv("CELERY_RETRY_BACKOFF_MAX_SECONDS", "30"))
 
 
 BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://guest:guest@localhost:5672//")
@@ -42,20 +51,13 @@ celery_app.conf.update(
     result_serializer="json",
     accept_content=["json"],
     task_acks_late=True,
+    task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1,
     task_track_started=True,
 )
 
 
-@celery_app.task(
-    bind=True,
-    name="req2test.generate",
-    autoretry_for=(Exception,),
-    dont_autoretry_for=(CeleryDeliveryConflict,),
-    retry_backoff=True,
-    retry_kwargs={"max_retries": 2},
-)
-def generate_test_cases(
+def _generate_test_cases_once(
     self,
     task_id: str,
     requirement_text: str,
@@ -88,20 +90,20 @@ def generate_test_cases(
         logger.info("Self-healed celery_task_id for business task %s", task_id)
 
     if durable_task.status in {"completed", "failed"} and durable_task.result_payload:
-        task_store.set(task_id, task_to_projection(durable_task))
+        _set_terminal_projection_best_effort(task_id, durable_task)
         if durable_task.status == "failed":
             raise RuntimeError(durable_task.error or "Task previously failed")
         return durable_task.result_payload
 
     cached = task_store.get(task_id) or {}
-    if cached.get("stage") == "persistence_pending" and cached.get("persistence_payload"):
+    if cached.get("persistence_payload") and not cached.get("failure_stage"):
         payload = cached["persistence_payload"]
         try:
             with session_scope() as session:
                 durable_task = result_persistence.finalize_completed(session, task_id, payload)
         except SQLAlchemyError as exc:
             raise FinalPersistenceError("PostgreSQL final persistence retry failed") from exc
-        task_store.set(task_id, task_to_projection(durable_task))
+        _set_terminal_projection_best_effort(task_id, durable_task)
         return payload
     if cached.get("stage") == "failure_persistence_pending":
         partial = cached.get("persistence_payload") or {}
@@ -117,8 +119,31 @@ def generate_test_cases(
                 )
         except SQLAlchemyError as exc:
             raise FinalPersistenceError("PostgreSQL failure persistence retry failed") from exc
-        task_store.set(task_id, task_to_projection(durable_task))
+        _set_terminal_projection_best_effort(task_id, durable_task)
         raise cached_error
+
+    retry_count = int(getattr(self.request, "retries", 0) or 0)
+    with session_scope() as session:
+        durable_task, claimed = result_persistence.claim_attempt(
+            session, task_id, delivery_id, retry_count
+        )
+    if not claimed:
+        if bool((getattr(self.request, "delivery_info", None) or {}).get("redelivered")):
+            raise DuplicateDeliveryInFlight(
+                f"Delivery {delivery_id} attempt {retry_count} is already in progress"
+            )
+        logger.warning(
+            "Ignored duplicate active delivery %s for business task %s attempt %s",
+            delivery_id,
+            task_id,
+            retry_count,
+        )
+        return durable_task.result_payload or {
+            "task_id": task_id,
+            "status": durable_task.status,
+            "stage": durable_task.stage,
+            "duplicate_delivery": True,
+        }
 
     with session_scope() as session:
         durable_task = result_persistence.persist_milestone(
@@ -139,11 +164,16 @@ def generate_test_cases(
         generation = GenerationConfig.model_validate(generation_config)
         execution = ExecutionConfig.model_validate(execution_config or {})
     except Exception as exc:  # noqa: BLE001
+        partial = {
+            "task_reliability": _reliability_metadata(
+                retry_count, final_failure_reason=str(exc)
+            )
+        }
         with session_scope() as session:
             durable_task = result_persistence.finalize_failed(
-                session, task_id, exc, stage="generation_failed"
+                session, task_id, exc, partial, stage="generation_failed"
             )
-        task_store.set(task_id, task_to_projection(durable_task))
+        _set_terminal_projection_best_effort(task_id, durable_task)
         raise
 
     def on_progress(stage: str, progress: int, message: str) -> None:
@@ -284,6 +314,7 @@ def generate_test_cases(
                 evidence_collection_overhead_ms=evidence.overhead_ms(),
             ).model_dump()
 
+        payload["task_reliability"] = _reliability_metadata(retry_count)
         payload = bound_result_payload(payload)
         task_store.update(
             task_id,
@@ -301,13 +332,15 @@ def generate_test_cases(
         except SQLAlchemyError as exc:
             logger.exception("Final PostgreSQL transaction failed for task %s", task_id)
             raise FinalPersistenceError("PostgreSQL final persistence failed") from exc
-        task_store.set(task_id, task_to_projection(durable_task))
+        _set_terminal_projection_best_effort(task_id, durable_task)
         return payload
     except FinalPersistenceError:
         raise
     except CeleryDeliveryConflict:
         raise
     except Exception as exc:  # noqa: BLE001
+        if _is_transient_infrastructure_error(exc):
+            raise
         evidence.collect_worker(
             event="exception",
             stage=failure_stage,
@@ -327,6 +360,9 @@ def generate_test_cases(
                 "evidence_collection_overhead_ms": evidence.overhead_ms(),
             },
         }
+        partial_payload["task_reliability"] = _reliability_metadata(
+            retry_count, final_failure_reason=str(exc)
+        )
         task_store.update(
             task_id,
             status="running",
@@ -346,5 +382,174 @@ def generate_test_cases(
             raise FinalPersistenceError(
                 "PostgreSQL failure persistence failed"
             ) from persistence_exc
+        _set_terminal_projection_best_effort(task_id, durable_task)
+        raise
+
+
+def _is_transient_infrastructure_error(error: BaseException) -> bool:
+    """Recognize retryable transport/storage failures without retrying business results."""
+
+    current: BaseException | None = error
+    seen: set[int] = set()
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if isinstance(
+            current,
+            (
+                FinalPersistenceError,
+                DuplicateDeliveryInFlight,
+                SQLAlchemyError,
+                TaskStoreUnavailable,
+                ConnectionError,
+                TimeoutError,
+            ),
+        ):
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
+
+def _retry_countdown(retry_count: int) -> int:
+    return min(
+        RETRY_BACKOFF_BASE_SECONDS * (2**retry_count), RETRY_BACKOFF_MAX_SECONDS
+    )
+
+
+def _reliability_metadata(
+    retry_count: int, *, dead_lettered: bool = False, final_failure_reason: str | None = None
+) -> dict:
+    return {
+        "retry_count": retry_count,
+        "max_retries": MAX_TASK_RETRIES,
+        "dead_lettered": dead_lettered,
+        "final_failure_reason": final_failure_reason,
+    }
+
+
+def _set_terminal_projection_best_effort(task_id: str, durable_task) -> None:
+    try:
         task_store.set(task_id, task_to_projection(durable_task))
+    except TaskStoreUnavailable:
+        logger.warning(
+            "PostgreSQL terminal state is durable but Redis projection failed for task %s",
+            task_id,
+        )
+
+
+def _cached_partial_payload(task_id: str) -> dict:
+    try:
+        state = task_store.get(task_id) or {}
+    except Exception:  # noqa: BLE001
+        return {}
+    return state.get("persistence_payload") or {}
+
+
+def _record_retry(
+    task_id: str, error: BaseException, *, retry_count: int, countdown_seconds: int
+) -> None:
+    durable_task = None
+    try:
+        with session_scope() as session:
+            durable_task = result_persistence.record_retry(
+                session,
+                task_id,
+                error,
+                retry_count=retry_count,
+                max_retries=MAX_TASK_RETRIES,
+                countdown_seconds=countdown_seconds,
+            )
+    except Exception:  # noqa: BLE001
+        logger.exception("Could not persist retry metadata for task %s", task_id)
+    try:
+        if durable_task is not None:
+            projection = task_to_projection(durable_task)
+            projection["message"] = f"瞬时基础设施异常，{countdown_seconds} 秒后重试"
+            current = task_store.get(task_id) or {}
+            task_store.set(task_id, {**current, **projection})
+        else:
+            task_store.update(
+                task_id,
+                status="running",
+                stage="retrying",
+                retry_count=retry_count,
+                message=f"瞬时基础设施异常，{countdown_seconds} 秒后重试",
+                error=str(error),
+            )
+    except Exception:  # noqa: BLE001
+        logger.exception("Could not update Redis retry projection for task %s", task_id)
+
+
+def _record_dead_letter(task_id: str, error: BaseException, *, retry_count: int) -> None:
+    durable_task = None
+    partial_payload = _cached_partial_payload(task_id)
+    try:
+        with session_scope() as session:
+            durable_task = result_persistence.finalize_dead_lettered(
+                session,
+                task_id,
+                error,
+                partial_payload,
+                retry_count=retry_count,
+                max_retries=MAX_TASK_RETRIES,
+            )
+    except Exception:  # noqa: BLE001
+        logger.exception("Could not persist dead-letter state for task %s", task_id)
+    try:
+        if durable_task is not None:
+            task_store.set(task_id, task_to_projection(durable_task))
+        else:
+            task_store.update(
+                task_id,
+                status="failed",
+                stage="dead_lettered",
+                progress=100,
+                retry_count=retry_count,
+                dead_lettered=True,
+                message="任务在有限重试后仍失败",
+                error=str(error),
+            )
+    except Exception:  # noqa: BLE001
+        logger.exception("Could not update Redis dead-letter projection for task %s", task_id)
+
+
+@celery_app.task(bind=True, name="req2test.generate", max_retries=MAX_TASK_RETRIES)
+def generate_test_cases(
+    self,
+    task_id: str,
+    requirement_text: str,
+    llm_settings: dict,
+    generation_config: dict,
+    execution_config: dict | None = None,
+):
+    """Run once, retry only transient infrastructure failures, and finalize exhaustion."""
+
+    try:
+        return _generate_test_cases_once(
+            self,
+            task_id,
+            requirement_text,
+            llm_settings,
+            generation_config,
+            execution_config,
+        )
+    except CeleryDeliveryConflict:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        if not _is_transient_infrastructure_error(exc):
+            raise
+        current_retry = int(getattr(self.request, "retries", 0) or 0)
+        if current_retry < MAX_TASK_RETRIES:
+            countdown = _retry_countdown(current_retry)
+            _record_retry(
+                task_id,
+                exc,
+                retry_count=current_retry + 1,
+                countdown_seconds=countdown,
+            )
+            raise self.retry(
+                exc=exc,
+                countdown=countdown,
+                max_retries=MAX_TASK_RETRIES,
+            )
+        _record_dead_letter(task_id, exc, retry_count=current_retry)
         raise
