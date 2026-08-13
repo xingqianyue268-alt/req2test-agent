@@ -14,6 +14,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from .config import GenerationConfig, LLMSettings
+from .db.session import database_is_ready
 from .demo_ui import render_demo_html
 from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
@@ -37,7 +38,21 @@ class DocumentParseRequest(BaseModel):
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "task_store": task_store.backend}
+    """Liveness: report only whether the FastAPI process can respond."""
+
+    return {"status": "ok"}
+
+
+@app.get("/ready")
+def ready() -> dict[str, Any]:
+    """Readiness foundation; Redis and RabbitMQ checks follow in task integration."""
+
+    if not database_is_ready():
+        raise HTTPException(
+            status_code=503,
+            detail={"status": "not_ready", "checks": {"database": "down"}},
+        )
+    return {"status": "ready", "checks": {"database": "ready"}}
 
 
 @app.get("/", include_in_schema=False)

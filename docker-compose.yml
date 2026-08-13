@@ -1,4 +1,20 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-req2test}
+      POSTGRES_USER: ${POSTGRES_USER:-req2test}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-req2test_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   rabbitmq:
     image: rabbitmq:3.13-management
     ports:
@@ -20,6 +36,20 @@ services:
       timeout: 3s
       retries: 10
 
+  migrate:
+    image: req2test-agent:dev
+    build: .
+    command: alembic upgrade head
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-req2test}:${POSTGRES_PASSWORD:-req2test_dev}@postgres:5432/${POSTGRES_DB:-req2test}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   api:
     image: req2test-agent:dev
     build: .
@@ -29,6 +59,10 @@ services:
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       REQ2TEST_MODE: demo
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-req2test}:${POSTGRES_PASSWORD:-req2test_dev}@postgres:5432/${POSTGRES_DB:-req2test}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
     ports:
       - "8000:8000"
     depends_on:
@@ -36,6 +70,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   worker:
     image: req2test-agent:dev
@@ -45,8 +83,19 @@ services:
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/1
       REQ2TEST_MODE: demo
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-req2test}:${POSTGRES_PASSWORD:-req2test_dev}@postgres:5432/${POSTGRES_DB:-req2test}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
     depends_on:
       rabbitmq:
         condition: service_healthy
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:

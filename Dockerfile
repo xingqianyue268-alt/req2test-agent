@@ -20,6 +20,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # install resolves no dependencies, so normal source changes are fast to rebuild.
 COPY pyproject.toml README.md ./
 COPY src ./src
+COPY alembic.ini ./
+COPY alembic ./alembic
 COPY knowledge ./knowledge
 COPY samples ./samples
 RUN --mount=type=cache,target=/root/.cache/pip \
