@@ -79,13 +79,16 @@ def test_422_is_classified_as_contract_mismatch_when_validation_evidence_is_pres
 def test_demo_ui_contains_design_execution_dashboard_and_raw_json_fallback():
     for marker in [
         "新建测试任务",
-        "AI 生成测试",
+        "GENERATE TESTS",
         "测试用例",
         "需求拆分",
         "AI 评审 &amp; RAG",
         "执行结果",
         "HTTP 用例",
         "失败归因",
+        "HTTP Tool",
+        "Pytest Runner",
+        "Failure Analysis",
         "原始 JSON",
         "API 全通过示例",
         "API 失败归因示例",

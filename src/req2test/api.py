@@ -10,11 +10,11 @@ from typing import Any
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from .config import GenerationConfig, LLMSettings
-from .demo_ui import DEMO_HTML
+from .demo_ui import render_demo_html
 from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
 from .task_store import task_store
@@ -40,11 +40,26 @@ def health() -> dict[str, str]:
     return {"status": "ok", "task_store": task_store.backend}
 
 
-@app.get("/", response_class=HTMLResponse)
-def home_page() -> str:
-    """Primary unified workbench entrypoint."""
+@app.get("/", include_in_schema=False)
+def home_page() -> RedirectResponse:
+    """Send the application root to the primary product route."""
 
-    return DEMO_HTML
+    return RedirectResponse(url="/workbench", status_code=307)
+
+
+@app.get("/workbench", response_class=HTMLResponse)
+def workbench_page() -> str:
+    return render_demo_html("workbench")
+
+
+@app.get("/workflow", response_class=HTMLResponse)
+def workflow_page() -> str:
+    return render_demo_html("workflow")
+
+
+@app.get("/system", response_class=HTMLResponse)
+def system_page() -> str:
+    return render_demo_html("system")
 
 
 @app.get("/demo-target/health")
@@ -65,7 +80,7 @@ def demo_target_echo(payload: dict[str, Any]) -> dict[str, Any]:
 def demo_page() -> str:
     """Backward-compatible alias for the unified browser workbench."""
 
-    return DEMO_HTML
+    return render_demo_html("workbench")
 
 
 @app.post("/api/v1/documents/parse")

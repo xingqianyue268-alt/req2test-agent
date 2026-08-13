@@ -3,27 +3,88 @@ import base64
 from fastapi.testclient import TestClient
 
 from req2test.api import app
-from req2test.demo_ui import DEMO_HTML
+from req2test.demo_ui import DEMO_HTML, render_demo_html
 
 
 client = TestClient(app)
 
 
-def test_root_and_demo_expose_unified_workbench():
-    root = client.get("/")
+def test_root_redirects_to_real_workbench_route():
+    root = client.get("/", follow_redirects=False)
+    assert root.status_code == 307
+    assert root.headers["location"] == "/workbench"
+
+
+def test_real_product_routes_share_shell_and_render_only_their_page():
+    workbench = client.get("/workbench")
+    workflow = client.get("/workflow")
+    system = client.get("/system")
     demo = client.get("/demo")
-    assert root.status_code == 200
-    assert demo.status_code == 200
+    assert [response.status_code for response in (workbench, workflow, system, demo)] == [
+        200,
+        200,
+        200,
+        200,
+    ]
+
+    for response in (workbench, workflow, system):
+        assert '<header class="site-nav">' in response.text
+        assert 'href="/workbench"' in response.text
+        assert 'href="/workflow"' in response.text
+        assert 'href="/system"' in response.text
+        assert "#workbench" not in response.text
+        assert "hashchange" not in response.text
+
+    assert 'data-view="workbench"' in workbench.text
+    assert 'data-page="workbench"' in workbench.text
+    assert 'data-page="workflow"' not in workbench.text
+    assert 'data-page="system"' not in workbench.text
+    assert 'data-workbench-stage="new"' in workbench.text
+    assert 'data-workbench-stage="progress"' in workbench.text
+    assert 'data-workbench-stage="results"' in workbench.text
+
+    assert 'data-view="workflow"' in workflow.text
+    assert 'data-page="workflow"' in workflow.text
+    assert 'data-page="workbench"' not in workflow.text
+    assert 'data-page="system"' not in workflow.text
+    assert "ONE SYSTEM." in workflow.text
+    assert "engineering-flow" in workflow.text
+
+    assert 'data-view="system"' in system.text
+    assert 'data-page="system"' in system.text
+    assert 'data-page="workbench"' not in system.text
+    assert 'data-page="workflow"' not in system.text
+    assert "RAG Knowledge Base" in system.text
+    assert "WebSocket" in system.text
+
+
+def test_workbench_preserves_existing_generation_and_result_features():
+    root = client.get("/workbench")
     for marker in [
-        "从需求到真实测试执行",
-        "AI 生成测试",
+        "FROM",
+        "REQUIREMENT",
+        "TO REAL TEST.",
+        "GENERATE TESTS",
         "测试用例",
         "需求拆分",
         "AI 评审 &amp; RAG",
         "执行结果",
+        '<span class="en-ui">WORKBENCH</span><span class="zh-ui">/ 工作台</span>',
+        '<span class="en-ui">HOW IT WORKS</span><span class="zh-ui">/ 工作流程</span>',
+        '<span class="en-ui">SYSTEM</span><span class="zh-ui">/ 系统状态</span>',
+        'body data-view="workbench"',
+        'data-stage-panel="new"',
+        'data-stage-panel="progress"',
+        'data-stage-panel="results"',
+        "showWorkbenchStage('progress')",
+        "showWorkbenchStage('results')",
+        '--en:Inter,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif',
+        '--copy:"Times New Roman",Times,serif',
     ]:
         assert marker in root.text
         assert marker in DEMO_HTML
+
+    assert render_demo_html("workbench") == DEMO_HTML
 
 
 def test_parse_text_document_for_workbench():
