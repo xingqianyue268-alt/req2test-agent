@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from typing import Any
 
 from .config import LLMSettings
@@ -22,6 +23,7 @@ from .execution_models import (
     ToolInvocation,
 )
 from .http_tool import HttpApiTestTool
+from .diagnostics.evidence import EvidenceCollector, TraceContext
 from .llm import build_chat_model, invoke_json
 from .models import WorkflowResult
 from .pytest_runner import PytestRunnerTool
@@ -318,10 +320,18 @@ def execute_with_tools(
     workflow_result: WorkflowResult,
     llm_settings: LLMSettings,
     config: ExecutionConfig,
+    trace_context: TraceContext | None = None,
+    initial_evidence: list[dict[str, Any]] | None = None,
 ) -> ExecutionReport:
     """Plan executable checks, dispatch tools, and analyse real execution failures."""
 
-    report = ExecutionReport(enabled=config.enabled)
+    context = trace_context or TraceContext.for_task("standalone-" + str(time.time_ns()))
+    collector = EvidenceCollector(context)
+    report = ExecutionReport(
+        enabled=config.enabled,
+        trace_id=context.trace_id,
+        diagnostic_evidence=list(initial_evidence or []),
+    )
     if not config.enabled:
         report.summary = {"status": "disabled"}
         return report
@@ -365,7 +375,9 @@ def execute_with_tools(
                     },
                 )
             )
-            report.http_results.append(http_tool.invoke(spec))
+            http_result = http_tool.invoke(spec)
+            report.http_results.append(http_result)
+            collector.collect_http(spec, http_result)
 
     if config.run_pytest:
         report.tool_calls.append(
@@ -381,6 +393,7 @@ def execute_with_tools(
             request_timeout_seconds=config.request_timeout_seconds,
             verify_tls=config.verify_tls,
         )
+        collector.collect_pytest(report.pytest_result)
 
     analyses, analysis_warnings = analyse_failures(
         report.http_results,
@@ -403,4 +416,6 @@ def execute_with_tools(
         "tool_call_count": len(report.tool_calls),
         "failure_analysis_count": len(report.failure_analysis),
     }
+    report.diagnostic_evidence.extend(collector.dump())
+    report.evidence_collection_overhead_ms = collector.overhead_ms()
     return report

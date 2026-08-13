@@ -104,6 +104,7 @@ class HttpApiTestTool:
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
             status_code = response.status_code
             response_excerpt = response.text[:1500]
+            response_content_type = response.headers.get("content-type")
 
             if response.status_code != spec.expected_status:
                 failures.append(
@@ -142,6 +143,8 @@ class HttpApiTestTool:
                 duration_ms=duration_ms,
                 failures=failures,
                 response_excerpt=response_excerpt,
+                response_content_type=response_content_type,
+                validation_error=response_excerpt if response.status_code == 422 else None,
             )
         except httpx.TimeoutException as exc:
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
@@ -154,6 +157,7 @@ class HttpApiTestTool:
                 expected_status=spec.expected_status,
                 duration_ms=duration_ms,
                 failures=["请求超时"],
+                timed_out=True,
                 error=f"{type(exc).__name__}: {exc}",
             )
         except httpx.RequestError as exc:

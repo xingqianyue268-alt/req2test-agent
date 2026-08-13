@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 
 from celery import Celery
 from sqlalchemy.exc import SQLAlchemyError
@@ -17,6 +18,7 @@ from .db.services.result_persistence import (
 from .db.services.task_persistence import task_to_projection
 from .db.session import session_scope
 from .execution_models import ExecutionConfig, ExecutionReport
+from .diagnostics.evidence import EvidenceCollector, TraceContext
 from .progress import run_workflow_with_progress
 from .task_store import task_store
 from .tool_calling import execute_with_tools
@@ -62,6 +64,13 @@ def generate_test_cases(
     execution_config: dict | None = None,
 ):
     delivery_id = str(self.request.id or task_id)
+    trace_context = TraceContext.for_task(task_id, delivery_id)
+    evidence = EvidenceCollector(trace_context)
+    evidence.collect_worker(
+        event="started",
+        stage="worker_start",
+        retry_count=int(getattr(self.request, "retries", 0) or 0),
+    )
     failure_stage = "generation_failed"
     try:
         with session_scope() as session:
@@ -159,6 +168,7 @@ def generate_test_cases(
         )
 
     try:
+        generation_started = time.perf_counter()
         result = run_workflow_with_progress(
             requirement_text=requirement_text,
             llm_settings=settings,
@@ -166,6 +176,32 @@ def generate_test_cases(
             on_progress=on_progress,
         )
         payload = result.model_dump()
+        payload["trace_id"] = trace_context.trace_id
+        evidence.collect_rag(
+            query=requirement_text,
+            top_k=4,
+            contexts=result.retrieved_context,
+        )
+        evidence.collect_generation(
+            provider=settings.mode,
+            model=settings.model,
+            duration_ms=round((time.perf_counter() - generation_started) * 1000, 2),
+            parse_success=not bool(result.errors),
+            generated_case_count=len(result.test_cases),
+            validation_issues=result.errors,
+            review_score=result.review.score,
+        )
+        evidence.collect_infrastructure(
+            {
+                "PostgreSQL": {"state": "healthy", "basis": "worker milestone committed"},
+                "Redis": {"state": "healthy", "basis": "live progress update succeeded"},
+                "RabbitMQ": {"state": "connected", "basis": "Celery delivery received"},
+                "Knowledge/Chroma": {
+                    "state": "observed" if result.retrieved_context else "unknown",
+                    "basis": "RAG workflow output",
+                },
+            }
+        )
 
         if execution.enabled:
             failure_stage = "execution_failed"
@@ -191,6 +227,18 @@ def generate_test_cases(
                     workflow_result=result,
                     llm_settings=settings,
                     config=execution,
+                    trace_context=trace_context,
+                )
+                evidence.collect_worker(
+                    event="finished",
+                    stage="execution_completed",
+                    retry_count=int(getattr(self.request, "retries", 0) or 0),
+                )
+                execution_report.diagnostic_evidence.extend(evidence.dump())
+                execution_report.evidence_collection_overhead_ms = round(
+                    execution_report.evidence_collection_overhead_ms
+                    + evidence.overhead_ms(),
+                    3,
                 )
                 payload["execution"] = execution_report.model_dump()
                 task_store.update(
@@ -203,9 +251,18 @@ def generate_test_cases(
             except Exception as execution_exc:  # noqa: BLE001
                 fallback_report = ExecutionReport(
                     enabled=True,
+                    trace_id=trace_context.trace_id,
                     summary={"status": "tool_error"},
                     warnings=[f"执行阶段发生工具级异常：{execution_exc}"],
                 )
+                evidence.collect_worker(
+                    event="exception",
+                    stage="execution_failed",
+                    retry_count=int(getattr(self.request, "retries", 0) or 0),
+                    exception=execution_exc,
+                )
+                fallback_report.diagnostic_evidence = evidence.dump()
+                fallback_report.evidence_collection_overhead_ms = evidence.overhead_ms()
                 payload["execution"] = fallback_report.model_dump()
                 task_store.update(
                     task_id,
@@ -219,7 +276,10 @@ def generate_test_cases(
         else:
             payload["execution"] = ExecutionReport(
                 enabled=False,
+                trace_id=trace_context.trace_id,
                 summary={"status": "disabled"},
+                diagnostic_evidence=evidence.dump(),
+                evidence_collection_overhead_ms=evidence.overhead_ms(),
             ).model_dump()
 
         payload = bound_result_payload(payload)
@@ -246,11 +306,25 @@ def generate_test_cases(
     except CeleryDeliveryConflict:
         raise
     except Exception as exc:  # noqa: BLE001
+        evidence.collect_worker(
+            event="exception",
+            stage=failure_stage,
+            retry_count=int(getattr(self.request, "retries", 0) or 0),
+            exception=exc,
+        )
         try:
             current = task_store.get(task_id) or {}
         except Exception:  # noqa: BLE001
             current = {}
-        partial_payload = current.get("persistence_payload") or {}
+        partial_payload = current.get("persistence_payload") or {
+            "trace_id": trace_context.trace_id,
+            "execution": {
+                "enabled": False,
+                "trace_id": trace_context.trace_id,
+                "diagnostic_evidence": evidence.dump(),
+                "evidence_collection_overhead_ms": evidence.overhead_ms(),
+            },
+        }
         task_store.update(
             task_id,
             status="running",

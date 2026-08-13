@@ -109,6 +109,7 @@ def task_to_projection(task: TaskORM) -> dict[str, Any]:
     }
     return {
         "task_id": str(task.id),
+        "trace_id": str(task.id),
         "status": task.status,
         "stage": task.stage,
         "progress": task.progress,
@@ -158,6 +159,7 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
     execution = payload.get("execution") or {}
     detail = {
         **state,
+        "trace_id": payload.get("trace_id") or str(task.id),
         "task": {
             "id": str(task.id),
             "title": task.title,
@@ -242,6 +244,11 @@ class TaskPersistenceService:
                 session, task.id, stage="infrastructure_unavailable", error=exc
             )
             raise LiveProjectionUnavailable("Redis is required to create a task") from exc
+
+        # The immutable business Task UUID is also the task-wide trace root.
+        # Keeping these identifiers equal avoids an extra nullable schema field
+        # while still providing explicit structured correlation everywhere.
+        self.task_store.update(str(task.id), trace_id=str(task.id))
 
         task_args = [
             str(task.id),
