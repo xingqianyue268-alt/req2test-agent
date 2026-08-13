@@ -220,7 +220,7 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
         "errors": payload.get("errors") or [],
         "raw_payload": public_payload,
     }
-    # Preserve the Phase 4B response for existing polling and Workbench clients.
+    # Preserve the response envelope used by existing polling and Workbench clients.
     detail["result"] = public_payload or None
     return detail
 
@@ -298,8 +298,8 @@ class TaskPersistenceService:
             session.refresh(task)
         except SQLAlchemyError as exc:
             session.rollback()
-            # Publish already succeeded. Phase 4A-3 will let the Worker repair this field
-            # from request.id rather than dispatching a duplicate task.
+            # Publish already succeeded. The Worker repairs this field from request.id
+            # rather than dispatching a duplicate task.
             raise DatabasePersistenceError(
                 "Task dispatched but Celery id persistence failed"
             ) from exc

@@ -231,8 +231,18 @@ POST /demo-target/echo
 
 ### 创建异步任务
 
+任务 API 默认需要认证。先注册或登录并取得 access token：
+
+```bash
+TOKEN=$(curl -sS -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"your-user@example.com","password":"your-local-password"}' \
+  | python -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
+```
+
 ```bash
 curl -X POST http://localhost:8000/api/v1/tasks \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "requirement_text":"GET /demo-target/health 状态码: 200 响应包含: {\"status\":\"ok\"}",
@@ -351,7 +361,7 @@ ollama pull qwen3:4b
 - **WebSocket**：避免浏览器同步阻塞等待长任务。
 - **LangGraph**：显式表达 Agent 节点、状态和条件修订路径。
 - **Pydantic**：约束需求、测试用例和执行报告的数据结构。
-- **ChromaDB**：将历史测试资产接入生成流程，而不是只依赖 Prompt。
+- **ChromaDB**：将可管理的测试知识资产接入生成流程，而不是只依赖模型输入上下文。
 - **规则降级**：模型、向量检索或 LLM 失败归因不可用时，仍能维持可演示主流程。
 
 ## 当前边界与后续方向
