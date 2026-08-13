@@ -35,6 +35,15 @@ class FakeKnowledgeBase:
             raise RuntimeError("vector delete unavailable")
         self.documents.pop(document_id, None)
 
+    def delete_where(self, metadata_key, value):
+        if self.fail_delete:
+            raise RuntimeError("vector delete unavailable")
+        self.documents = {
+            key: item
+            for key, item in self.documents.items()
+            if item.metadata.get(metadata_key) != value
+        }
+
     def search(self, query, top_k=4):
         return [
             {
@@ -47,6 +56,9 @@ class FakeKnowledgeBase:
             for index, item in enumerate(list(self.documents.values())[:top_k], start=1)
             if query.strip()
         ]
+
+    def count(self):
+        return len(self.documents)
 
     def rebuild(self, documents):
         if self.fail_upsert:
@@ -110,7 +122,11 @@ def test_knowledge_rbac_upload_list_detail_search_top_k_and_ui(db_session, monke
         body = created.json()
         assert body["index_status"] == "indexed"
         assert body["content_excerpt"].startswith("# API Rules")
-        assert body["vector_document_id"] in fake.documents
+        assert body["chunk_count"] == 1
+        assert any(
+            item.metadata["parent_document_id"] == body["vector_document_id"]
+            for item in fake.documents.values()
+        )
         document_id = body["id"]
         detail = client.get(f"/api/v1/knowledge/documents/{document_id}")
         assert detail.status_code == 200
@@ -153,9 +169,15 @@ def test_index_failure_reindex_delete_consistency_and_rebuild(db_session, monkey
         reindexed = client.post(f"/api/v1/knowledge/documents/{row.id}/reindex")
         assert reindexed.status_code == 200
         assert reindexed.json()["index_status"] == "indexed"
-        assert row.vector_document_id in fake.documents
+        assert any(
+            item.metadata["parent_document_id"] == row.vector_document_id
+            for item in fake.documents.values()
+        )
 
-        assert client.post("/api/v1/knowledge/rebuild").json() == {"indexed_documents": 1}
+        assert client.post("/api/v1/knowledge/rebuild").json() == {
+            "indexed_documents": 1,
+            "indexed_chunks": 1,
+        }
         fake.fail_delete = True
         failed_delete = client.delete(f"/api/v1/knowledge/documents/{row.id}")
         assert failed_delete.status_code == 502
@@ -166,7 +188,10 @@ def test_index_failure_reindex_delete_consistency_and_rebuild(db_session, monkey
         fake.fail_delete = False
         assert client.delete(f"/api/v1/knowledge/documents/{row.id}").status_code == 204
         assert knowledge_documents.get_document(db_session, row.id) is None
-        assert row.vector_document_id not in fake.documents
+        assert not any(
+            item.metadata["parent_document_id"] == row.vector_document_id
+            for item in fake.documents.values()
+        )
     finally:
         api_module.app.dependency_overrides.clear()
 

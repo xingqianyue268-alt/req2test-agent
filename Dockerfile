@@ -25,6 +25,7 @@ COPY src ./src
 COPY alembic.ini ./
 COPY alembic ./alembic
 COPY knowledge ./knowledge
+COPY knowledge_seed ./knowledge_seed
 COPY samples ./samples
 RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install --no-build-isolation --no-deps .

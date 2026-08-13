@@ -46,7 +46,7 @@ services:
   migrate:
     image: req2test-agent:dev
     build: .
-    command: alembic upgrade head
+    command: sh -c "alembic upgrade head && python -m req2test.kb_cli seed"
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-req2test}:${POSTGRES_PASSWORD:-req2test_dev}@postgres:5432/${POSTGRES_DB:-req2test}
       REQ2TEST_ENV: production
@@ -54,9 +54,14 @@ services:
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
+      REQ2TEST_CHROMA_DIR: /app/.req2test/chroma
+    volumes:
+      - chroma_data:/app/.req2test/chroma
     depends_on:
       postgres:
         condition: service_healthy
+      chroma-init:
+        condition: service_completed_successfully
     restart: "no"
 
   api:

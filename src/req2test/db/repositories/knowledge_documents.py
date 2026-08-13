@@ -44,6 +44,15 @@ def all_documents(session: Session) -> list[KnowledgeDocumentORM]:
     return list(session.scalars(select(KnowledgeDocumentORM).order_by(KnowledgeDocumentORM.id)))
 
 
+def count_by_index_status(session: Session) -> dict[str, int]:
+    rows = session.execute(
+        select(KnowledgeDocumentORM.index_status, func.count()).group_by(
+            KnowledgeDocumentORM.index_status
+        )
+    )
+    return {str(status): int(count) for status, count in rows}
+
+
 def create_document(
     session: Session,
     *,
@@ -77,9 +86,12 @@ def set_index_state(
     status: str,
     *,
     error: str | None = None,
+    chunk_count: int | None = None,
 ) -> KnowledgeDocumentORM:
     document.index_status = status
     document.error = error
+    if chunk_count is not None:
+        document.chunk_count = chunk_count
     session.flush()
     return document
 
