@@ -29,6 +29,7 @@ from .db.session import database_is_ready, get_db
 from .demo_ui import render_demo_html
 from .task_ui import render_tasks_html
 from .knowledge_ui import render_knowledge_html
+from .admin_ui import render_admin_html, render_admin_forbidden_html
 from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
 from .readiness import rabbitmq_is_ready, redis_is_ready
@@ -42,6 +43,7 @@ from .services.knowledge_service import (
     KnowledgeService,
     document_dto,
 )
+from .services.admin_service import AdminService, LastActiveAdminError, user_dto
 from .security.tokens import InvalidAccessToken, decode_access_token
 from .settings import get_settings
 from .task_store import task_store
@@ -62,6 +64,7 @@ def _publish_task(task_args: list[Any], eager: bool) -> str:
 
 task_persistence = TaskPersistenceService(task_store, _publish_task)
 knowledge_service = KnowledgeService()
+admin_service = AdminService()
 
 
 class TaskCreateRequest(BaseModel):
@@ -91,6 +94,18 @@ class KnowledgeSearchRequest(BaseModel):
 
     query: str = Field(min_length=1, max_length=1000)
     top_k: int = Field(default=5, ge=1, le=20)
+
+
+class AdminUserStatusRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    is_active: bool
+
+
+class AdminUserRoleRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    role: str = Field(pattern="^(user|admin)$")
 
 
 def task_actor(
@@ -178,6 +193,19 @@ def knowledge_page(request: Request, db: Session = Depends(get_db)):
     if _web_user(request, db) is None:
         return _login_redirect(request)
     return render_knowledge_html()
+
+
+@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin/{view}", response_class=HTMLResponse)
+def admin_page(request: Request, db: Session = Depends(get_db), view: str = "overview"):
+    if view not in {"overview", "users", "tasks", "knowledge", "system"}:
+        raise HTTPException(status_code=404, detail="Admin view not found")
+    current_user = _web_user(request, db)
+    if current_user is None:
+        return _login_redirect(request)
+    if current_user.role != "admin":
+        return HTMLResponse(render_admin_forbidden_html(), status_code=403)
+    return render_admin_html(view)
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -341,6 +369,99 @@ def search_knowledge(
     _current_user: UserORM = Depends(get_current_user),
 ):
     return {"items": knowledge_service.search(request.query, top_k=request.top_k)}
+
+
+@app.get("/api/v1/admin/dashboard")
+def admin_dashboard(
+    db: Session = Depends(get_db),
+    _admin: UserORM = Depends(require_roles("admin")),
+):
+    return admin_service.dashboard(db)
+
+
+@app.get("/api/v1/admin/users")
+def admin_users(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _admin: UserORM = Depends(require_roles("admin")),
+):
+    return admin_service.list_users(db, page=page, page_size=page_size)
+
+
+@app.patch("/api/v1/admin/users/{user_id}/status")
+def admin_update_user_status(
+    user_id: uuid.UUID,
+    request: AdminUserStatusRequest,
+    db: Session = Depends(get_db),
+    _admin: UserORM = Depends(require_roles("admin")),
+):
+    try:
+        user = admin_service.set_status(db, user_id=user_id, is_active=request.is_active)
+    except LastActiveAdminError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user_dto(user)
+
+
+@app.patch("/api/v1/admin/users/{user_id}/role")
+def admin_update_user_role(
+    user_id: uuid.UUID,
+    request: AdminUserRoleRequest,
+    db: Session = Depends(get_db),
+    _admin: UserORM = Depends(require_roles("admin")),
+):
+    try:
+        user = admin_service.set_role(db, user_id=user_id, role=request.role)
+    except LastActiveAdminError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user_dto(user)
+
+
+@app.get("/api/v1/admin/tasks")
+def admin_tasks(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    status: str | None = Query(default=None, pattern="^(queued|running|completed|failed)$"),
+    keyword: str | None = Query(default=None, max_length=255),
+    db: Session = Depends(get_db),
+    admin: UserORM = Depends(require_roles("admin")),
+):
+    return task_persistence.list_task_states(
+        db,
+        user_id=admin.id,
+        is_admin=True,
+        page=page,
+        page_size=page_size,
+        status=status,
+        keyword=keyword,
+    )
+
+
+@app.get("/api/v1/admin/system")
+def admin_system(_admin: UserORM = Depends(require_roles("admin"))):
+    try:
+        knowledge_count = knowledge_service._kb().count()
+        knowledge_state = "HEALTHY"
+    except Exception:  # noqa: BLE001 - status endpoint translates backend failures
+        knowledge_count = None
+        knowledge_state = "UNAVAILABLE"
+    return {
+        "services": [
+            {"name": "PostgreSQL", "state": "HEALTHY" if database_is_ready() else "UNAVAILABLE", "basis": "probe"},
+            {"name": "Redis", "state": "HEALTHY" if redis_is_ready(task_store) else "UNAVAILABLE", "basis": "probe"},
+            {"name": "RabbitMQ", "state": "HEALTHY" if rabbitmq_is_ready() else "UNAVAILABLE", "basis": "probe"},
+            {"name": "Celery Worker", "state": "CONFIGURED", "basis": "configuration"},
+            {"name": "Chroma / Knowledge", "state": knowledge_state, "basis": "probe", "documents": knowledge_count},
+            {"name": "Task Store", "state": "CONFIGURED", "basis": task_store.backend},
+            {"name": "WebSocket", "state": "CONFIGURED", "basis": "application"},
+            {"name": "Pytest", "state": "CONFIGURED", "basis": "capability"},
+            {"name": "Failure Analysis", "state": "CONFIGURED", "basis": "capability"},
+        ]
+    }
 
 
 @app.post("/api/v1/tasks", status_code=202)

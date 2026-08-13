@@ -59,3 +59,36 @@ def set_user_active(session: Session, user: UserORM, is_active: bool) -> UserORM
     user.is_active = is_active
     session.flush()
     return user
+
+
+def list_users(
+    session: Session, *, page: int = 1, page_size: int = 50
+) -> tuple[list[UserORM], int]:
+    total = session.scalar(select(func.count()).select_from(UserORM)) or 0
+    records = list(
+        session.scalars(
+            select(UserORM)
+            .order_by(UserORM.created_at.desc(), UserORM.id.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+    )
+    return records, int(total)
+
+
+def count_users(session: Session, *, active_only: bool = False) -> int:
+    statement = select(func.count(UserORM.id))
+    if active_only:
+        statement = statement.where(UserORM.is_active.is_(True))
+    return int(session.scalar(statement) or 0)
+
+
+def lock_active_admins(session: Session) -> list[UserORM]:
+    return list(
+        session.scalars(
+            select(UserORM)
+            .where(UserORM.role == "admin", UserORM.is_active.is_(True))
+            .order_by(UserORM.id)
+            .with_for_update()
+        )
+    )

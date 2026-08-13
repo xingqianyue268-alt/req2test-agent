@@ -114,7 +114,7 @@ body[data-view=workbench] .app-main{overflow:hidden}.workbench-view.route-view{m
       <a class="__WORKFLOW_ACTIVE__" href="/workflow"><span class="en-ui">HOW IT WORKS</span><span class="zh-ui">/ 工作流程</span></a>
       <a class="__SYSTEM_ACTIVE__" href="/system"><span class="en-ui">SYSTEM</span><span class="zh-ui">/ 系统状态</span></a>
     </nav>
-    <div class="nav-meta"><div class="system-online"><span class="status-dot" id="headerHealthDot"></span><span id="headerHealthText"><span class="en-ui">SYSTEM · CHECKING</span><span class="zh-ui"> / 系统检查中</span></span></div><div class="auth-user" id="authUser"><button class="auth-trigger" type="button" id="authTrigger"><span id="authEmail">ACCOUNT</span><span class="admin-mark" id="adminMark">ADMIN</span></button><div class="auth-menu"><a href="/tasks">MY TASKS / 我的任务</a><button type="button" onclick="logoutUser()">LOG OUT / 退出</button></div></div></div>
+    <div class="nav-meta"><div class="system-online"><span class="status-dot" id="headerHealthDot"></span><span id="headerHealthText"><span class="en-ui">SYSTEM · CHECKING</span><span class="zh-ui"> / 系统检查中</span></span></div><div class="auth-user" id="authUser"><button class="auth-trigger" type="button" id="authTrigger"><span id="authEmail">ACCOUNT</span><span class="admin-mark" id="adminMark">ADMIN</span></button><div class="auth-menu"><a href="/tasks">MY TASKS / 我的任务</a><a id="adminLink" href="/admin" style="display:none">ADMIN / 管理</a><button type="button" onclick="logoutUser()">LOG OUT / 退出</button></div></div></div>
   </header>
 
   <main class="app-main" id="top">
@@ -232,7 +232,7 @@ const STAGES=[
 let currentResult=null;let currentTaskId='';
 function esc(value){return String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]))}
 function toast(message,error=false){const el=document.getElementById('toast');el.textContent=message;el.className='toast show'+(error?' error':'');setTimeout(()=>el.className='toast',2600)}
-async function loadAuthState(){try{const response=await fetch('/api/v1/auth/me');if(response.status===401){if(document.body.dataset.view==='workbench'&&location.pathname==='/workbench')location.replace('/login?next=/workbench');return}if(!response.ok)return;const user=await response.json(),area=document.getElementById('authUser');document.getElementById('authEmail').textContent=user.email;document.getElementById('adminMark').classList.toggle('visible',user.role==='admin');area.classList.add('visible')}catch(error){}}
+async function loadAuthState(){try{const response=await fetch('/api/v1/auth/me');if(response.status===401){if(document.body.dataset.view==='workbench'&&location.pathname==='/workbench')location.replace('/login?next=/workbench');return}if(!response.ok)return;const user=await response.json(),area=document.getElementById('authUser');document.getElementById('authEmail').textContent=user.email;document.getElementById('adminMark').classList.toggle('visible',user.role==='admin');document.getElementById('adminLink').style.display=user.role==='admin'?'block':'none';area.classList.add('visible')}catch(error){}}
 async function logoutUser(){try{await fetch('/api/v1/auth/logout',{method:'POST'})}finally{location.replace('/login')}}
 const authTrigger=document.getElementById('authTrigger');if(authTrigger)authTrigger.addEventListener('click',()=>document.getElementById('authUser').classList.toggle('open'));loadAuthState();
 let taskStartedAt=0;let taskTimer=null;
