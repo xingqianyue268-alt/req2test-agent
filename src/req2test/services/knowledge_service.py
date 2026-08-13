@@ -6,6 +6,7 @@ import base64
 import binascii
 import hashlib
 import math
+import os
 import re
 import uuid
 from pathlib import Path, PurePath
@@ -83,9 +84,14 @@ def document_dto(document: KnowledgeDocumentORM, *, include_content: bool = Fals
 
 class KnowledgeService:
     def __init__(
-        self, knowledge_base_factory: Callable[[], ChromaKnowledgeBase] = get_default_knowledge_base
+        self,
+        knowledge_base_factory: Callable[[], ChromaKnowledgeBase] = get_default_knowledge_base,
+        collection_name: str | None = None,
     ) -> None:
         self._knowledge_base_factory = knowledge_base_factory
+        self.collection_name = collection_name or os.getenv(
+            "REQ2TEST_CHROMA_COLLECTION", "req2test_knowledge"
+        )
 
     def _kb(self) -> ChromaKnowledgeBase:
         return self._knowledge_base_factory()
@@ -129,10 +135,9 @@ class KnowledgeService:
             raise ValueError("Knowledge document is empty")
 
         digest = hashlib.sha256(raw).hexdigest()
-        kb = self._kb()
         vector_id = f"upload-{digest}"
         if repository.get_by_vector_reference(
-            session, collection=kb.collection_name, vector_document_id=vector_id
+            session, collection=self.collection_name, vector_document_id=vector_id
         ):
             raise DuplicateKnowledgeDocument("Knowledge document already exists")
         metadata = {"sha256": digest, "characters": len(text), "suffix": suffix}
@@ -142,7 +147,7 @@ class KnowledgeService:
                 title=(title or Path(safe_name).stem).strip()[:500],
                 source_name=safe_name,
                 kind=kind.strip()[:64] or "testing_rule",
-                vector_collection=kb.collection_name,
+                vector_collection=self.collection_name,
                 vector_document_id=vector_id,
                 content_text=text,
                 metadata=metadata,

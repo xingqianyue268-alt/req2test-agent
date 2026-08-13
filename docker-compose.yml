@@ -36,6 +36,13 @@ services:
       timeout: 3s
       retries: 10
 
+  chroma-init:
+    image: alpine:3.20
+    command: ["sh", "-c", "chown -R 10001:10001 /chroma"]
+    volumes:
+      - chroma_data:/chroma
+    restart: "no"
+
   migrate:
     image: req2test-agent:dev
     build: .
@@ -73,6 +80,8 @@ services:
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
     ports:
       - "8000:8000"
+    volumes:
+      - chroma_data:/app/.req2test/chroma
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -81,6 +90,8 @@ services:
       postgres:
         condition: service_healthy
       migrate:
+        condition: service_completed_successfully
+      chroma-init:
         condition: service_completed_successfully
 
   worker:
@@ -97,6 +108,8 @@ services:
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
+    volumes:
+      - chroma_data:/app/.req2test/chroma
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -106,6 +119,9 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+      chroma-init:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
+  chroma_data:

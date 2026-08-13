@@ -13,9 +13,17 @@ from req2test.db.session import get_db
 from req2test.security.passwords import hash_password
 from req2test.settings import Settings
 from req2test.task_store import TaskStore
+from req2test.task_ui import render_tasks_html
 
 
 PASSWORD = "correct horse battery staple"
+
+
+def test_task_ui_renders_javascript_newline_escapes_safely():
+    html = render_tasks_html()
+    assert "join('\\n')" in html
+    assert "join('\\n\\n')" in html
+    assert "join('\n')" not in html
 
 
 def _settings():

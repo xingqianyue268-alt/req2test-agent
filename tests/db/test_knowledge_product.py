@@ -60,7 +60,7 @@ def _client(db_session, monkeypatch):
         yield db_session
 
     fake = FakeKnowledgeBase()
-    service = KnowledgeService(lambda: fake)
+    service = KnowledgeService(lambda: fake, collection_name=fake.collection_name)
     api_module.app.dependency_overrides[get_db] = override_db
     monkeypatch.setattr(api_module, "knowledge_service", service)
     return TestClient(api_module.app), fake
