@@ -345,17 +345,17 @@ def test_task_product_routes_are_protected_and_include_local_exports(db_session,
         assert history.status_code == detail.status_code == 200
         assert "TEST\nHISTORY." in history.text
         assert "TASK\nDETAIL." in detail.text
-        assert "EXPORT MARKDOWN" in detail.text
-        assert "EXPORT CSV" in detail.text
-        assert "EXPORT JSON" in detail.text
+        assert "导出 Markdown" in detail.text
+        assert "导出 CSV" in detail.text
+        assert "导出 JSON" in detail.text
         assert "/api/v1/tasks/" in detail.text
-        assert "VIEW EVIDENCE / 查看详细证据" in detail.text
-        assert "PRIMARY ROOT CAUSE" in detail.text
-        assert "SECONDARY SIGNALS" in detail.text
+        assert "查看详细证据" in detail.text
+        assert "主要根因" in detail.text
+        assert "辅助信号" in detail.text
         assert "partitionDiagnoses" in detail.text
         assert "primary_failure_category" in detail.text
         assert "assertion_failure" in detail.text
-        assert "PRIMARY FAILURE" in history.text
+        assert "主要失败" in history.text
     finally:
         api_module.app.dependency_overrides.clear()
 

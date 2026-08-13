@@ -84,7 +84,7 @@ def test_422_is_classified_as_contract_mismatch_when_validation_evidence_is_pres
 def test_demo_ui_contains_design_execution_dashboard_and_raw_json_fallback():
     for marker in [
         "新建测试任务",
-        "GENERATE TESTS",
+        "生成测试用例",
         "测试用例",
         "需求拆分",
         "AI 评审 &amp; RAG",
@@ -93,10 +93,10 @@ def test_demo_ui_contains_design_execution_dashboard_and_raw_json_fallback():
         "失败归因",
         "HTTP Tool",
         "Pytest Runner",
-        "Failure Analysis",
+        "失败分析",
         "原始 JSON",
         "API 全通过示例",
-        "API 失败归因示例",
+        "失败归因示例",
     ]:
         assert marker in DEMO_HTML
 
@@ -120,10 +120,10 @@ def _javascript_template(name: str) -> str:
 
 def test_failure_v2_demo_selectors_expose_all_real_fixture_scenarios():
     selectors = {
-        "contract": "422 CONTRACT / 契约错误",
-        "timeout": "TIMEOUT / 超时",
-        "authentication": "401 AUTH / 认证失败",
-        "upstream": "500 UPSTREAM / 上游错误",
+        "contract": "422 契约错误",
+        "timeout": "超时",
+        "authentication": "401 认证失败",
+        "upstream": "500 上游错误",
     }
 
     for kind, label in selectors.items():

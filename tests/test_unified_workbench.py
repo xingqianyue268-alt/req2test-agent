@@ -55,7 +55,7 @@ def test_real_product_routes_share_shell_and_render_only_their_page():
     assert 'data-page="system"' in system.text
     assert 'data-page="workbench"' not in system.text
     assert 'data-page="workflow"' not in system.text
-    assert "RAG Knowledge Base" in system.text
+    assert "RAG 知识库" in system.text
     assert "WebSocket" in system.text
 
 
@@ -65,14 +65,15 @@ def test_workbench_preserves_existing_generation_and_result_features():
         "FROM",
         "REQUIREMENT",
         "TO REAL TEST.",
-        "GENERATE TESTS",
+        "生成测试用例",
         "测试用例",
         "需求拆分",
         "AI 评审 &amp; RAG",
         "执行结果",
-        '<span class="en-ui">WORKBENCH</span><span class="zh-ui">/ 工作台</span>',
-        '<span class="en-ui">HOW IT WORKS</span><span class="zh-ui">/ 工作流程</span>',
-        '<span class="en-ui">SYSTEM</span><span class="zh-ui">/ 系统状态</span>',
+        'href="/workbench">工作台</a>',
+        'href="/workflow">工作流程</a>',
+        'href="/system"',
+        '>系统状态</a>',
         'body data-view="workbench"',
         'data-stage-panel="new"',
         'data-stage-panel="progress"',
@@ -96,8 +97,8 @@ def test_workbench_websocket_has_finite_reconnect_and_durable_state_fallback():
         "function connectTaskSocket",
         "function refreshTaskFromSource",
         "function startTaskPolling",
-        "RECONNECTING / 正在恢复连接",
-        "LIVE CONNECTION UNAVAILABLE / 已切换任务状态查询",
+        "正在恢复连接",
+        "实时连接不可用，已切换任务状态查询",
         "fetch('/api/v1/tasks/'+taskId)",
         "startTaskTransport(data.task_id,data.ws_url)",
     ]:
@@ -111,10 +112,10 @@ def test_login_and_register_pages_match_editorial_auth_experience():
     register = client.get("/register")
     assert login.status_code == register.status_code == 200
     assert "WELCOME\nBACK." in login.text
-    assert "LOGIN / 登录" in login.text
-    assert "CREATE ACCOUNT / 注册账户" in login.text
+    assert ">登录<" in login.text
+    assert "注册账户" in login.text
     assert "CREATE\nACCOUNT." in register.text
-    assert "CONFIRM PASSWORD" in register.text
+    assert "确认密码" in register.text
     assert "localStorage" not in login.text
     assert "req2test_access_token" not in login.text
 
