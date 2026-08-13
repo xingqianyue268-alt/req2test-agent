@@ -4,9 +4,29 @@
 
 ![tests](https://github.com/xingqianyue268-alt/req2test-agent/actions/workflows/tests.yml/badge.svg)
 
+## 系统预览
+
+以下截图来自本仓库当前 FastAPI Web 平台的真实本地运行环境，使用仅用于公开预览的本地测试账户与内置可执行 API 场景。
+
+### 工作台 · 需求输入与测试配置
+
+![Req2Test 工作台](docs/images/workbench.jpg)
+
+### 测试任务详情 · Execution 执行结果
+
+![Req2Test 任务执行结果](docs/images/task-execution.jpg)
+
+### Failure Analysis V2 · Diagnosis Report
+
+![Req2Test Failure Analysis V2](docs/images/failure-diagnosis.jpg)
+
+### Knowledge Base · RAG 检索与知识文档
+
+![Req2Test Knowledge Base](docs/images/knowledge-base.jpg)
+
 ## 项目解决什么问题
 
-传统“LLM 生成测试用例”Demo 往往停留在文本输出。Req2Test Agent 进一步解决三个工程问题：
+单纯生成测试文本无法覆盖真实测试工程中的执行、追踪和诊断需求。Req2Test Agent 进一步解决三个工程问题：
 
 1. **测试设计可追溯**：需求被结构化为 Requirement，每条测试用例保留来源需求，并通过质量评审节点检查覆盖率和完整性。
 2. **长任务可工程化运行**：FastAPI + RabbitMQ + Celery + Redis 将耗时 Agent 流程异步化，WebSocket 实时推送任务阶段。
@@ -299,7 +319,7 @@ WS  /ws/tasks/<task_id>
 
 ```text
 req2test-agent/
-├── app.py
+├── app.py                     # Legacy Streamlit Demo（保留兼容入口）
 ├── Dockerfile
 ├── docker-compose.yml
 ├── docker-compose.override.yml
@@ -334,6 +354,10 @@ req2test-agent/
 │   └── acceptance.md
 └── .github/workflows/tests.yml
 ```
+
+## Legacy Streamlit Demo
+
+根目录 `app.py` 是项目早期的 Streamlit 交互入口，为兼容既有使用方式而保留。当前正式产品入口是 `src/req2test/api.py` 提供的 FastAPI 服务及 `/workbench`、`/tasks`、`/knowledge`、`/system` Web 页面；Docker Compose 也以 FastAPI + Celery 架构启动。Legacy 入口不代表当前平台的持久化、认证或异步执行架构。
 
 ## 运行模式
 

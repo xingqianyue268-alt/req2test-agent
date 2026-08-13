@@ -1,4 +1,9 @@
-"""Streamlit web interface for Req2Test Agent."""
+"""Legacy Streamlit demo retained as a compatibility entrypoint.
+
+The maintained product UI is served by the FastAPI application in
+``req2test.api``. This module remains runnable for users of the original
+single-process demonstration workflow.
+"""
 
 from __future__ import annotations
 
