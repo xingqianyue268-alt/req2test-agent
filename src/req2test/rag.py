@@ -211,6 +211,24 @@ class ChromaKnowledgeBase:
     def count(self) -> int:
         return self.collection.count()
 
+    def get(self, document_id: str) -> dict[str, Any] | None:
+        result = self.collection.get(
+            ids=[document_id], include=["documents", "metadatas"]
+        )
+        ids = result.get("ids", [])
+        if not ids:
+            return None
+        documents = result.get("documents") or []
+        metadatas = result.get("metadatas") or []
+        return {
+            "document_id": ids[0],
+            "text": documents[0] if documents else "",
+            "metadata": metadatas[0] if metadatas else {},
+        }
+
+    def delete(self, document_id: str) -> None:
+        self.collection.delete(ids=[document_id])
+
     def stats(self) -> dict[str, Any]:
         return {
             "backend": "chroma",

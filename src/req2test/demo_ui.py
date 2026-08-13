@@ -110,6 +110,7 @@ body[data-view=workbench] .app-main{overflow:hidden}.workbench-view.route-view{m
     <nav class="nav-links" aria-label="主要导航">
       <a class="__WORKBENCH_ACTIVE__" href="/workbench"><span class="en-ui">WORKBENCH</span><span class="zh-ui">/ 工作台</span></a>
       <a href="/tasks"><span class="en-ui">TASKS</span><span class="zh-ui">/ 测试任务</span></a>
+      <a href="/knowledge"><span class="en-ui">KNOWLEDGE</span><span class="zh-ui">/ 知识库</span></a>
       <a class="__WORKFLOW_ACTIVE__" href="/workflow"><span class="en-ui">HOW IT WORKS</span><span class="zh-ui">/ 工作流程</span></a>
       <a class="__SYSTEM_ACTIVE__" href="/system"><span class="en-ui">SYSTEM</span><span class="zh-ui">/ 系统状态</span></a>
     </nav>

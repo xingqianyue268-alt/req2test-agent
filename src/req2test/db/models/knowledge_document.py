@@ -31,6 +31,7 @@ class KnowledgeDocumentORM(TimestampMixin, Base):
     kind: Mapped[str] = mapped_column(String(64), nullable=False)
     vector_collection: Mapped[str] = mapped_column(String(255), nullable=False)
     vector_document_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_text: Mapped[str] = mapped_column(Text, nullable=False, default="")
     document_metadata: Mapped[dict[str, Any]] = mapped_column(
         "metadata", JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb")
     )

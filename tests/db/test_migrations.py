@@ -48,6 +48,10 @@ def test_migration_created_tables_constraints_and_foreign_keys(
         item["name"] for item in inspector.get_unique_constraints("knowledge_documents")
     }
     assert "uq_knowledge_documents_vector_reference" in knowledge_unique
+    knowledge_columns = {
+        item["name"]: item for item in inspector.get_columns("knowledge_documents")
+    }
+    assert knowledge_columns["content_text"]["nullable"] is False
 
     task_fk = inspector.get_foreign_keys("tasks")[0]
     assert task_fk["options"]["ondelete"] == "SET NULL"

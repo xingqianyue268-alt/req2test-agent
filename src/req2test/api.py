@@ -28,12 +28,20 @@ from .db.services.task_persistence import (
 from .db.session import database_is_ready, get_db
 from .demo_ui import render_demo_html
 from .task_ui import render_tasks_html
+from .knowledge_ui import render_knowledge_html
 from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
 from .readiness import rabbitmq_is_ready, redis_is_ready
 from .db.models import UserORM
 from .db.repositories import users as user_repository
-from .security.dependencies import get_optional_current_user
+from .security.dependencies import get_current_user, get_optional_current_user, require_roles
+from .services.knowledge_service import (
+    DuplicateKnowledgeDocument,
+    KnowledgeDeleteError,
+    KnowledgeIndexError,
+    KnowledgeService,
+    document_dto,
+)
 from .security.tokens import InvalidAccessToken, decode_access_token
 from .settings import get_settings
 from .task_store import task_store
@@ -53,6 +61,7 @@ def _publish_task(task_args: list[Any], eager: bool) -> str:
 
 
 task_persistence = TaskPersistenceService(task_store, _publish_task)
+knowledge_service = KnowledgeService()
 
 
 class TaskCreateRequest(BaseModel):
@@ -68,6 +77,20 @@ class TaskCreateRequest(BaseModel):
 class DocumentParseRequest(BaseModel):
     filename: str = Field(min_length=1)
     content_base64: str = Field(min_length=1)
+
+
+class KnowledgeUploadRequest(DocumentParseRequest):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str | None = Field(default=None, max_length=500)
+    kind: str = Field(default="testing_rule", min_length=1, max_length=64)
+
+
+class KnowledgeSearchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    query: str = Field(min_length=1, max_length=1000)
+    top_k: int = Field(default=5, ge=1, le=20)
 
 
 def task_actor(
@@ -150,6 +173,13 @@ def task_detail_page(task_id: uuid.UUID, request: Request, db: Session = Depends
     return render_tasks_html(str(task_id))
 
 
+@app.get("/knowledge", response_class=HTMLResponse)
+def knowledge_page(request: Request, db: Session = Depends(get_db)):
+    if _web_user(request, db) is None:
+        return _login_redirect(request)
+    return render_knowledge_html()
+
+
 @app.get("/login", response_class=HTMLResponse)
 def login_page() -> str:
     return render_auth_html("login")
@@ -215,6 +245,102 @@ def parse_document(request: DocumentParseRequest) -> dict[str, Any]:
         "characters": len(text),
         "text": text,
     }
+
+
+@app.get("/api/v1/knowledge/documents")
+def list_knowledge_documents(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _current_user: UserORM = Depends(get_current_user),
+):
+    return knowledge_service.list(db, page=page, page_size=page_size)
+
+
+@app.get("/api/v1/knowledge/documents/{document_id}")
+def get_knowledge_document(
+    document_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _current_user: UserORM = Depends(get_current_user),
+):
+    document = knowledge_service.get(db, document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Knowledge document not found")
+    return document_dto(document, include_content=True)
+
+
+@app.post("/api/v1/knowledge/documents", status_code=201)
+def upload_knowledge_document(
+    request: KnowledgeUploadRequest,
+    db: Session = Depends(get_db),
+    _admin: UserORM = Depends(require_roles("admin")),
+):
+    try:
+        document = knowledge_service.upload(
+            db,
+            filename=request.filename,
+            content_base64=request.content_base64,
+            title=request.title,
+            kind=request.kind,
+        )
+    except DuplicateKnowledgeDocument as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except OverflowError as exc:
+        raise HTTPException(status_code=413, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except KnowledgeIndexError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return document_dto(document, include_content=True)
+
+
+@app.delete("/api/v1/knowledge/documents/{document_id}", status_code=204)
+def delete_knowledge_document(
+    document_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _admin: UserORM = Depends(require_roles("admin")),
+) -> None:
+    document = knowledge_service.get(db, document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Knowledge document not found")
+    try:
+        knowledge_service.delete(db, document)
+    except KnowledgeDeleteError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/knowledge/documents/{document_id}/reindex")
+def reindex_knowledge_document(
+    document_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _admin: UserORM = Depends(require_roles("admin")),
+):
+    document = knowledge_service.get(db, document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Knowledge document not found")
+    try:
+        return document_dto(knowledge_service.reindex(db, document), include_content=True)
+    except KnowledgeIndexError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/knowledge/rebuild")
+def rebuild_knowledge(
+    db: Session = Depends(get_db),
+    _admin: UserORM = Depends(require_roles("admin")),
+):
+    try:
+        return knowledge_service.rebuild(db)
+    except KnowledgeIndexError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/knowledge/search")
+def search_knowledge(
+    request: KnowledgeSearchRequest,
+    _current_user: UserORM = Depends(get_current_user),
+):
+    return {"items": knowledge_service.search(request.query, top_k=request.top_k)}
 
 
 @app.post("/api/v1/tasks", status_code=202)
