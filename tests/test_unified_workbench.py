@@ -88,6 +88,24 @@ def test_workbench_preserves_existing_generation_and_result_features():
     assert render_demo_html("workbench") == DEMO_HTML
 
 
+def test_workbench_websocket_has_finite_reconnect_and_durable_state_fallback():
+    html = client.get("/demo").text
+
+    for marker in [
+        "WS_RECONNECT_DELAYS=[750,1500,3000,5000]",
+        "function connectTaskSocket",
+        "function refreshTaskFromSource",
+        "function startTaskPolling",
+        "RECONNECTING / 正在恢复连接",
+        "LIVE CONNECTION UNAVAILABLE / 已切换任务状态查询",
+        "fetch('/api/v1/tasks/'+taskId)",
+        "startTaskTransport(data.task_id,data.ws_url)",
+    ]:
+        assert marker in html
+
+    assert "ws.onerror=()=>toast" not in html
+
+
 def test_login_and_register_pages_match_editorial_auth_experience():
     login = client.get("/login")
     register = client.get("/register")

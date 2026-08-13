@@ -350,6 +350,11 @@ def test_task_product_routes_are_protected_and_include_local_exports(db_session,
         assert "EXPORT JSON" in detail.text
         assert "/api/v1/tasks/" in detail.text
         assert "VIEW EVIDENCE / 查看详细证据" in detail.text
+        assert "PRIMARY ROOT CAUSE" in detail.text
+        assert "SECONDARY SIGNALS" in detail.text
+        assert "partitionDiagnoses" in detail.text
+        assert "primary_failure_category" in detail.text
+        assert "assertion_failure" in detail.text
         assert "PRIMARY FAILURE" in history.text
     finally:
         api_module.app.dependency_overrides.clear()
