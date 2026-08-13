@@ -10,7 +10,7 @@
 
 1. **测试设计可追溯**：需求被结构化为 Requirement，每条测试用例保留来源需求，并通过质量评审节点检查覆盖率和完整性。
 2. **长任务可工程化运行**：FastAPI + RabbitMQ + Celery + Redis 将耗时 Agent 流程异步化，WebSocket 实时推送任务阶段。
-3. **生成结果可以真实执行**：Execution Planner 把需求中明确出现的 API 契约转换为 `HttpTestSpec`，再调用 HTTP Tool 与 Pytest Runner 执行，并根据真实结果进行失败归因。
+3. **生成结果可以真实执行并沉淀**：Execution Planner 把需求中的 API 契约转换为 `HttpTestSpec`，HTTP Tool 与 Pytest Runner 真实执行；任务、用例、执行和知识目录长期保存在 PostgreSQL。
 
 ## 核心能力
 
@@ -18,7 +18,8 @@
 - Requirement 自动拆分、模块识别与来源追溯
 - LangGraph 多 Agent：需求分析、测试设计、质量评审、自动修订
 - 正向 / 异常 / 边界测试配置
-- ChromaDB 持久化 RAG：测试规则 + 历史测试用例
+- PostgreSQL 永久保存用户、任务、测试用例、执行记录与知识文档目录
+- ChromaDB 持久化 RAG：13 份内置测试知识、用户上传文档与分块向量
 - 离线 Hashing Embedding，向量检索失败时回退本地轻量检索
 - FastAPI 异步任务接口
 - RabbitMQ + Celery 后台任务与多 Worker 消费
@@ -28,6 +29,9 @@
 - HTTP API Tool：真实请求、状态码、JSON 子结构和正文断言
 - Pytest Runner：根据结构化规格生成固定测试模板并真实执行
 - Failure Analyzer：连接、超时、认证、路由、422 契约校验、5xx、断言失败等归因
+- Failure Analysis V2：确定性根因分类、证据快照、置信度及 Primary / Secondary 层级
+- JWT 登录、普通用户任务隔离、RBAC 与 Admin 管理控制台
+- Knowledge Base：文档上传、索引状态、真实 RAG 搜索、删除与重建
 - Demo / OpenAI-compatible / Ollama 运行模式
 - Markdown / CSV / JSON 导出
 - Docker Compose 一键启动演示环境
@@ -36,12 +40,14 @@
 
 ```mermaid
 flowchart LR
-    A[需求文档] --> API[FastAPI]
+    U[User / Admin] --> API[FastAPI]
+    A[需求文档] --> API
+    API --> PG[(PostgreSQL)]
     API --> MQ[RabbitMQ]
     MQ --> W[Celery Worker]
 
-    Rules[测试规则] --> VDB[(ChromaDB)]
-    Cases[历史测试用例] --> VDB
+    Seed[knowledge_seed / uploads] --> PG
+    Seed --> VDB[(ChromaDB)]
     VDB --> RAG[Hybrid Retriever]
 
     W --> RAG
@@ -68,19 +74,21 @@ flowchart LR
 
 ## 已完成的本地验收
 
-2026-08-12 在 macOS Apple Silicon + Docker Desktop 环境完成真实集成验收。
+2026-08-14 在 macOS Apple Silicon + Docker Desktop 环境完成真实集成验收。
 
 ### 自动化回归
 
 ```text
-20 passed in 3.23s
+131 passed
 ```
 
 ### RAG
 
 - Chroma backend 正常
-- 15 条测试规则 / 历史案例成功入库
-- 登录类查询能够召回对应历史登录测试用例
+- 13 份内置知识文档写入 PostgreSQL 目录
+- 39 个 Markdown chunks 写入 ChromaDB
+- 初始化幂等，支持上传、删除、重新索引与全库重建
+- Workbench 与 Knowledge 页面使用同一套 Chroma collection
 
 ### Demo A：全通过链路
 
@@ -119,26 +127,28 @@ pytest -q
 
 支持 Python `>=3.10,<3.14`。
 
-### 2. 初始化 RAG 知识库
+### 2. 本地基础设施与配置
 
 ```bash
-req2test-kb rebuild
-req2test-kb stats
-req2test-kb search --query "用户使用正确账号密码登录" --top-k 3
+cp .env.example .env
+openssl rand -hex 32
 ```
 
-默认持久化目录为 `.req2test/chroma`，该目录不会提交到 Git。
+把生成值写入 `.env` 的 `JWT_SECRET_KEY`。仅在本机 HTTP 开发环境将
+`AUTH_COOKIE_SECURE=false`；HTTPS 部署必须保持 `true`。`.env` 不会提交到 Git。
 
-### 3. 启动完整异步平台
+### 3. 启动完整平台
 
 首次构建：
 
 ```bash
-docker compose build api
-docker compose up
+docker compose build
+docker compose up -d
 ```
 
-之后如果只修改 `src/` 或 `knowledge/`，开发环境通过 `docker-compose.override.yml` 挂载本地代码，通常直接执行：
+启动链路会等待 PostgreSQL、Redis 和 RabbitMQ 健康，执行 Alembic migration，随后幂等导入 `knowledge_seed/`，再启动 FastAPI 与 Celery Worker。
+
+之后如果只修改 `src/`，开发环境通过 `docker-compose.override.yml` 挂载本地代码，通常直接执行：
 
 ```bash
 docker compose up
@@ -149,10 +159,35 @@ docker compose up
 启动后：
 
 - FastAPI：`http://localhost:8000`
+- 工作台：`http://localhost:8000/workbench`
+- 知识库：`http://localhost:8000/knowledge`
+- 系统状态：`http://localhost:8000/system`
 - 健康检查：`http://localhost:8000/health`
 - Demo Dashboard：`http://localhost:8000/demo`
 - RabbitMQ Management：`http://localhost:15672`，本地默认账号密码均为 `guest`
 - Redis：`localhost:6379`
+
+### 4. 登录与 Admin 初始化
+
+普通用户可在 `http://localhost:8000/register` 注册。项目不会创建默认管理员，也不会内置管理员密码；首次初始化 Admin 使用交互命令：
+
+```bash
+docker compose exec api python -m req2test.cli.create_admin
+```
+
+命令会交互读取邮箱和密码，不会把密码写入 shell history。Admin 可管理用户状态与角色、查看平台任务、知识库和系统状态。
+
+### 5. Knowledge Base 初始化与检索
+
+Docker Compose 的 `migrate` 服务会自动执行一次幂等 seed。手动运行或复查：
+
+```bash
+docker compose exec api python -m req2test.kb_cli seed
+docker compose exec api python -m req2test.kb_cli stats
+docker compose exec api python -m req2test.kb_cli search --query "401 token 过期" --top-k 3
+```
+
+默认 Chroma 持久化目录为 `.req2test/chroma`；Docker 使用命名 volume。两者均不提交到 Git。
 
 在 Docker Compose 中让 Worker 测试内置 Demo API 时，Base URL 使用：
 
@@ -227,14 +262,17 @@ WS  /ws/tasks/<task_id>
 - `summary`
 - `warnings`
 
-## RAG 设计
+## RAG 与 Knowledge Base 设计
 
-知识来源：
+知识来源分为：
 
-- `knowledge/testing_rules.md`：测试设计规范
-- `knowledge/historical_cases.jsonl`：历史测试案例
+- `knowledge_seed/`：13 份可提交的内置 Markdown，覆盖测试设计、API、Pytest、安全与 Failure Analysis
+- 用户通过 Knowledge 页面上传的 TXT / Markdown / DOCX / PDF
+- `knowledge/`：保留的早期静态规则，仅作为本地检索降级资料
 
-`HybridKnowledgeRetriever` 优先使用 ChromaDB。默认 Hashing Embedding 主要用于离线演示和确定性测试，它不等同于生产级语义 Embedding；真实业务可以替换为专用 Embedding 模型而不改变工作流接口。
+每份产品知识在 PostgreSQL `knowledge_documents` 保存 metadata、索引状态与 chunk 数，内容按 Markdown 标题分块后写入同一个 Chroma collection。`HybridKnowledgeRetriever` 优先使用该 collection，失败时回退本地规则。默认 Hashing Embedding 用于离线演示和确定性测试，不等同于生产级语义 Embedding。
+
+`knowledge_seed/` 内容是基于 pytest、OWASP WSTG、OpenAPI、RFC 9110 与常见测试设计方法整理的原创摘要；每份文件均声明 `source`、`license` 和 `version` 元数据，不包含大段复制原文或第三方品牌资产。
 
 ## Tool Calling 安全边界
 
@@ -258,12 +296,17 @@ req2test-agent/
 ├── knowledge/
 │   ├── testing_rules.md
 │   └── historical_cases.jsonl
+├── knowledge_seed/            # 13 份内置、可追溯的产品知识
+├── alembic/                   # PostgreSQL schema migrations
 ├── samples/
 ├── src/req2test/
 │   ├── api.py
 │   ├── demo_ui.py
 │   ├── worker.py
 │   ├── task_store.py
+│   ├── db/                    # SQLAlchemy 2.x models/repositories/session
+│   ├── services/              # persistence, knowledge and admin services
+│   ├── security/              # Argon2 password, JWT and RBAC
 │   ├── progress.py
 │   ├── graph.py
 │   ├── enhanced_nodes.py
@@ -303,7 +346,8 @@ ollama pull qwen3:4b
 
 - **RabbitMQ**：把 HTTP 请求与耗时 Agent 工作流解耦，并支持任务削峰。
 - **Celery**：处理 Worker 消费、多任务并发与重试。
-- **Redis**：统一保存任务状态、进度与结果，同时作为 Celery Result Backend。
+- **PostgreSQL**：用户、任务、测试用例、执行与知识目录的永久 Source of Truth。
+- **Redis**：实时任务状态、进度投影与 Celery Result Backend；不替代 PostgreSQL 历史数据。
 - **WebSocket**：避免浏览器同步阻塞等待长任务。
 - **LangGraph**：显式表达 Agent 节点、状态和条件修订路径。
 - **Pydantic**：约束需求、测试用例和执行报告的数据结构。
@@ -318,7 +362,7 @@ ollama pull qwen3:4b
 
 - OpenAPI / Swagger 自动导入 API 契约
 - UI 截图 / 原型图多模态需求分析
-- 请求幂等、限流和重复任务缓存
+- 限流和跨区域部署策略
 - Jira / 禅道缺陷同步
 - 人工确认节点与断点恢复
 - 更完整的历史执行趋势与质量 Dashboard
