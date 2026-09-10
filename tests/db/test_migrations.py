@@ -1,7 +1,7 @@
-from alembic import command
 from alembic.config import Config
 from sqlalchemy import inspect, text
 
+from alembic import command
 
 EXPECTED_TABLES = {
     "users",
@@ -9,6 +9,9 @@ EXPECTED_TABLES = {
     "test_cases",
     "executions",
     "knowledge_documents",
+    "evaluation_runs",
+    "evaluation_case_results",
+    "evaluation_comparisons",
 }
 
 
@@ -54,6 +57,22 @@ def test_migration_created_tables_constraints_and_foreign_keys(
     assert knowledge_columns["content_text"]["nullable"] is False
     assert knowledge_columns["chunk_count"]["nullable"] is False
 
+    evaluation_run_checks = {
+        item["name"] for item in inspector.get_check_constraints("evaluation_runs")
+    }
+    assert "ck_evaluation_runs_status_allowed" in evaluation_run_checks
+    assert "ck_evaluation_runs_overall_score_range" in evaluation_run_checks
+    evaluation_case_unique = {
+        item["name"]
+        for item in inspector.get_unique_constraints("evaluation_case_results")
+    }
+    assert "uq_evaluation_case_results_run_case" in evaluation_case_unique
+    comparison_checks = {
+        item["name"]
+        for item in inspector.get_check_constraints("evaluation_comparisons")
+    }
+    assert "ck_evaluation_comparisons_distinct_runs" in comparison_checks
+
     task_fk = inspector.get_foreign_keys("tasks")[0]
     assert task_fk["options"]["ondelete"] == "SET NULL"
     test_case_fk = inspector.get_foreign_keys("test_cases")[0]
@@ -64,6 +83,8 @@ def test_migration_created_tables_constraints_and_foreign_keys(
     }
     assert execution_fks[("task_id",)] == "CASCADE"
     assert execution_fks[("test_case_id",)] == "SET NULL"
+    evaluation_case_fk = inspector.get_foreign_keys("evaluation_case_results")[0]
+    assert evaluation_case_fk["options"]["ondelete"] == "CASCADE"
 
 
 def test_migration_downgrade_upgrade_round_trip(schema_connection, migrated_schema):

@@ -1,4 +1,4 @@
-# Req2Test Agent · AI 测试执行平台
+# Req2Test Agent v0.6.0 · AI 测试执行平台
 
 面向中文需求文档的多智能体 AI 测试设计与执行平台。系统将需求解析、RAG 测试知识检索、测试用例生成、质量评审、真实 HTTP 执行、Pytest 自动化和失败归因串成一个可复现的测试闭环。
 
@@ -53,6 +53,10 @@
 - JWT 登录、普通用户任务隔离、RBAC 与 Admin 管理控制台
 - Knowledge Base：文档上传、索引状态、真实 RAG 搜索、删除与重建
 - Demo / OpenAI-compatible / Ollama 运行模式
+- AI Evaluation Center：Golden Dataset、六项 0–100 指标与持久化 Eval Run
+- 独立 LLM-as-a-Judge：严格 JSON、版本化 Prompt、失败时确定性降级
+- Model / Prompt A-B comparison 与完整复现实验元数据
+- 完全离线的 CI evaluation regression gate
 - Markdown / CSV / JSON 导出
 - Docker Compose 一键启动演示环境
 
@@ -84,6 +88,15 @@ flowchart LR
     PT --> ER
     ER --> FA[Failure Analyzer]
     FA --> OUT[Dashboard / JSON]
+
+    UI --> EC[Evaluation Center]
+    GD[Versioned Golden Dataset] --> EC
+    EC -->|A / B configs| EW[Celery Eval Worker]
+    EW --> DET[Deterministic Metrics]
+    EW --> J[LLM Judge / deterministic fallback]
+    DET --> EPG[(EvaluationRun / CaseResult)]
+    J --> EPG
+    EPG --> AB[A/B Comparison]
 
     W --> Redis[(Redis)]
     Redis --> WS[WebSocket]
@@ -181,6 +194,7 @@ docker compose up
 - FastAPI：`http://localhost:8000`
 - 工作台：`http://localhost:8000/workbench`
 - 知识库：`http://localhost:8000/knowledge`
+- AI Evaluation Center：`http://localhost:8000/evaluations`
 - 系统状态：`http://localhost:8000/system`
 - 健康检查：`http://localhost:8000/health`
 - Demo Dashboard：`http://localhost:8000/demo`
@@ -248,6 +262,33 @@ POST /demo-target/echo
 因为 POST 缺少请求体，FastAPI 返回 422。平台应将该用例标记为 FAIL，并归因为 `contract_mismatch`，而不是把整个异步任务误判为系统失败。
 
 ## API
+
+### AI Evaluation Center
+
+`/evaluations` 提供 Dataset 列表、单次 Eval Run、六项指标与 evidence，以及 A/B
+对比视图。API 使用现有 JWT/RBAC，并按创建者隔离运行：
+
+```text
+GET  /api/v1/evaluations/datasets
+POST /api/v1/evaluations/runs
+GET  /api/v1/evaluations/runs/<run_id>
+POST /api/v1/evaluations/comparisons
+GET  /api/v1/evaluations/comparisons/<comparison_id>
+```
+
+公开 Demo Golden Dataset 位于 `evals/golden_demo.jsonl`，只包含虚构的登录、购物车与
+API 契约需求。CI 使用完全离线模式执行：
+
+```bash
+python scripts/run_eval.py \
+  --dataset evals/golden_demo.jsonl \
+  --mode demo \
+  --min-score 80
+```
+
+低于门槛或评测整体失败时命令返回非零退出码。主观指标可使用现有
+OpenAI-compatible/Ollama 配置调用 Judge；Demo 模式不会读取或要求 API Key。详细数据契约、
+指标定义和可复现性边界见 [`docs/evaluation.md`](docs/evaluation.md)。
 
 ### 创建异步任务
 
@@ -327,7 +368,9 @@ req2test-agent/
 │   ├── testing_rules.md
 │   └── historical_cases.jsonl
 ├── knowledge_seed/            # 13 份内置、可追溯的产品知识
+├── evals/golden_demo.jsonl     # 可公开提交的版本化 Golden Dataset
 ├── alembic/                   # PostgreSQL schema migrations
+├── scripts/run_eval.py         # 离线回归门禁
 ├── samples/
 ├── src/req2test/
 │   ├── api.py
@@ -336,6 +379,9 @@ req2test-agent/
 │   ├── task_store.py
 │   ├── db/                    # SQLAlchemy 2.x models/repositories/session
 │   ├── services/              # persistence, knowledge and admin services
+│   ├── evaluation/            # dataset、metrics、judge、engine、comparison
+│   ├── evaluation_api.py
+│   ├── evaluation_ui.py
 │   ├── security/              # Argon2 password, JWT and RBAC
 │   ├── progress.py
 │   ├── graph.py
@@ -351,6 +397,7 @@ req2test-agent/
 ├── tests/
 ├── docs/
 │   ├── architecture.md
+│   ├── evaluation.md
 │   └── acceptance.md
 └── .github/workflows/tests.yml
 ```
@@ -391,6 +438,11 @@ ollama pull qwen3:4b
 ## 当前边界与后续方向
 
 当前项目重点验证“需求 → 测试设计 → 自动执行 → 失败归因”的工程闭环，不将 Demo 环境包装成生产级测试平台。
+
+Evaluation Center v1 的可复现性指配置与输入快照可追溯；在线托管模型不承诺
+bit-for-bit 复现。公开 Golden Demo 是用于 CI 的小型回归集，v1 尚无 dataset
+在线编辑/发布 UI；脱离 Compose 使用容器时需额外挂载受信任的 dataset 目录。在线
+Judge 需要可用的 OpenAI-compatible/Ollama endpoint，CI 只验证完全离线路径。
 
 可继续扩展：
 

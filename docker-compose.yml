@@ -83,10 +83,12 @@ services:
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
+      REQ2TEST_EVAL_DATASET_DIR: /app/evals
     ports:
       - "8000:8000"
     volumes:
       - chroma_data:/app/.req2test/chroma
+      - ./evals:/app/evals:ro
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -113,8 +115,10 @@ services:
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
+      REQ2TEST_EVAL_DATASET_DIR: /app/evals
     volumes:
       - chroma_data:/app/.req2test/chroma
+      - ./evals:/app/evals:ro
     depends_on:
       rabbitmq:
         condition: service_healthy

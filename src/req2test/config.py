@@ -13,6 +13,7 @@ class LLMSettings(BaseModel):
     api_key: str = ""
     base_url: str = "https://api.openai.com/v1"
     temperature: float = Field(default=0.1, ge=0.0, le=1.0)
+    seed: int | None = None
     timeout_seconds: int = Field(default=90, ge=10, le=300)
 
     @field_validator("model")
@@ -33,6 +34,7 @@ class GenerationConfig(BaseModel):
     max_cases: int = Field(default=12, ge=1, le=60)
     min_review_score: int = Field(default=85, ge=60, le=100)
     max_review_iterations: int = Field(default=1, ge=0, le=3)
+    prompt_version: Literal["workflow-v1", "workflow-grounded-v2"] = "workflow-v1"
 
     @model_validator(mode="after")
     def at_least_one_test_type(self) -> "GenerationConfig":

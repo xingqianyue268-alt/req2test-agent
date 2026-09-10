@@ -44,3 +44,10 @@ jobs:
 
       - name: Run tests
         run: pytest -q
+
+      - name: Run deterministic evaluation gate
+        run: >-
+          python scripts/run_eval.py
+          --dataset evals/golden_demo.jsonl
+          --mode demo
+          --min-score 80

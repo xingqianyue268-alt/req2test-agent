@@ -1,6 +1,8 @@
 # Req2Test Agent 验收记录
 
-最后一次本地集成验收：2026-08-14
+历史完整平台验收：2026-08-14
+
+Evaluation Center v1 验收：2026-09-10
 
 ## 验收环境
 
@@ -16,6 +18,30 @@
 ```
 
 测试覆盖数据库 migration、认证与 RBAC、任务持久化和隔离、Celery retry 与幂等、Knowledge Base 生命周期、RAG 召回、HTTP Tool、Pytest Runner、Failure Analysis V2、WebSocket fallback 及主要页面契约。
+
+## Evaluation Center v1 验收范围
+
+- 公开 `golden-demo-v1` JSONL 可加载，版本混用、重复 ID、越界文件和非法结构被拒绝。
+- 六项指标统一输出 0–100 `score`、`reason`、`evidence`。
+- Coverage、Completeness、Redundancy 只走确定性评估器。
+- Executability、Expected Result Quality、Groundedness 在 Judge 失败或 Demo 模式下确定性降级。
+- Judge 输出严格校验，Prompt version/digest 与非敏感模型参数被保存。
+- EvaluationRun、EvaluationCaseResult、EvaluationComparison 可通过 Alembic migration 持久化。
+- 普通用户只能读取自己的 Run/Comparison，Admin 可查看全部；响应不返回 API Key。
+- A/B 固定同一个 dataset snapshot，并输出各指标、总分、延迟、修订次数及 B-A delta。
+- `/evaluations` 覆盖 Dataset、创建 Run、详情/evidence 与 A/B 结果。
+- GitHub Actions 在原有 pytest 后执行完全离线的 80 分 regression gate。
+
+确定性 smoke gate：
+
+```bash
+python scripts/run_eval.py --dataset evals/golden_demo.jsonl --mode demo --min-score 80
+```
+
+基线 `golden-demo-v1` 当前总分为 `98.45/100`。此分数来自 Demo 生成与规则降级，CI 不需要
+OpenAI API Key 或 Ollama 服务。2026-09-10 在真实 PostgreSQL/Redis/RabbitMQ/Celery
+组合环境中执行 `pytest -q`：`162 passed, 0 skipped, 0 failed`。最终发布数字以本次
+收尾后的重新运行结果为准。
 
 ## Knowledge Base
 
