@@ -1,4 +1,9 @@
-"""Prompt templates for each agent role."""
+"""Versioned prompt templates for each agent role."""
+
+from __future__ import annotations
+
+import hashlib
+from dataclasses import dataclass
 
 ANALYST_SYSTEM = """你是一名需求分析师。你的工作是把中文软件需求拆分成独立、可测试、不可重复的需求项。
 必须忠于原文，禁止补充原文不存在的功能。只输出合法 JSON，不要输出解释。"""
@@ -64,3 +69,78 @@ REVISER_USER = """请根据评审意见修订测试用例。
 
 输出完整的修订后测试用例 JSON 数组，字段结构保持不变。
 """
+
+
+@dataclass(frozen=True, slots=True)
+class WorkflowPromptBundle:
+    version: str
+    analyst_system: str
+    analyst_user: str
+    designer_system: str
+    designer_user: str
+    reviewer_system: str
+    reviewer_user: str
+    reviser_system: str
+    reviser_user: str
+
+
+WORKFLOW_PROMPTS: dict[str, WorkflowPromptBundle] = {
+    "workflow-v1": WorkflowPromptBundle(
+        version="workflow-v1",
+        analyst_system=ANALYST_SYSTEM,
+        analyst_user=ANALYST_USER,
+        designer_system=DESIGNER_SYSTEM,
+        designer_user=DESIGNER_USER,
+        reviewer_system=REVIEWER_SYSTEM,
+        reviewer_user=REVIEWER_USER,
+        reviser_system=REVISER_SYSTEM,
+        reviser_user=REVISER_USER,
+    ),
+    "workflow-grounded-v2": WorkflowPromptBundle(
+        version="workflow-grounded-v2",
+        analyst_system=(
+            ANALYST_SYSTEM
+            + "\n对每条拆分结果保留原文中的主体、动作、条件和限制，不得弱化否定约束。"
+        ),
+        analyst_user=ANALYST_USER,
+        designer_system=(
+            DESIGNER_SYSTEM
+            + "\n每条用例必须能回指一个输入需求；需求未出现的角色、接口和业务状态不得写入用例。"
+        ),
+        designer_user=DESIGNER_USER,
+        reviewer_system=(
+            REVIEWER_SYSTEM
+            + "\n将违反原始约束或引入未知 endpoint 视为必须修订的问题。"
+        ),
+        reviewer_user=REVIEWER_USER,
+        reviser_system=(
+            REVISER_SYSTEM
+            + "\n修订时优先删除无需求依据的内容，并保持 source_requirement 稳定。"
+        ),
+        reviser_user=REVISER_USER,
+    ),
+}
+
+
+def get_workflow_prompt_bundle(version: str) -> WorkflowPromptBundle:
+    try:
+        return WORKFLOW_PROMPTS[version]
+    except KeyError as exc:
+        raise ValueError(f"Unknown workflow prompt version: {version}") from exc
+
+
+def workflow_prompt_digest(version: str) -> str:
+    bundle = get_workflow_prompt_bundle(version)
+    content = "\n".join(
+        (
+            bundle.analyst_system,
+            bundle.analyst_user,
+            bundle.designer_system,
+            bundle.designer_user,
+            bundle.reviewer_system,
+            bundle.reviewer_user,
+            bundle.reviser_system,
+            bundle.reviser_user,
+        )
+    )
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()

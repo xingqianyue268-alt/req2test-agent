@@ -21,6 +21,7 @@ def build_chat_model(settings: LLMSettings):
         api_key=api_key,
         base_url=settings.base_url,
         temperature=settings.temperature,
+        seed=settings.seed,
         timeout=settings.timeout_seconds,
         max_retries=1,
     )

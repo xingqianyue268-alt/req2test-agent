@@ -10,16 +10,7 @@ from typing import Any, TypedDict
 from .config import GenerationConfig, LLMSettings
 from .llm import build_chat_model, invoke_json
 from .models import RequirementItem, ReviewReport, TestCase, TestStep
-from .prompts import (
-    ANALYST_SYSTEM,
-    ANALYST_USER,
-    DESIGNER_SYSTEM,
-    DESIGNER_USER,
-    REVIEWER_SYSTEM,
-    REVIEWER_USER,
-    REVISER_SYSTEM,
-    REVISER_USER,
-)
+from .prompts import get_workflow_prompt_bundle
 from .retrieval import LocalRuleRetriever
 
 
@@ -101,6 +92,8 @@ def _demo_analyse(text: str) -> list[RequirementItem]:
 
 def analyse_requirements_node(state: WorkflowState) -> dict[str, Any]:
     settings = LLMSettings.model_validate(state["llm_settings"])
+    config = GenerationConfig.model_validate(state["generation_config"])
+    prompts = get_workflow_prompt_bundle(config.prompt_version)
     if settings.mode == "demo":
         requirements = _demo_analyse(state["requirement_text"])
         return {"requirements": [item.model_dump() for item in requirements]}
@@ -109,8 +102,8 @@ def analyse_requirements_node(state: WorkflowState) -> dict[str, Any]:
         model = build_chat_model(settings)
         payload = invoke_json(
             model,
-            ANALYST_SYSTEM,
-            ANALYST_USER.format(requirement_text=state["requirement_text"]),
+            prompts.analyst_system,
+            prompts.analyst_user.format(requirement_text=state["requirement_text"]),
         )
         requirements = [RequirementItem.model_validate(item) for item in payload]
         return {"requirements": [item.model_dump() for item in requirements]}
@@ -264,6 +257,7 @@ def design_cases_node(state: WorkflowState) -> dict[str, Any]:
     settings = LLMSettings.model_validate(state["llm_settings"])
     config = GenerationConfig.model_validate(state["generation_config"])
     requirements = [RequirementItem.model_validate(item) for item in state.get("requirements", [])]
+    prompts = get_workflow_prompt_bundle(config.prompt_version)
 
     if settings.mode == "demo":
         cases = _demo_design(requirements, config)
@@ -273,8 +267,8 @@ def design_cases_node(state: WorkflowState) -> dict[str, Any]:
         model = build_chat_model(settings)
         payload = invoke_json(
             model,
-            DESIGNER_SYSTEM,
-            DESIGNER_USER.format(
+            prompts.designer_system,
+            prompts.designer_user.format(
                 requirements_json=json.dumps(
                     [item.model_dump() for item in requirements], ensure_ascii=False, indent=2
                 ),
@@ -338,6 +332,8 @@ def _demo_review(requirements: list[RequirementItem], cases: list[TestCase]) -> 
 
 def review_cases_node(state: WorkflowState) -> dict[str, Any]:
     settings = LLMSettings.model_validate(state["llm_settings"])
+    config = GenerationConfig.model_validate(state["generation_config"])
+    prompts = get_workflow_prompt_bundle(config.prompt_version)
     requirements = [RequirementItem.model_validate(item) for item in state.get("requirements", [])]
     cases = [TestCase.model_validate(item) for item in state.get("test_cases", [])]
 
@@ -349,8 +345,8 @@ def review_cases_node(state: WorkflowState) -> dict[str, Any]:
         model = build_chat_model(settings)
         payload = invoke_json(
             model,
-            REVIEWER_SYSTEM,
-            REVIEWER_USER.format(
+            prompts.reviewer_system,
+            prompts.reviewer_user.format(
                 requirements_json=json.dumps(
                     [item.model_dump() for item in requirements], ensure_ascii=False, indent=2
                 ),
@@ -395,6 +391,8 @@ def _demo_revise(cases: list[TestCase]) -> list[TestCase]:
 
 def revise_cases_node(state: WorkflowState) -> dict[str, Any]:
     settings = LLMSettings.model_validate(state["llm_settings"])
+    config = GenerationConfig.model_validate(state["generation_config"])
+    prompts = get_workflow_prompt_bundle(config.prompt_version)
     requirements = [RequirementItem.model_validate(item) for item in state.get("requirements", [])]
     cases = [TestCase.model_validate(item) for item in state.get("test_cases", [])]
     iterations = state.get("review_iterations", 0) + 1
@@ -410,8 +408,8 @@ def revise_cases_node(state: WorkflowState) -> dict[str, Any]:
         model = build_chat_model(settings)
         payload = invoke_json(
             model,
-            REVISER_SYSTEM,
-            REVISER_USER.format(
+            prompts.reviser_system,
+            prompts.reviser_user.format(
                 requirements_json=json.dumps(
                     [item.model_dump() for item in requirements], ensure_ascii=False, indent=2
                 ),

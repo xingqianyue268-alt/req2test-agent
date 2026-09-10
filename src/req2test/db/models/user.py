@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from .evaluation import EvaluationRunORM
     from .task import TaskORM
 
 
@@ -36,6 +37,7 @@ class UserORM(TimestampMixin, Base):
     )
 
     tasks: Mapped[list["TaskORM"]] = relationship(back_populates="user")
+    evaluation_runs: Mapped[list["EvaluationRunORM"]] = relationship(back_populates="user")
 
     def __str__(self) -> str:
         return self.email

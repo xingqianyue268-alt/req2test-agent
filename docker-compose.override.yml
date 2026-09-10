@@ -1,4 +1,11 @@
 services:
+  migrate:
+    environment:
+      PYTHONPATH: /app/src
+    volumes:
+      - ./src:/app/src:ro
+      - ./alembic:/app/alembic:ro
+      - ./knowledge:/app/knowledge:ro
   api:
     environment:
       PYTHONPATH: /app/src

@@ -28,11 +28,21 @@ flowchart LR
     W --> PG
     W --> R
     R --> WS[WebSocket / polling fallback]
+
+    U --> EC[Evaluation Center API / UI]
+    GD[Golden Dataset JSONL] --> EC
+    EC --> MQ
+    W --> DM[Deterministic Metrics]
+    W --> J[LLM Judge / deterministic fallback]
+    DM --> ER[(EvaluationRun / CaseResult)]
+    J --> ER
+    ER --> AB[A/B Comparison]
 ```
 
 ## 数据与消息职责
 
-- **PostgreSQL**：User、Task、TestCase、Execution、KnowledgeDocument 和诊断结果的长期 Source of Truth。
+- **PostgreSQL**：User、Task、TestCase、Execution、KnowledgeDocument、EvaluationRun、
+  EvaluationCaseResult、EvaluationComparison 和诊断结果的长期 Source of Truth。
 - **Redis**：高频进度、WebSocket 实时投影、临时缓存和 Celery Result Backend；投影可从 PostgreSQL 恢复。
 - **RabbitMQ**：FastAPI 与 Celery Worker 之间的异步任务 broker。
 - **ChromaDB**：KnowledgeDocument 内容分块后的向量与检索 metadata，不保存用户或任务业务关系。
@@ -42,6 +52,22 @@ flowchart LR
 LangGraph 管理需求分析、测试设计、质量评审和条件修订。Execution Planner 只接受需求中明确出现的 HTTP method/path，并通过 endpoint 白名单约束模型输出。HTTP Tool 校验状态码、JSON 子结构和正文；Pytest Runner 从结构化规格渲染固定模板，不接受任意 Python 源码。
 
 Worker 在关键生命周期节点持久化 PostgreSQL，在执行期间向 Redis 写入单调版本的进度。有限重试只用于瞬时基础设施异常；确定性的业务失败不会盲目重试。Task terminal state、稳定 task/celery ID 与数据库唯一约束共同防止重复 delivery 产生重复执行记录。
+
+## Evaluation Center
+
+Evaluation Center 是工作流外部的回归与实验子系统，不替代现有 Quality Review Agent。
+Review Agent 在一次生成过程中检查并触发修订；Evaluation Center 在固定 Golden Dataset 上调用
+完整工作流，然后独立评分、保存并比较结果。
+
+三个稳定指标 `requirement_coverage`、`case_completeness`、`redundancy` 始终由规则评估器
+计算。`executability`、`expected_result_quality`、`requirement_groundedness` 可由独立 Judge
+评估；Demo 模式、调用异常或严格 JSON 校验失败时由确定性算法降级。Judge 只接收白名单中的
+Golden 需求、约束、结构化 Requirement 和 TestCase，不接收认证 Header、API Key 或执行正文。
+
+API 将运行配置与 dataset/prompt/knowledge digest 一起写入 PostgreSQL，再通过既有 RabbitMQ
+和 Celery 执行。Worker 开始前再次校验 dataset 与 knowledge snapshot digest，避免排队期间输入
+悄然变化。A/B 必须共享同一 dataset version/digest，并保存逐指标、总分、延迟和修订次数差值。
+详见 [`evaluation.md`](evaluation.md)。
 
 ## Knowledge Base
 

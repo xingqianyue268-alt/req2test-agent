@@ -48,9 +48,11 @@ from .security.tokens import InvalidAccessToken, decode_access_token
 from .settings import get_settings
 from .task_store import task_store
 from .worker import generate_test_cases
+from .evaluation_api import router as evaluation_router
 
-app = FastAPI(title="Req2Test Agent API", version="0.5.0")
+app = FastAPI(title="Req2Test Agent API", version="0.6.0")
 app.include_router(auth_router)
+app.include_router(evaluation_router)
 
 
 def _publish_task(task_args: list[Any], eager: bool) -> str:

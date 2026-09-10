@@ -106,4 +106,5 @@ def run_workflow(
         review=review,
         retrieved_context=state.get("retrieved_context", []),
         errors=state.get("errors", []),
+        review_iterations=int(state.get("review_iterations", 0)),
     )

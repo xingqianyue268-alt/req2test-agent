@@ -43,3 +43,4 @@ class WorkflowResult(BaseModel):
     review: ReviewReport
     retrieved_context: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
+    review_iterations: int = Field(default=0, ge=0)

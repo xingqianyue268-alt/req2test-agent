@@ -45,7 +45,12 @@ RESULT_BACKEND = os.getenv(
     "CELERY_RESULT_BACKEND", os.getenv("REDIS_URL", "redis://localhost:6379/1")
 )
 
-celery_app = Celery("req2test", broker=BROKER_URL, backend=RESULT_BACKEND)
+celery_app = Celery(
+    "req2test",
+    broker=BROKER_URL,
+    backend=RESULT_BACKEND,
+    include=["req2test.evaluation.tasks"],
+)
 celery_app.conf.update(
     task_serializer="json",
     result_serializer="json",
