@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: req2test-agent
+    repo: https://github.com/xingqianyue268-alt/req2test-agent
+    branch: codex/render-free-neon
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_UNPOOLED
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: REQ2TEST_ENV
+        value: production
+      - key: REQ2TEST_MODE
+        value: demo
+      - key: AUTH_COOKIE_SECURE
+        value: "true"
+      - key: REQ2TEST_EAGER_TASKS
+        value: "true"
+      - key: REQ2TEST_EAGER_EVALUATIONS
+        value: "true"
+      - key: REQ2TEST_TASK_STORE
+        value: memory
+      - key: REQ2TEST_AUTO_MIGRATE
+        value: "true"
+      - key: REQ2TEST_CHROMA_EPHEMERAL
+        value: "true"
+      - key: REQ2TEST_CHROMA_DIR
+        value: /tmp/req2test-chroma
+      - key: REQ2TEST_EVAL_DATASET_DIR
+        value: /app/evals
+      - key: DB_POOL_SIZE
+        value: "2"
+      - key: DB_MAX_OVERFLOW
+        value: "2"
+      - key: ANONYMIZED_TELEMETRY
+        value: "false"

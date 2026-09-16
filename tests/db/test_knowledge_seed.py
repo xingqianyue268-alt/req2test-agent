@@ -64,3 +64,23 @@ def test_workbench_retriever_recalls_catalog_seed(db_session, tmp_path, monkeypa
 
     assert result["retrieval_backend"] == "chroma"
     assert any("来源=08_api_testing.md" in item for item in result["retrieved_context"])
+
+
+def test_empty_ephemeral_index_restores_uploaded_documents(db_session, tmp_path):
+    import base64
+
+    first = ChromaKnowledgeBase(tmp_path / "first", collection_name="restart_test")
+    service = KnowledgeService(lambda: first, collection_name=first.collection_name)
+    service.seed(db_session)
+    uploaded = service.upload(
+        db_session, filename="restart.md", title="Restart durability", kind="testing_rule",
+        content_base64=base64.b64encode(b"Persistent uploaded knowledge survives restart.").decode(),
+    )
+    ids_before = {row.id for row in knowledge_documents.all_documents(db_session)}
+    second = ChromaKnowledgeBase(tmp_path / "second", collection_name="restart_test")
+    restarted = KnowledgeService(lambda: second, collection_name=second.collection_name)
+    result = restarted.seed(db_session)
+    assert result["created"] == 0
+    assert {row.id for row in knowledge_documents.all_documents(db_session)} == ids_before
+    assert second.count() == first.count()
+    assert second.get(f"{uploaded.vector_document_id}:chunk:0001") is not None

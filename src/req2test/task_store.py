@@ -8,6 +8,8 @@ import threading
 from datetime import datetime, timezone
 from typing import Any
 
+from .settings import single_service_mode
+
 try:
     import redis
 except ImportError:  # pragma: no cover
@@ -28,16 +30,17 @@ class TaskStore:
         allow_memory_fallback: bool | None = None,
     ) -> None:
         self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        memory_only = single_service_mode()
         environment = os.getenv("REQ2TEST_ENV", "local").strip().lower()
         self.allow_memory_fallback = (
-            environment in {"local", "development", "dev", "test"}
+            memory_only or environment in {"local", "development", "dev", "test"}
             if allow_memory_fallback is None
             else allow_memory_fallback
         )
         self._memory: dict[str, dict[str, Any]] = {}
         self._lock = threading.Lock()
         self._redis = None
-        if redis is not None:
+        if redis is not None and not memory_only:
             try:
                 client = redis.Redis.from_url(self.redis_url, decode_responses=True)
                 client.ping()
@@ -105,6 +108,10 @@ class TaskStore:
                     raise TaskStoreUnavailable("Redis write failed") from exc
                 self._redis = None
         with self._lock:
+            # The durable source is PostgreSQL. Bound this disposable projection
+            # cache for small single-process demo instances.
+            if task_id not in self._memory and len(self._memory) >= 100:
+                self._memory.pop(next(iter(self._memory)))
             self._memory[task_id] = state
 
     def get(self, task_id: str) -> dict[str, Any] | None:

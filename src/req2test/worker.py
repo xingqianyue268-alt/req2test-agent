@@ -21,6 +21,7 @@ from .execution_models import ExecutionConfig, ExecutionReport
 from .diagnostics.evidence import EvidenceCollector, TraceContext
 from .progress import run_workflow_with_progress
 from .task_store import TaskStoreUnavailable, task_store
+from .settings import single_service_mode
 from .tool_calling import execute_with_tools
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,9 @@ BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://guest:guest@localhost:5672//
 RESULT_BACKEND = os.getenv(
     "CELERY_RESULT_BACKEND", os.getenv("REDIS_URL", "redis://localhost:6379/1")
 )
+if single_service_mode():
+    BROKER_URL = "memory://"
+    RESULT_BACKEND = "cache+memory://"
 
 celery_app = Celery(
     "req2test",
@@ -229,8 +233,16 @@ def _generate_test_cases_once(
         evidence.collect_infrastructure(
             {
                 "PostgreSQL": {"state": "healthy", "basis": "worker milestone committed"},
-                "Redis": {"state": "healthy", "basis": "live progress update succeeded"},
-                "RabbitMQ": {"state": "connected", "basis": "Celery delivery received"},
+                "Redis": {
+                    "state": "not_required" if single_service_mode() else "healthy",
+                    "basis": "in-process projection" if single_service_mode()
+                    else "live progress update succeeded",
+                },
+                "RabbitMQ": {
+                    "state": "not_required" if single_service_mode() else "connected",
+                    "basis": "eager execution" if single_service_mode()
+                    else "Celery delivery received",
+                },
                 "Knowledge/Chroma": {
                     "state": "observed" if result.retrieved_context else "unknown",
                     "basis": "RAG workflow output",

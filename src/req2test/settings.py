@@ -7,6 +7,24 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 
+def normalize_database_url(url: str) -> str:
+    """Use installed psycopg 3 for provider PostgreSQL URLs, preserving escaping."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
+def single_service_mode() -> bool:
+    enabled = os.getenv("REQ2TEST_TASK_STORE", "redis").lower() == "memory"
+    if enabled and not all(
+        os.getenv(key, "false").lower() in {"1", "true", "yes"}
+        for key in ("REQ2TEST_EAGER_TASKS", "REQ2TEST_EAGER_EVALUATIONS")
+    ):
+        raise ValueError("Memory task store requires both eager task and evaluation execution")
+    return enabled
+
+
 def _positive_int(name: str, default: int, *, allow_zero: bool = False) -> int:
     raw_value = os.getenv(name, str(default))
     try:
@@ -56,10 +74,10 @@ class Settings:
         if algorithm not in {"HS256", "HS384", "HS512"}:
             raise ValueError("JWT_ALGORITHM must be HS256, HS384, or HS512")
         return cls(
-            database_url=os.getenv(
+            database_url=normalize_database_url(os.getenv(
                 "DATABASE_URL",
                 "postgresql+psycopg://req2test:req2test_dev@localhost:5432/req2test",
-            ),
+            )),
             db_pool_size=_positive_int("DB_POOL_SIZE", 5),
             db_max_overflow=_positive_int("DB_MAX_OVERFLOW", 10, allow_zero=True),
             db_pool_timeout=_positive_int("DB_POOL_TIMEOUT", 30),

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import os
 import re
+
+from .settings import single_service_mode
 
 _APP_HTML = r"""
 <!doctype html>
@@ -323,6 +326,11 @@ def render_demo_html(active_view: str = "workbench") -> str:
         return match.group(0) if match.group("page") == active_view else ""
 
     html = _PAGE_SECTION.sub(keep_active_section, _APP_HTML)
+    if single_service_mode():
+        # Execution happens on the server, so target its own listener. The
+        # Compose-only DNS name "api" does not exist on Render.
+        port = int(os.getenv("PORT", "8000"))
+        html = html.replace("http://api:8000", f"http://127.0.0.1:{port}")
     html = html.replace("__ACTIVE_VIEW__", active_view)
     for view in ("workbench", "workflow", "system"):
         token = f"__{view.upper()}_ACTIVE__"

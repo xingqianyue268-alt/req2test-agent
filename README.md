@@ -4,6 +4,10 @@
 
 ![tests](https://github.com/xingqianyue268-alt/req2test-agent/actions/workflows/tests.yml/badge.svg)
 
+免费单服务部署：仓库包含 `render.yaml`，使用 Render Docker Web Service + Neon，
+无需 Redis/RabbitMQ/独立 Worker。启动时自动迁移数据库并重建临时知识索引，
+详见 [部署与域名迁移说明](docs/render-deployment.md)。
+
 ## 系统预览
 
 以下截图来自本仓库当前 FastAPI Web 平台的真实本地运行环境，使用仅用于公开预览的本地测试账户与内置可执行 API 场景。

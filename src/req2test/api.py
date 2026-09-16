@@ -45,7 +45,7 @@ from .services.knowledge_service import (
 )
 from .services.admin_service import AdminService, LastActiveAdminError, user_dto
 from .security.tokens import InvalidAccessToken, decode_access_token
-from .settings import get_settings
+from .settings import get_settings, single_service_mode
 from .task_store import task_store
 from .worker import generate_test_cases
 from .evaluation_api import router as evaluation_router
@@ -151,9 +151,12 @@ def ready() -> dict[str, Any]:
 
     checks = {
         "database": "ok" if database_is_ready() else "down",
-        "redis": "ok" if redis_is_ready(task_store) else "down",
-        "rabbitmq": "ok" if rabbitmq_is_ready() else "down",
     }
+    if single_service_mode():
+        checks["task_store"] = "ok" if task_store.can_accept_new_tasks else "down"
+    else:
+        checks["redis"] = "ok" if redis_is_ready(task_store) else "down"
+        checks["rabbitmq"] = "ok" if rabbitmq_is_ready() else "down"
     payload = {"ready": all(value == "ok" for value in checks.values()), "checks": checks}
     if not payload["ready"]:
         raise HTTPException(status_code=503, detail=payload)
@@ -476,9 +479,9 @@ def admin_system(_admin: UserORM = Depends(require_roles("admin"))):
     return {
         "services": [
             {"name": "PostgreSQL", "state": "HEALTHY" if database_is_ready() else "UNAVAILABLE", "basis": "probe"},
-            {"name": "Redis", "state": "HEALTHY" if redis_is_ready(task_store) else "UNAVAILABLE", "basis": "probe"},
-            {"name": "RabbitMQ", "state": "HEALTHY" if rabbitmq_is_ready() else "UNAVAILABLE", "basis": "probe"},
-            {"name": "Celery Worker", "state": "CONFIGURED", "basis": "configuration"},
+            {"name": "Redis", "state": "NOT_REQUIRED" if single_service_mode() else ("HEALTHY" if redis_is_ready(task_store) else "UNAVAILABLE"), "basis": "configuration" if single_service_mode() else "probe"},
+            {"name": "RabbitMQ", "state": "NOT_REQUIRED" if single_service_mode() else ("HEALTHY" if rabbitmq_is_ready() else "UNAVAILABLE"), "basis": "configuration" if single_service_mode() else "probe"},
+            {"name": "Celery Worker", "state": "NOT_REQUIRED" if single_service_mode() else "CONFIGURED", "basis": "eager execution" if single_service_mode() else "configuration"},
             {"name": "Chroma / Knowledge", "state": knowledge_state, "basis": "probe", "documents": knowledge_count},
             {"name": "Task Store", "state": "CONFIGURED", "basis": task_store.backend},
             {"name": "WebSocket", "state": "CONFIGURED", "basis": "application"},

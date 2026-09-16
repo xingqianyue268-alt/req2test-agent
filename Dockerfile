@@ -10,12 +10,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Keep third-party dependencies in a dedicated layer and persist pip downloads
-# across interrupted/retried Docker builds. Source-code changes will not
-# invalidate this expensive network step.
+# Keep third-party dependencies in a dedicated layer. Source-code changes
+# will not invalidate this expensive network step.
 COPY requirements.txt ./
-RUN --mount=type=cache,target=/root/.cache/pip \
-    python -m pip install --upgrade pip "setuptools>=68" wheel \
+RUN python -m pip install --upgrade pip "setuptools>=68" wheel \
     && python -m pip install -r requirements.txt
 
 # Copy application source only after dependencies are ready. The local package
@@ -27,8 +25,8 @@ COPY alembic ./alembic
 COPY knowledge ./knowledge
 COPY knowledge_seed ./knowledge_seed
 COPY samples ./samples
-RUN --mount=type=cache,target=/root/.cache/pip \
-    python -m pip install --no-build-isolation --no-deps .
+COPY evals ./evals
+RUN python -m pip install --no-build-isolation --no-deps .
 
 # Celery warns when workers run as root. Use a dedicated unprivileged account
 # while keeping /app writable for the local Chroma persistence directory.
@@ -39,4 +37,4 @@ USER req2test
 
 EXPOSE 8000
 
-CMD ["uvicorn", "req2test.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "req2test.deploy"]
