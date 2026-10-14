@@ -1,0 +1,143 @@
+{
+  "implementation_commit": "443e566d3620d0c322b295f30f249947525bde1c",
+  "implementation_tree": "1e85f0e3a0897b2338baa3a4ca97a23f3eecd431",
+  "pr": 6,
+  "depends_on_pr": 5,
+  "pytest": {
+    "passed": 369,
+    "failed": 0,
+    "skipped": 0,
+    "error": 0,
+    "original": 293,
+    "new": 76,
+    "db_directory": 87
+  },
+  "ruff": {
+    "baseline": 137,
+    "final": 137,
+    "new": 0,
+    "removed": 0,
+    "exit_code": 1
+  },
+  "browser": {
+    "date": "2026-10-15",
+    "browser": "Codex in-app browser",
+    "task_id": "6be7dfaa-c730-4438-8f31-6f433cf21163",
+    "file": "examples/openapi/synthetic-shop.yaml",
+    "steps": [
+      "Cookie login",
+      "Upload through file chooser",
+      "Parse 5 operations; none selected by default",
+      "Select 5 operations; explicit loopback base URL and synthetic Authorization",
+      "Preview: execute enabled; token absent from rendered preview",
+      "Create task via UI",
+      "Reload task detail after async completion"
+    ],
+    "http_passed": 17,
+    "http_failed": 0,
+    "pytest": "PASS",
+    "pytest_exit_code": 0,
+    "diagnostic_issues": 0,
+    "notes": "Existing task detail required a refresh to display completion; no UI redesign. Test credentials and services are disposable."
+  },
+  "services_smoke": {
+    "ready": {
+      "ready": true,
+      "checks": {
+        "database": "ok",
+        "redis": "ok",
+        "rabbitmq": "ok"
+      }
+    },
+    "browser_login": true,
+    "untrusted_cookie_mutation": 403,
+    "knowledge_search": true,
+    "knowledge_real_chroma_crud_reindex_rebuild": true,
+    "admin_rbac": true,
+    "pass": {
+      "status": "completed",
+      "pytest_passed": true,
+      "http_pass_rate": 1.0,
+      "tool_call_count": 3,
+      "total_http_cases": 2,
+      "failed_http_cases": 0,
+      "passed_http_cases": 2,
+      "failure_analysis_count": 0,
+      "failure_category_counts": {},
+      "primary_failure_category": null
+    },
+    "failure_422": {
+      "status": "completed",
+      "pytest_passed": false,
+      "http_pass_rate": 0.0,
+      "tool_call_count": 2,
+      "total_http_cases": 1,
+      "failed_http_cases": 1,
+      "passed_http_cases": 0,
+      "failure_analysis_count": 1,
+      "failure_category_counts": {
+        "assertion_failure": 1,
+        "contract_mismatch": 1
+      },
+      "primary_failure_category": "contract_mismatch"
+    },
+    "openapi_import_to_worker": {
+      "selected_operations": 5,
+      "status": "completed",
+      "pytest_passed": true,
+      "http_pass_rate": 1.0,
+      "tool_call_count": 18,
+      "total_http_cases": 17,
+      "failed_http_cases": 0,
+      "passed_http_cases": 17,
+      "failure_analysis_count": 0,
+      "failure_category_counts": {},
+      "primary_failure_category": null
+    },
+    "websocket": true,
+    "evaluation": {
+      "status": "completed",
+      "score": 98.45
+    },
+    "bearer_api": true,
+    "logout": true,
+    "postgres_redaction": true,
+    "seconds": 7.3,
+    "worker_log_redaction": true
+  },
+  "evidence_sha256": {
+    "restored-final.log": "0d26efb999482e955310bb5732120f73b2943bc3e27acf278eae535e0d84b293",
+    "restored-final.xml": "95dc43236b2fffcb691ad69d25a35aefb55e241cd7dd4f98691b8fb041136948",
+    "contracts-red.log": "508e78c177becafc4fc6af1a0b50e1ef8ffe166e0280136c02f9dcb3e986cd2d",
+    "full-delivery.log": "147505e393ccaed502bcda1ab822417c8868318a7411930a9b2e7a1a9da9ab1d",
+    "browser-acceptance.json": "9f366b6491f11f7e4401778416c58d3b87038de44d34a2a0a5fb36bb8bf153f3",
+    "smoke-final/smoke-results.json": "a380bfa66fc1e65bf5fba049ee05360e26a5256c0d369b46c8d15b28df61bd0d",
+    "eval-final.log": "06387e50e3e926bd698f86e858c729904453eea99486b26fda3cdb60ec070ac6"
+  },
+  "implementation_ci": [
+    {
+      "event": "push",
+      "run_id": 38608917831,
+      "job_id": 116006909807,
+      "conclusion": "success",
+      "passed": 369,
+      "failed": 0,
+      "skipped": 0,
+      "error": 0,
+      "evaluation_score": 98.45,
+      "dataset_cases": 3
+    },
+    {
+      "event": "pull_request",
+      "run_id": 38608972942,
+      "job_id": 116007099201,
+      "conclusion": "success",
+      "passed": 369,
+      "failed": 0,
+      "skipped": 0,
+      "error": 0,
+      "evaluation_score": 98.45,
+      "dataset_cases": 3
+    }
+  ]
+}
