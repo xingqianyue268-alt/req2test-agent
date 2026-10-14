@@ -20,7 +20,7 @@ from ..db.repositories import knowledge_documents as repository
 from ..document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from ..knowledge_seed import SeedDocument, chunk_markdown, load_seed_documents
 from ..rag import ChromaKnowledgeBase, KnowledgeDocument, get_default_knowledge_base
-
+from ..security.redaction import redact_text
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 VALID_INDEX_STATES = {"pending", "indexing", "indexed", "failed"}
@@ -42,8 +42,8 @@ class KnowledgeDeleteError(KnowledgeError):
     pass
 
 
-def _safe_error(exc: Exception) -> str:
-    text = " ".join(str(exc).split())
+def _safe_error(exc: Exception | str) -> str:
+    text = " ".join(redact_text(str(exc)).split())
     text = re.sub(
         r"(?i)(api[_-]?key|authorization|password|secret|token)\s*[=:]\s*[^\s,;]+",
         r"\1=[REDACTED]",
@@ -75,7 +75,7 @@ def document_dto(document: KnowledgeDocumentORM, *, include_content: bool = Fals
         "index_status": document.index_status,
         "chunk_count": document.chunk_count,
         "metadata": document.document_metadata or {},
-        "error": document.error,
+        "error": _safe_error(document.error) if document.error else None,
         "created_at": document.created_at,
         "updated_at": document.updated_at,
     }

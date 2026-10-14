@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import json
-import os
 import time
 from typing import Any
-from urllib.parse import urlparse
 
 from .execution_models import HttpExecutionResult, HttpTestSpec
+from .security.execution import validate_execution_target
+from .security.redaction import protect_http_logs, redact_text
 
 
 def _json_contains(actual: Any, expected: Any, path: str = "$") -> list[str]:
@@ -36,37 +36,11 @@ def _json_contains(actual: Any, expected: Any, path: str = "$") -> list[str]:
         return failures
 
     if actual != expected:
-        failures.append(f"{path} 值不一致：期望 {expected!r}，实际 {actual!r}")
+        failures.append(f"{path} 值不一致")
     return failures
 
 
-def _validate_execution_target(base_url: str) -> str:
-    """Restrict remote execution by default to reduce SSRF risk when API is deployed."""
-
-    parsed = urlparse(base_url)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-        raise ValueError("HTTP Tool 的 base_url 必须是有效的 http:// 或 https:// 地址")
-    if parsed.username or parsed.password:
-        raise ValueError("base_url 不允许携带用户名或密码")
-
-    allow_remote = os.getenv("REQ2TEST_ALLOW_REMOTE_EXECUTION", "false").lower() in {
-        "1",
-        "true",
-        "yes",
-    }
-    configured = os.getenv(
-        "REQ2TEST_EXECUTION_ALLOWED_HOSTS",
-        "localhost,127.0.0.1,::1,api",
-    )
-    allowed_hosts = {item.strip().lower() for item in configured.split(",") if item.strip()}
-    hostname = parsed.hostname.lower()
-    if not allow_remote and hostname not in allowed_hosts:
-        raise ValueError(
-            f"目标主机 {hostname!r} 不在执行白名单中。"
-            "如确需测试远程环境，请设置 REQ2TEST_ALLOW_REMOTE_EXECUTION=true，"
-            "或将主机加入 REQ2TEST_EXECUTION_ALLOWED_HOSTS。"
-        )
-    return base_url.rstrip("/")
+_validate_execution_target = validate_execution_target
 
 
 class HttpApiTestTool:
@@ -82,6 +56,7 @@ class HttpApiTestTool:
     def invoke(self, spec: HttpTestSpec) -> HttpExecutionResult:
         import httpx
 
+        protect_http_logs()
         url = f"{self.base_url}{spec.path}"
         started = time.perf_counter()
         failures: list[str] = []
@@ -92,7 +67,7 @@ class HttpApiTestTool:
             with httpx.Client(
                 timeout=self.timeout_seconds,
                 verify=self.verify_tls,
-                follow_redirects=True,
+                follow_redirects=False,
             ) as client:
                 response = client.request(
                     spec.method,
@@ -103,7 +78,7 @@ class HttpApiTestTool:
                 )
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
             status_code = response.status_code
-            response_excerpt = response.text[:1500]
+            response_excerpt = redact_text(response.text)[:1500]
             response_content_type = response.headers.get("content-type")
 
             if response.status_code != spec.expected_status:
@@ -130,7 +105,7 @@ class HttpApiTestTool:
 
             for expected_text in spec.expected_text_contains:
                 if expected_text not in response.text:
-                    failures.append(f"响应正文缺少期望文本：{expected_text}")
+                    failures.append("响应正文缺少期望文本")
 
             return HttpExecutionResult(
                 case_id=spec.case_id,

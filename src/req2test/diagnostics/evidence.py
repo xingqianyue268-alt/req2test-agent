@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, Field
 
 from ..execution_models import HttpExecutionResult, HttpTestSpec, PytestExecutionResult
+from ..security.redaction import is_sensitive_key, redact_sensitive, redact_text
 
 
 class EvidenceType(StrEnum):
@@ -61,23 +62,6 @@ class TraceContext(BaseModel):
         )
 
 
-_SECRET_KEYS = {
-    "api_key",
-    "apikey",
-    "authorization",
-    "cookie",
-    "credential",
-    "credentials",
-    "client_secret",
-    "password",
-    "private_key",
-    "proxy_authorization",
-    "secret",
-    "session",
-    "set_cookie",
-    "token",
-    "x_api_key",
-}
 _SAFE_REQUEST_HEADERS = {"accept", "content-type", "user-agent", "x-request-id"}
 
 
@@ -85,17 +69,7 @@ def _normalized_key(value: str) -> str:
     return re.sub(r"[-\s]", "_", value.strip().lower())
 
 
-def _redact_text(value: str) -> str:
-    value = re.sub(r"(?i)bearer\s+[A-Za-z0-9._~+/=-]+", "Bearer ***", value)
-    value = re.sub(r"://[^/@\s]+:[^/@\s]+@", "://***:***@", value)
-    return re.sub(
-        r"(?i)(api[_-]?key|authorization|cookie|client[_-]?secret|credential|"
-        r"password|private[_-]?key|proxy[_-]?authorization|secret|session|token|"
-        r"x[_-]?api[_-]?key)\s*[=:]\s*[^\s,;]+",
-        r"\1=***",
-        value,
-    )
-
+_redact_text = redact_text
 
 def sanitize_evidence(
     value: Any,
@@ -107,13 +81,10 @@ def sanitize_evidence(
     """Recursively remove secrets and bound evidence before persistence."""
 
     if isinstance(value, dict):
+        value = redact_sensitive(value)
         cleaned: dict[str, Any] = {}
         for item_key, item_value in value.items():
-            normalized = _normalized_key(str(item_key))
-            if normalized in _SECRET_KEYS or any(
-                token in normalized
-                for token in ("password", "secret", "private_key", "authorization")
-            ):
+            if is_sensitive_key(str(item_key)):
                 cleaned[str(item_key)] = "***"
             else:
                 cleaned[str(item_key)] = sanitize_evidence(

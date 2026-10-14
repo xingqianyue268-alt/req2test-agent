@@ -35,7 +35,7 @@ PageSize = Annotated[int, Query(ge=1, le=100)]
 
 
 def _publish_evaluation(args: list[Any], eager: bool) -> str:
-    result = run_evaluation.apply(args=args) if eager else run_evaluation.delay(*args)
+    result = run_evaluation.apply(args=args) if eager else run_evaluation.apply_async(args=args, argsrepr="<redacted evaluation inputs>")
     return str(result.id or args[0])
 
 

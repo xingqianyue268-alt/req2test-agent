@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import uuid
 from copy import deepcopy
 from typing import Any
@@ -12,6 +11,7 @@ from urllib.parse import urlparse
 
 from sqlalchemy.orm import Session
 
+from ...security.redaction import redact_text
 from ..models import TaskORM
 from ..repositories import executions as execution_repository
 from ..repositories import tasks as task_repository
@@ -32,16 +32,7 @@ def _limit_for_key(key: str, default: int) -> int:
     return default
 
 
-def _redact_string(value: str) -> str:
-    value = re.sub(r"(?i)bearer\s+[A-Za-z0-9._~+/=-]+", "Bearer ***", value)
-    value = re.sub(r"://[^/@\s]+:[^/@\s]+@", "://***:***@", value)
-    return re.sub(
-        r"(?i)(api[_-]?key|authorization|cookie|credential|password|"
-        r"private[_-]?(?:credential|key)|secret|token)\s*[=:]\s*[^\s,;]+",
-        r"\1=***",
-        value,
-    )
-
+_redact_string = redact_text
 
 def sanitize_result(value: Any, *, key: str = "", default_text_limit: int = 12000) -> Any:
     """Remove nested secrets and bound large text fields in a final result."""

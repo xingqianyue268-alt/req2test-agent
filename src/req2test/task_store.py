@@ -8,6 +8,8 @@ import threading
 from datetime import datetime, timezone
 from typing import Any
 
+from .security.redaction import redact_sensitive
+
 try:
     import redis
 except ImportError:  # pragma: no cover
@@ -89,11 +91,11 @@ class TaskStore:
             "payload": payload or {},
         }
         self.set(task_id, state)
-        return state
+        return redact_sensitive(state)
 
     def set(self, task_id: str, state: dict[str, Any]) -> None:
         self._require_backend()
-        state = {**state, "updated_at": _utc_now()}
+        state = redact_sensitive({**state, "updated_at": _utc_now()})
         if self._redis is not None:
             try:
                 self._redis.set(
@@ -112,20 +114,20 @@ class TaskStore:
         if self._redis is not None:
             try:
                 raw = self._redis.get(self._key(task_id))
-                return json.loads(raw) if raw else None
+                return redact_sensitive(json.loads(raw)) if raw else None
             except Exception as exc:  # noqa: BLE001
                 if not self.allow_memory_fallback:
                     raise TaskStoreUnavailable("Redis read failed") from exc
                 self._redis = None
         with self._lock:
             state = self._memory.get(task_id)
-            return dict(state) if state else None
+            return redact_sensitive(state) if state else None
 
     def update(self, task_id: str, **changes: Any) -> dict[str, Any]:
         state = self.get(task_id) or {"task_id": task_id, "created_at": _utc_now()}
         state.update(changes)
         self.set(task_id, state)
-        return state
+        return redact_sensitive(state)
 
 
 class TaskStoreUnavailable(RuntimeError):

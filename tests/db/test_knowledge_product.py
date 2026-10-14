@@ -75,7 +75,7 @@ def _client(db_session, monkeypatch):
     service = KnowledgeService(lambda: fake, collection_name=fake.collection_name)
     api_module.app.dependency_overrides[get_db] = override_db
     monkeypatch.setattr(api_module, "knowledge_service", service)
-    return TestClient(api_module.app), fake
+    return TestClient(api_module.app, headers={"Origin": "http://testserver"}), fake
 
 
 def _user(db_session, email, role="user"):

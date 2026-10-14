@@ -20,7 +20,7 @@ def _client(db_session):
         yield db_session
 
     api_module.app.dependency_overrides[get_db] = override_db
-    return TestClient(api_module.app)
+    return TestClient(api_module.app, headers={"Origin": "http://testserver"})
 
 
 def _user(db_session, email, role="user"):

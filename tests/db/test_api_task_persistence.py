@@ -19,7 +19,7 @@ def _client_with_session(db_session):
 
     api_module.app.dependency_overrides[get_db] = override_db
     api_module.app.dependency_overrides[api_module.task_actor] = lambda: None
-    return TestClient(api_module.app)
+    return TestClient(api_module.app, headers={"Origin": "http://testserver"})
 
 
 def test_post_persists_same_uuid_to_database_redis_and_celery(db_session, monkeypatch):
@@ -108,7 +108,7 @@ def test_post_database_failure_does_not_write_redis_or_publish(monkeypatch):
     api_module.app.dependency_overrides[get_db] = broken_db
     api_module.app.dependency_overrides[api_module.task_actor] = lambda: None
     try:
-        response = TestClient(api_module.app).post(
+        response = TestClient(api_module.app, headers={"Origin": "http://testserver"}).post(
             "/api/v1/tasks", json={"requirement_text": "DB failure"}
         )
     finally:

@@ -21,6 +21,7 @@ from ..evaluation.dataset import DatasetLoadError, discover_golden_datasets, loa
 from ..evaluation.engine import default_knowledge_snapshot
 from ..evaluation.models import GoldenDataset
 from ..evaluation.safety import safe_failure_reason
+from ..security.redaction import redact_sensitive
 
 Publisher = Callable[[list[Any], bool], str]
 _SAFE_DATASET_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
@@ -133,7 +134,7 @@ def run_dto(run: EvaluationRunORM, *, include_cases: bool = False) -> dict[str, 
             }
             for case in sorted(run.case_results, key=lambda item: item.dataset_case_id)
         ]
-    return payload
+    return redact_sensitive(payload)
 
 
 def comparison_dto(comparison: EvaluationComparisonORM) -> dict[str, Any]:
