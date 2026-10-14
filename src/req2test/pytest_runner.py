@@ -35,6 +35,8 @@ import json
 
 import httpx
 import pytest
+from req2test.execution_models import request_body_kwargs
+from req2test.schema_assertions import schema_failures
 from req2test.security.execution import validate_execution_target
 from req2test.security.redaction import protect_http_logs
 
@@ -67,14 +69,16 @@ def test_generated_http_case(spec):
         response = client.request(
             spec["method"],
             BASE_URL + spec["path"],
-            headers=spec.get("headers") or {{}},
+            headers=({{"Content-Type": "application/json", **(spec.get("headers") or {{}})}} if spec.get("json_body_present") else spec.get("headers") or {{}}),
             params=spec.get("query") or {{}},
-            json=spec.get("json_body"),
+            **request_body_kwargs(spec.get("json_body"), spec.get("json_body_present", False)),
         )
     assert response.status_code == spec["expected_status"]
     expected_json = spec.get("expected_json_contains") or {{}}
     if expected_json:
         _assert_contains(response.json(), expected_json)
+    if spec.get("expected_json_schema") is not None:
+        assert not schema_failures(response.json(), spec["expected_json_schema"])
     for expected_text in spec.get("expected_text_contains") or []:
         assert expected_text in response.text
 '''

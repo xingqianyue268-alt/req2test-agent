@@ -17,6 +17,7 @@ from sqlalchemy import create_engine, text
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--output-dir", type=pathlib.Path, required=True)
+parser.add_argument("--openapi", action="store_true", help="Include P1-A contracts using req2test_p1a_test")
 args = parser.parse_args()
 out = args.output_dir.resolve()
 out.mkdir(parents=True, exist_ok=True)
@@ -27,8 +28,9 @@ if env.get("REQ2TEST_ENV") != "test":
 for key in ("DATABASE_URL", "REDIS_URL", "CELERY_BROKER_URL", "CELERY_RESULT_BACKEND"):
     if urlsplit(env.get(key, "")).hostname not in {"localhost", "127.0.0.1", "::1"}:
         raise SystemExit(f"{key} must point at a disposable loopback service")
-if urlsplit(env["DATABASE_URL"]).path != "/req2test_security_test":
-    raise SystemExit("Only the dedicated req2test_security_test database is allowed")
+expected_database = "req2test_p1a_test" if args.openapi else "req2test_security_test"
+if urlsplit(env["DATABASE_URL"]).path != "/" + expected_database:
+    raise SystemExit(f"Only the dedicated {expected_database} database is allowed")
 with socket.socket() as sock:
     sock.bind(("127.0.0.1", 0))
     port = sock.getsockname()[1]
@@ -95,6 +97,12 @@ try:
             "--loglevel=INFO",
         ],
     )
+    if args.openapi:
+        with socket.socket() as sock:
+            sock.bind(("127.0.0.1", 0))
+            mock_port = sock.getsockname()[1]
+        mock_origin = f"http://127.0.0.1:{mock_port}"
+        launch("mock-api", ["-m", "uvicorn", "examples.mock_api:app", "--host", "127.0.0.1", "--port", str(mock_port)])
     with httpx.Client(
         base_url=origin, headers={"Origin": origin}, timeout=5, trust_env=False
     ) as client:
@@ -221,6 +229,29 @@ try:
             results[label] = summary
             print("Completed", label, flush=True)
 
+        if args.openapi:
+            source_file = source / "examples/openapi/synthetic-shop.yaml"
+            upload_contract = {"filename": source_file.name, "content_base64": base64.b64encode(source_file.read_bytes()).decode()}
+            imported = client.post("/api/v1/contracts/import", json=upload_contract)
+            assert imported.status_code == 200, imported.text
+            selected = [op["key"] for op in imported.json()["operations"] if op["supported"]]
+            assert len(selected) == 5
+            contract_plan = {**upload_contract, "selected_operations": selected, "base_url": mock_origin,
+                             "headers": {"Authorization": "Bearer synthetic-demo-token"},
+                             "overrides": {"GET /users/{user_id}": {"path": {"user_id": 1}, "expected_json_contains": {"id": 1}}}}
+            preview = client.post("/api/v1/contracts/preview", json=contract_plan)
+            assert preview.status_code == 200, preview.text
+            assert "synthetic-demo-token" not in preview.text
+            submitted = client.post("/api/v1/tasks", json={"requirement_text": "Synthetic OpenAPI contract tests", "openapi_contract": contract_plan})
+            assert submitted.status_code == 202, submitted.text
+            contract_id = submitted.json()["task_id"]
+            completed = wait_for(lambda: task_finished(contract_id), "OpenAPI task", timeout=60)
+            summary = completed["execution"]["summary"]
+            assert summary["failed_http_cases"] == 0 and summary["pytest_passed"], summary
+            assert "synthetic-demo-token" not in json.dumps(completed)
+            assert any(r["status_code"] == 422 and r["passed"] for r in completed["execution"]["http_results"])
+            results["openapi_import_to_worker"] = {"selected_operations": len(selected), **summary}
+
         from websockets.sync.client import connect
 
         cookie = "; ".join(f"{key}={value}" for key, value in client.cookies.items())
@@ -301,6 +332,7 @@ finally:
 
 worker_log = (out / "smoke-worker.log").read_text()
 for sentinel in (
+    "synthetic-demo-token",
     "SYNTHETIC_EXECUTION_HEADER",
     "SYNTHETIC_EXECUTION_TOKEN",
     "Synthetic-Local-Password-Only!",

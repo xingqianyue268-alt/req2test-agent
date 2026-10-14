@@ -22,8 +22,10 @@ class HttpTestSpec(BaseModel):
     headers: dict[str, str] = Field(default_factory=dict)
     query: dict[str, Any] = Field(default_factory=dict)
     json_body: Any | None = None
+    json_body_present: bool = False
     expected_status: int = Field(default=200, ge=100, le=599)
     expected_json_contains: dict[str, Any] = Field(default_factory=dict)
+    expected_json_schema: dict[str, Any] | None = None
     expected_text_contains: list[str] = Field(default_factory=list)
 
     @field_validator("method", mode="before")
@@ -145,3 +147,10 @@ class ExecutionReport(_PublicOutput):
     diagnostic_evidence: list[dict[str, Any]] = Field(default_factory=list)
     evidence_collection_overhead_ms: float = 0.0
     failure_analysis_v2: dict[str, Any] = Field(default_factory=dict)
+
+
+def request_body_kwargs(body: Any, present: bool = False) -> dict[str, Any]:
+    """Preserve legacy absent-body behavior while allowing an explicit JSON null."""
+    if body is None and present:
+        return {"content": "null"}
+    return {"json": body}
