@@ -1,0 +1,145 @@
+FFFFF.FFF                                                                [100%]
+=================================== FAILURES ===================================
+_ test_all_existing_sanitizers_share_secret_handling[_safe_error-{"token":"SYNTHETIC_TOKEN"}-SYNTHETIC_TOKEN] _
+
+text = '{"token":"SYNTHETIC_TOKEN"}', secret = 'SYNTHETIC_TOKEN'
+sanitize = <function _safe_error at 0x10fe0f6a0>
+
+    @pytest.mark.parametrize("text,secret", TEXT_CASES)
+    @pytest.mark.parametrize("sanitize", [sanitize_result, sanitize_evidence, safe_failure_reason, _safe_error])
+    def test_all_existing_sanitizers_share_secret_handling(text, secret, sanitize):
+        cleaned = sanitize(text)
+>       assert secret not in str(cleaned)
+E       assert 'SYNTHETIC_TOKEN' not in '{"token":"S...ETIC_TOKEN"}'
+E
+E         'SYNTHETIC_TOKEN' is contained here:
+E           {"token":"SYNTHETIC_TOKEN"}
+
+tests/test_security_redaction.py:51: AssertionError
+_ test_all_existing_sanitizers_share_secret_handling[_safe_error-{'access_token': 'SYNTHETIC_ACCESS'}-SYNTHETIC_ACCESS] _
+
+text = "{'access_token': 'SYNTHETIC_ACCESS'}", secret = 'SYNTHETIC_ACCESS'
+sanitize = <function _safe_error at 0x10fe0f6a0>
+
+    @pytest.mark.parametrize("text,secret", TEXT_CASES)
+    @pytest.mark.parametrize("sanitize", [sanitize_result, sanitize_evidence, safe_failure_reason, _safe_error])
+    def test_all_existing_sanitizers_share_secret_handling(text, secret, sanitize):
+        cleaned = sanitize(text)
+>       assert secret not in str(cleaned)
+E       assert 'SYNTHETIC_ACCESS' not in "{'access_to...TIC_ACCESS'}"
+E
+E         'SYNTHETIC_ACCESS' is contained here:
+E           {'access_token': 'SYNTHETIC_ACCESS'}
+
+tests/test_security_redaction.py:51: AssertionError
+_ test_all_existing_sanitizers_share_secret_handling[_safe_error-{"Authorization":"Basic SYNTHETIC_BASIC"}-SYNTHETIC_BASIC] _
+
+text = '{"Authorization":"Basic SYNTHETIC_BASIC"}', secret = 'SYNTHETIC_BASIC'
+sanitize = <function _safe_error at 0x10fe0f6a0>
+
+    @pytest.mark.parametrize("text,secret", TEXT_CASES)
+    @pytest.mark.parametrize("sanitize", [sanitize_result, sanitize_evidence, safe_failure_reason, _safe_error])
+    def test_all_existing_sanitizers_share_secret_handling(text, secret, sanitize):
+        cleaned = sanitize(text)
+>       assert secret not in str(cleaned)
+E       assert 'SYNTHETIC_BASIC' not in '{"Authoriza...ETIC_BASIC"}'
+E
+E         'SYNTHETIC_BASIC' is contained here:
+E           {"Authorization":"Basic SYNTHETIC_BASIC"}
+E         ?                         +++++++++++++++
+
+tests/test_security_redaction.py:51: AssertionError
+_ test_all_existing_sanitizers_share_secret_handling[_safe_error-Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER-SYNTHETIC_OTHER] _
+
+text = 'Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER'
+secret = 'SYNTHETIC_OTHER', sanitize = <function _safe_error at 0x10fe0f6a0>
+
+    @pytest.mark.parametrize("text,secret", TEXT_CASES)
+    @pytest.mark.parametrize("sanitize", [sanitize_result, sanitize_evidence, safe_failure_reason, _safe_error])
+    def test_all_existing_sanitizers_share_secret_handling(text, secret, sanitize):
+        cleaned = sanitize(text)
+>       assert secret not in str(cleaned)
+E       AssertionError: assert 'SYNTHETIC_OTHER' not in 'Cookie: sid...THETIC_OTHER'
+E
+E         'SYNTHETIC_OTHER' is contained here:
+E           Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER
+E         ?                                     +++++++++++++++
+
+tests/test_security_redaction.py:51: AssertionError
+_ test_all_existing_sanitizers_share_secret_handling[_safe_error-{"nested":{"apiKey":"SYNTHETIC_KEY"}}-SYNTHETIC_KEY] _
+
+text = '{"nested":{"apiKey":"SYNTHETIC_KEY"}}', secret = 'SYNTHETIC_KEY'
+sanitize = <function _safe_error at 0x10fe0f6a0>
+
+    @pytest.mark.parametrize("text,secret", TEXT_CASES)
+    @pytest.mark.parametrize("sanitize", [sanitize_result, sanitize_evidence, safe_failure_reason, _safe_error])
+    def test_all_existing_sanitizers_share_secret_handling(text, secret, sanitize):
+        cleaned = sanitize(text)
+>       assert secret not in str(cleaned)
+E       assert 'SYNTHETIC_KEY' not in '{"nested":{...HETIC_KEY"}}'
+E
+E         'SYNTHETIC_KEY' is contained here:
+E           {"nested":{"apiKey":"SYNTHETIC_KEY"}}
+E         ?                      +++++++++++++
+
+tests/test_security_redaction.py:51: AssertionError
+_ test_all_existing_sanitizers_share_secret_handling[_safe_error-{"email":"synthetic-person@example.test","phone":"13800000000"}-synthetic-person@example.test] _
+
+text = '{"email":"synthetic-person@example.test","phone":"13800000000"}'
+secret = 'synthetic-person@example.test'
+sanitize = <function _safe_error at 0x10fe0f6a0>
+
+    @pytest.mark.parametrize("text,secret", TEXT_CASES)
+    @pytest.mark.parametrize("sanitize", [sanitize_result, sanitize_evidence, safe_failure_reason, _safe_error])
+    def test_all_existing_sanitizers_share_secret_handling(text, secret, sanitize):
+        cleaned = sanitize(text)
+>       assert secret not in str(cleaned)
+E       assert 'synthetic-p...example.test' not in '{"email":"s...3800000000"}'
+E
+E         'synthetic-person@example.test' is contained here:
+E           {"email":"synthetic-person@example.test","phone":"13800000000"}
+
+tests/test_security_redaction.py:51: AssertionError
+_ test_all_existing_sanitizers_share_secret_handling[_safe_error-{"password":"SYNTHETIC_ESCAPED\\"SECRET"}-SYNTHETIC_ESCAPED] _
+
+text = '{"password":"SYNTHETIC_ESCAPED\\"SECRET"}', secret = 'SYNTHETIC_ESCAPED'
+sanitize = <function _safe_error at 0x10fe0f6a0>
+
+    @pytest.mark.parametrize("text,secret", TEXT_CASES)
+    @pytest.mark.parametrize("sanitize", [sanitize_result, sanitize_evidence, safe_failure_reason, _safe_error])
+    def test_all_existing_sanitizers_share_secret_handling(text, secret, sanitize):
+        cleaned = sanitize(text)
+>       assert secret not in str(cleaned)
+E       assert 'SYNTHETIC_ESCAPED' not in '{"password"...D\\"SECRET"}'
+E
+E         'SYNTHETIC_ESCAPED' is contained here:
+E           {"password":"SYNTHETIC_ESCAPED\"SECRET"}
+
+tests/test_security_redaction.py:51: AssertionError
+_ test_all_existing_sanitizers_share_secret_handling[_safe_error-{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}-SYNTHETIC_VALIDATION] _
+
+text = '{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}'
+secret = 'SYNTHETIC_VALIDATION'
+sanitize = <function _safe_error at 0x10fe0f6a0>
+
+    @pytest.mark.parametrize("text,secret", TEXT_CASES)
+    @pytest.mark.parametrize("sanitize", [sanitize_result, sanitize_evidence, safe_failure_reason, _safe_error])
+    def test_all_existing_sanitizers_share_secret_handling(text, secret, sanitize):
+        cleaned = sanitize(text)
+>       assert secret not in str(cleaned)
+E       assert 'SYNTHETIC_VALIDATION' not in '{"detail":[...LIDATION"}]}'
+E
+E         'SYNTHETIC_VALIDATION' is contained here:
+E           ,"input":"SYNTHETIC_VALIDATION"}]}
+
+tests/test_security_redaction.py:51: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[_safe_error-{"token":"SYNTHETIC_TOKEN"}-SYNTHETIC_TOKEN]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[_safe_error-{'access_token': 'SYNTHETIC_ACCESS'}-SYNTHETIC_ACCESS]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[_safe_error-{"Authorization":"Basic SYNTHETIC_BASIC"}-SYNTHETIC_BASIC]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[_safe_error-Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER-SYNTHETIC_OTHER]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[_safe_error-{"nested":{"apiKey":"SYNTHETIC_KEY"}}-SYNTHETIC_KEY]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[_safe_error-{"email":"synthetic-person@example.test","phone":"13800000000"}-synthetic-person@example.test]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[_safe_error-{"password":"SYNTHETIC_ESCAPED\\"SECRET"}-SYNTHETIC_ESCAPED]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[_safe_error-{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}-SYNTHETIC_VALIDATION]
+8 failed, 1 passed, 42 deselected in 0.49s

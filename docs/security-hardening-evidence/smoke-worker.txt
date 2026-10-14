@@ -1,0 +1,40 @@
+
+ -------------- celery@local-test-host v5.6.3 (recovery)
+--- ***** -----
+-- ******* ---- macOS-26.5.2-arm64-arm-64bit 2026-10-14 12:17:18
+- *** --- * ---
+- ** ---------- [config]
+- ** ---------- .> app:         req2test:0x10af513d0
+- ** ---------- .> transport:   amqp://guest:**@127.0.0.1:51243//
+- ** ---------- .> results:     redis://127.0.0.1:51229/1
+- *** --- * --- .> concurrency: 1 (solo)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** -----
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+
+
+[tasks]
+  . req2test.evaluate
+  . req2test.generate
+
+[2026-10-14 12:17:18,609: INFO/MainProcess] Connected to amqp://guest:**@127.0.0.1:51243//
+[2026-10-14 12:17:18,613: INFO/MainProcess] mingle: searching for neighbors
+[2026-10-14 12:17:19,627: INFO/MainProcess] mingle: all alone
+[2026-10-14 12:17:19,642: INFO/MainProcess] celery@local-test-host ready.
+[2026-10-14 12:17:19,642: INFO/MainProcess] Task req2test.generate[63d1c515-fe89-4f6c-a5d4-0fdb9f0f68a4] received
+[2026-10-14 12:17:19,956: INFO/MainProcess] HTTP Request: GET http://127.0.0.1:53580/demo-target/health "HTTP/1.1 200 OK"
+[2026-10-14 12:17:19,961: INFO/MainProcess] HTTP Request: POST http://127.0.0.1:53580/demo-target/echo "HTTP/1.1 200 OK"
+[2026-10-14 12:17:20,480: INFO/MainProcess] Task req2test.generate[63d1c515-fe89-4f6c-a5d4-0fdb9f0f68a4] succeeded in 0.8372745409997151s: {'requirements': [{'requirement_id': 'REQ-001', 'module': '通用模块', 'description': 'GET /demo-target/health', 'acceptance_criteria': [...]}, {'requirement_id': 'REQ-002', 'module': '通用模块', 'description': 'POST /demo-target/echo', 'acceptance_criteria': [...]}], 'test_cases': [{'case_id': 'TC-001', 'module': '通用模块', 'title': '验证GET /demo-target/health', 'priority': 'P1', 'test_type': '正向', 'preconditions': [...], 'steps': [...], 'source_requirement': 'REQ-001', 'rationale': '覆盖需求：GET /demo-target/health'}, {'case_id': 'TC-002', 'module': '通用模块', 'title': '验证POST /demo-target/echo', 'priority': 'P1', 'test_type': '正向', 'preconditions': [...], 'steps': [...], 'source_requirement': 'REQ-002', 'rationale': '覆盖需求：POST /demo-target/echo'}, {'case_id': 'TC-003', 'module': '通用模块', 'title': '校验GET /demo-target/health', 'priority': 'P2', 'test_type': '异常', 'preconditions': [...], 'steps': [...], 'source_requirement': 'REQ-001', 'rationale': '覆盖需求：GET /demo-target/health'}, {'case_id': 'TC-004', 'module': '通用模块', 'title': , ...}]}
+[2026-10-14 12:17:20,685: INFO/MainProcess] Task req2test.generate[8d1cbb70-d1e4-4c82-bb94-e83006d4c3c7] received
+[2026-10-14 12:17:20,723: INFO/MainProcess] HTTP Request: POST http://127.0.0.1:53580/demo-target/echo "HTTP/1.1 422 Unprocessable Entity"
+[2026-10-14 12:17:21,214: INFO/MainProcess] Task req2test.generate[8d1cbb70-d1e4-4c82-bb94-e83006d4c3c7] succeeded in 0.5289856670005975s: {'requirements': [{'requirement_id': 'REQ-001', 'module': '通用模块', 'description': 'GET /demo-target/health', 'acceptance_criteria': [...]}, {'requirement_id': 'REQ-002', 'module': '通用模块', 'description': 'POST /demo-target/echo', 'acceptance_criteria': [...]}], 'test_cases': [{'case_id': 'TC-001', 'module': '通用模块', 'title': '验证GET /demo-target/health', 'priority': 'P1', 'test_type': '正向', 'preconditions': [...], 'steps': [...], 'source_requirement': 'REQ-001', 'rationale': '覆盖需求：GET /demo-target/health'}, {'case_id': 'TC-002', 'module': '通用模块', 'title': '验证POST /demo-target/echo', 'priority': 'P1', 'test_type': '正向', 'preconditions': [...], 'steps': [...], 'source_requirement': 'REQ-002', 'rationale': '覆盖需求：POST /demo-target/echo'}, {'case_id': 'TC-003', 'module': '通用模块', 'title': '校验GET /demo-target/health', 'priority': 'P2', 'test_type': '异常', 'preconditions': [...], 'steps': [...], 'source_requirement': 'REQ-001', 'rationale': '覆盖需求：GET /demo-target/health'}, {'case_id': 'TC-004', 'module': '通用模块', 'title': , ...}]}
+[2026-10-14 12:17:21,269: INFO/MainProcess] Task req2test.evaluate[59f65119-1625-4671-98ac-970abc55cacc] received
+[2026-10-14 12:17:21,303: INFO/MainProcess] Task req2test.evaluate[59f65119-1625-4671-98ac-970abc55cacc] succeeded in 0.03416312499939522s: {'run_id': 'e27b0814-5576-454e-a504-cd3e875db6de', 'status': 'completed', 'overall_score': 98.45}
+[2026-10-14 12:17:21,555: INFO/MainProcess] Task req2test.generate[dd3a9377-bdca-4be2-acbb-ba3b2a3d0d94] received
+[2026-10-14 12:17:21,599: INFO/MainProcess] Task req2test.generate[dd3a9377-bdca-4be2-acbb-ba3b2a3d0d94] succeeded in 0.043227333000686485s: {'requirements': [{'requirement_id': 'REQ-001', 'module': '通用模块', 'description': 'synthetic bearer ***', 'acceptance_criteria': [...]}], 'test_cases': [{'case_id': 'TC-001', 'module': '通用模块', 'title': '验证synthetic bearer ***', 'priority': 'P1', 'test_type': '正向', 'preconditions': [...], 'steps': [...], 'source_requirement': 'REQ-001', 'rationale': '覆盖需求：synthetic bearer ***'}, {'case_id': 'TC-002', 'module': '通用模块', 'title': '校验synthetic bearer ***', 'priority': 'P2', 'test_type': '异常', 'preconditions': [...], 'steps': [...], 'source_requirement': 'REQ-001', 'rationale': '覆盖需求：synthetic bearer ***'}], 'review': {'score': 100, 'coverage_rate': 1.0, 'issues': [], 'suggestions': ['当前用例结构完整，可在真实项目中补充具体测试数据和环境信息']}, 'retrieved_context': ['[RAG:security_testing｜来源=11_authentication_authorization.md，相似度=0.263]
+# Authentication 与 Authorization 测试', '[RAG:failure_analysis｜来源=13_failure_analysis.md，相似度=0.232]
+## 根因优先级
+优先呈现最具体且由确定性证据支持的根因。实际 422 与 schema 校验信息可归为 contract_mismatch；客户端连接超过配置 deadline 归为 timeout；实际 401 归为...', ...]}
+
+worker: Warm shutdown (MainProcess)

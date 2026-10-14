@@ -1,0 +1,974 @@
+{
+  "dataset_name": "golden_demo",
+  "dataset_version": "golden-demo-v1",
+  "dataset_digest": "11feb014c2a13e7b1708bf2b7643070b24905366cd8f027828452171f33b76b7",
+  "status": "completed",
+  "configuration": {
+    "provider": "demo",
+    "model": "gpt-4.1-mini",
+    "temperature": 0.1,
+    "seed": null,
+    "prompt_version": "workflow-v1",
+    "prompt_digest": "1a64700c2085350715b5b3e2ed8196e089e74a6c88ecbfffca3f400028490d1e",
+    "generation_config": {
+      "include_positive": true,
+      "include_negative": true,
+      "include_edge": false,
+      "max_cases": 30,
+      "min_review_score": 85,
+      "max_review_iterations": 1,
+      "prompt_version": "workflow-v1"
+    },
+    "knowledge_base_identifier": "repository-knowledge:testing_rules.md+historical_cases.jsonl",
+    "knowledge_base_digest": "6c3d69a494fd3becfb3becfd7bf4e1cb6817ed1e269fbca93355704ade4f0210",
+    "aggregation_version": "weighted-v1"
+  },
+  "started_at": "2026-10-14T04:12:17.262492Z",
+  "ended_at": "2026-10-14T04:12:17.583966Z",
+  "latency_ms": 321.46,
+  "metric_scores": {
+    "requirement_coverage": 100.0,
+    "case_completeness": 100.0,
+    "executability": 100.0,
+    "expected_result_quality": 100.0,
+    "requirement_groundedness": 92.25,
+    "redundancy": 100.0
+  },
+  "overall_score": 98.45,
+  "revision_iterations": 0,
+  "failure_reason": null,
+  "cases": [
+    {
+      "dataset_case_id": "demo-authentication",
+      "metrics": {
+        "requirement_coverage": {
+          "metric": "requirement_coverage",
+          "score": 100.0,
+          "reason": "3/3 golden requirements are matched and traced to test cases.",
+          "evidence": [
+            {
+              "expectation_id": "AUTH-REQ-001",
+              "matched_requirement_id": "REQ-001",
+              "matched_keywords": [
+                "正确账号",
+                "密码",
+                "登录"
+              ],
+              "covered_by_test_case": true
+            },
+            {
+              "expectation_id": "AUTH-REQ-002",
+              "matched_requirement_id": "REQ-002",
+              "matched_keywords": [
+                "密码错误",
+                "拒绝登录",
+                "提示"
+              ],
+              "covered_by_test_case": true
+            },
+            {
+              "expectation_id": "AUTH-REQ-003",
+              "matched_requirement_id": "REQ-003",
+              "matched_keywords": [
+                "退出",
+                "当前会话"
+              ],
+              "covered_by_test_case": true
+            }
+          ],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "case_completeness": {
+          "metric": "case_completeness",
+          "score": 100.0,
+          "reason": "Structural completeness was checked for 5 test cases.",
+          "evidence": [
+            {
+              "case_id": "TC-001",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-002",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-003",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-004",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-005",
+              "score": 100.0,
+              "failed_checks": []
+            }
+          ],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "redundancy": {
+          "metric": "redundancy",
+          "score": 100.0,
+          "reason": "Detected 0 redundant cases among 5 generated cases.",
+          "evidence": [],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "executability": {
+          "metric": "executability",
+          "score": 100.0,
+          "reason": "Fallback checks action specificity and the presence of preconditions.",
+          "evidence": [],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        },
+        "expected_result_quality": {
+          "metric": "expected_result_quality",
+          "score": 100.0,
+          "reason": "Fallback checks that every expected result is specific and observable.",
+          "evidence": [],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        },
+        "requirement_groundedness": {
+          "metric": "requirement_groundedness",
+          "score": 99.25,
+          "reason": "Fallback checks traceability, golden keyword anchors, and endpoint boundaries.",
+          "evidence": [],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        }
+      },
+      "overall_score": 99.85,
+      "latency_ms": 310.27,
+      "revision_iterations": 0,
+      "failure_reason": null,
+      "judge_metadata": {
+        "provider": "demo",
+        "model": "gpt-4.1-mini",
+        "temperature": 0.1,
+        "prompt_version": "judge-v1",
+        "prompt_digest": "9d0b5d5d9615f00b8caea77e1c33b91c579f2743139e9fc5378af69d0dd0ae80",
+        "fallback_used": true,
+        "fallback_reason": "offline_demo"
+      },
+      "generated_result": {
+        "requirements": [
+          {
+            "requirement_id": "REQ-001",
+            "module": "用户认证",
+            "description": "用户可以使用正确账号和密码登录。",
+            "acceptance_criteria": []
+          },
+          {
+            "requirement_id": "REQ-002",
+            "module": "用户认证",
+            "description": "密码错误时系统必须拒绝登录并提示凭据错误。",
+            "acceptance_criteria": []
+          },
+          {
+            "requirement_id": "REQ-003",
+            "module": "用户认证",
+            "description": "登录成功后用户可以退出当前会话。",
+            "acceptance_criteria": []
+          }
+        ],
+        "test_cases": [
+          {
+            "case_id": "TC-001",
+            "module": "用户认证",
+            "title": "验证用户可以使用正确账号和密码登录",
+            "priority": "P1",
+            "test_type": "正向",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入用户认证相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“用户可以使用正确账号和密码登录”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "输入有效账号和密码，点击登录",
+                "expected": "系统校验通过并进入授权后的页面"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-001",
+            "rationale": "覆盖需求：用户可以使用正确账号和密码登录。"
+          },
+          {
+            "case_id": "TC-002",
+            "module": "用户认证",
+            "title": "校验密码错误时系统必须拒绝登录并提示凭据错误",
+            "priority": "P2",
+            "test_type": "异常",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入用户认证相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“密码错误时系统必须拒绝登录并提示凭据错误”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "输入错误密码并点击登录",
+                "expected": "系统拒绝登录并给出明确错误提示，不创建登录会话"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-002",
+            "rationale": "覆盖需求：密码错误时系统必须拒绝登录并提示凭据错误。"
+          },
+          {
+            "case_id": "TC-003",
+            "module": "用户认证",
+            "title": "验证登录成功后用户可以退出当前会话",
+            "priority": "P1",
+            "test_type": "正向",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入用户认证相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“登录成功后用户可以退出当前会话”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "输入有效账号和密码，点击登录",
+                "expected": "系统校验通过并进入授权后的页面"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-003",
+            "rationale": "覆盖需求：登录成功后用户可以退出当前会话。"
+          },
+          {
+            "case_id": "TC-004",
+            "module": "用户认证",
+            "title": "校验用户可以使用正确账号和密码登录",
+            "priority": "P2",
+            "test_type": "异常",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入用户认证相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“用户可以使用正确账号和密码登录”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "输入错误密码并点击登录",
+                "expected": "系统拒绝登录并给出明确错误提示，不创建登录会话"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-001",
+            "rationale": "覆盖需求：用户可以使用正确账号和密码登录。"
+          },
+          {
+            "case_id": "TC-005",
+            "module": "用户认证",
+            "title": "校验登录成功后用户可以退出当前会话",
+            "priority": "P2",
+            "test_type": "异常",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入用户认证相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“登录成功后用户可以退出当前会话”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "输入错误密码并点击登录",
+                "expected": "系统拒绝登录并给出明确错误提示，不创建登录会话"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-003",
+            "rationale": "覆盖需求：登录成功后用户可以退出当前会话。"
+          }
+        ],
+        "review": {
+          "score": 100,
+          "coverage_rate": 1.0,
+          "issues": [],
+          "suggestions": [
+            "当前用例结构完整，可在真实项目中补充具体测试数据和环境信息"
+          ]
+        },
+        "review_iterations": 0
+      }
+    },
+    {
+      "dataset_case_id": "demo-supplier-management",
+      "metrics": {
+        "requirement_coverage": {
+          "metric": "requirement_coverage",
+          "score": 100.0,
+          "reason": "3/3 golden requirements are matched and traced to test cases.",
+          "evidence": [
+            {
+              "expectation_id": "SUP-REQ-001",
+              "matched_requirement_id": "REQ-001",
+              "matched_keywords": [
+                "新增供应商",
+                "名称",
+                "联系电话"
+              ],
+              "covered_by_test_case": true
+            },
+            {
+              "expectation_id": "SUP-REQ-002",
+              "matched_requirement_id": "REQ-002",
+              "matched_keywords": [
+                "供应商名称",
+                "查询"
+              ],
+              "covered_by_test_case": true
+            },
+            {
+              "expectation_id": "SUP-REQ-003",
+              "matched_requirement_id": "REQ-003",
+              "matched_keywords": [
+                "采购记录",
+                "不允许删除",
+                "提示"
+              ],
+              "covered_by_test_case": true
+            }
+          ],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "case_completeness": {
+          "metric": "case_completeness",
+          "score": 100.0,
+          "reason": "Structural completeness was checked for 6 test cases.",
+          "evidence": [
+            {
+              "case_id": "TC-001",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-002",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-003",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-004",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-005",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-006",
+              "score": 100.0,
+              "failed_checks": []
+            }
+          ],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "redundancy": {
+          "metric": "redundancy",
+          "score": 100.0,
+          "reason": "Detected 0 redundant cases among 6 generated cases.",
+          "evidence": [],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "executability": {
+          "metric": "executability",
+          "score": 100.0,
+          "reason": "Fallback checks action specificity and the presence of preconditions.",
+          "evidence": [],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        },
+        "expected_result_quality": {
+          "metric": "expected_result_quality",
+          "score": 100.0,
+          "reason": "Fallback checks that every expected result is specific and observable.",
+          "evidence": [],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        },
+        "requirement_groundedness": {
+          "metric": "requirement_groundedness",
+          "score": 100.0,
+          "reason": "Fallback checks traceability, golden keyword anchors, and endpoint boundaries.",
+          "evidence": [],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        }
+      },
+      "overall_score": 100.0,
+      "latency_ms": 5.6,
+      "revision_iterations": 0,
+      "failure_reason": null,
+      "judge_metadata": {
+        "provider": "demo",
+        "model": "gpt-4.1-mini",
+        "temperature": 0.1,
+        "prompt_version": "judge-v1",
+        "prompt_digest": "9d0b5d5d9615f00b8caea77e1c33b91c579f2743139e9fc5378af69d0dd0ae80",
+        "fallback_used": true,
+        "fallback_reason": "offline_demo"
+      },
+      "generated_result": {
+        "requirements": [
+          {
+            "requirement_id": "REQ-001",
+            "module": "供应商管理",
+            "description": "管理员可以新增供应商，名称和联系电话为必填项。",
+            "acceptance_criteria": []
+          },
+          {
+            "requirement_id": "REQ-002",
+            "module": "供应商管理",
+            "description": "管理员可以根据供应商名称查询记录。",
+            "acceptance_criteria": []
+          },
+          {
+            "requirement_id": "REQ-003",
+            "module": "供应商管理",
+            "description": "已关联采购记录的供应商不允许删除，系统需要给出明确提示。",
+            "acceptance_criteria": []
+          }
+        ],
+        "test_cases": [
+          {
+            "case_id": "TC-001",
+            "module": "供应商管理",
+            "title": "验证管理员可以新增供应商，名称和联系电话为必填项",
+            "priority": "P1",
+            "test_type": "正向",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入供应商管理相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“管理员可以新增供应商，名称和联系电话为必填项”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "填写符合要求的有效数据并提交",
+                "expected": "系统保存数据并展示成功反馈"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-001",
+            "rationale": "覆盖需求：管理员可以新增供应商，名称和联系电话为必填项。"
+          },
+          {
+            "case_id": "TC-002",
+            "module": "供应商管理",
+            "title": "验证管理员可以根据供应商名称查询记录",
+            "priority": "P1",
+            "test_type": "正向",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入供应商管理相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“管理员可以根据供应商名称查询记录”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "输入有效查询条件并执行查询",
+                "expected": "系统返回符合条件的数据且字段展示完整"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-002",
+            "rationale": "覆盖需求：管理员可以根据供应商名称查询记录。"
+          },
+          {
+            "case_id": "TC-003",
+            "module": "供应商管理",
+            "title": "验证已关联采购记录的供应商不允许删除，系统需要给出明确提示",
+            "priority": "P1",
+            "test_type": "正向",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入供应商管理相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“已关联采购记录的供应商不允许删除，系统需要给出明确提示”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "选择一条允许删除的数据并确认删除",
+                "expected": "系统删除目标数据且列表中不再展示该记录"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-003",
+            "rationale": "覆盖需求：已关联采购记录的供应商不允许删除，系统需要给出明确提示。"
+          },
+          {
+            "case_id": "TC-004",
+            "module": "供应商管理",
+            "title": "校验管理员可以新增供应商，名称和联系电话为必填项",
+            "priority": "P2",
+            "test_type": "异常",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入供应商管理相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“管理员可以新增供应商，名称和联系电话为必填项”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "缺少一个必填项或输入不符合格式的数据后提交",
+                "expected": "系统阻止提交并在对应字段附近给出明确校验提示"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-001",
+            "rationale": "覆盖需求：管理员可以新增供应商，名称和联系电话为必填项。"
+          },
+          {
+            "case_id": "TC-005",
+            "module": "供应商管理",
+            "title": "校验管理员可以根据供应商名称查询记录",
+            "priority": "P2",
+            "test_type": "异常",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入供应商管理相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“管理员可以根据供应商名称查询记录”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "输入不符合字段格式的查询条件并执行查询",
+                "expected": "系统提示条件格式错误或返回空结果，不出现异常页面"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-002",
+            "rationale": "覆盖需求：管理员可以根据供应商名称查询记录。"
+          },
+          {
+            "case_id": "TC-006",
+            "module": "供应商管理",
+            "title": "校验已关联采购记录的供应商不允许删除，系统需要给出明确提示",
+            "priority": "P2",
+            "test_type": "异常",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入供应商管理相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“已关联采购记录的供应商不允许删除，系统需要给出明确提示”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "缺少一个必填项或输入不符合格式的数据后提交",
+                "expected": "系统阻止提交并在对应字段附近给出明确校验提示"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-003",
+            "rationale": "覆盖需求：已关联采购记录的供应商不允许删除，系统需要给出明确提示。"
+          }
+        ],
+        "review": {
+          "score": 100,
+          "coverage_rate": 1.0,
+          "issues": [],
+          "suggestions": [
+            "当前用例结构完整，可在真实项目中补充具体测试数据和环境信息"
+          ]
+        },
+        "review_iterations": 0
+      }
+    },
+    {
+      "dataset_case_id": "demo-trace-api",
+      "metrics": {
+        "requirement_coverage": {
+          "metric": "requirement_coverage",
+          "score": 100.0,
+          "reason": "2/2 golden requirements are matched and traced to test cases.",
+          "evidence": [
+            {
+              "expectation_id": "API-REQ-001",
+              "matched_requirement_id": "REQ-001",
+              "matched_keywords": [
+                "GET /demo-target/health",
+                "状态码：200",
+                "status"
+              ],
+              "covered_by_test_case": true
+            },
+            {
+              "expectation_id": "API-REQ-002",
+              "matched_requirement_id": "REQ-002",
+              "matched_keywords": [
+                "POST /demo-target/echo",
+                "message",
+                "状态码：200"
+              ],
+              "covered_by_test_case": true
+            }
+          ],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "case_completeness": {
+          "metric": "case_completeness",
+          "score": 100.0,
+          "reason": "Structural completeness was checked for 4 test cases.",
+          "evidence": [
+            {
+              "case_id": "TC-001",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-002",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-003",
+              "score": 100.0,
+              "failed_checks": []
+            },
+            {
+              "case_id": "TC-004",
+              "score": 100.0,
+              "failed_checks": []
+            }
+          ],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "redundancy": {
+          "metric": "redundancy",
+          "score": 100.0,
+          "reason": "Detected 0 redundant cases among 4 generated cases.",
+          "evidence": [],
+          "evaluator": "deterministic",
+          "evaluator_version": "deterministic-v1"
+        },
+        "executability": {
+          "metric": "executability",
+          "score": 100.0,
+          "reason": "Fallback checks action specificity and the presence of preconditions.",
+          "evidence": [],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        },
+        "expected_result_quality": {
+          "metric": "expected_result_quality",
+          "score": 100.0,
+          "reason": "Fallback checks that every expected result is specific and observable.",
+          "evidence": [],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        },
+        "requirement_groundedness": {
+          "metric": "requirement_groundedness",
+          "score": 77.5,
+          "reason": "Fallback checks traceability, golden keyword anchors, and endpoint boundaries.",
+          "evidence": [
+            {
+              "case_id": "TC-001",
+              "source_requirement_found": true,
+              "keyword_anchor_rate": 0.3333,
+              "unapproved_endpoints": []
+            },
+            {
+              "case_id": "TC-002",
+              "source_requirement_found": true,
+              "keyword_anchor_rate": 0.1667,
+              "unapproved_endpoints": []
+            },
+            {
+              "case_id": "TC-003",
+              "source_requirement_found": true,
+              "keyword_anchor_rate": 0.3333,
+              "unapproved_endpoints": []
+            },
+            {
+              "case_id": "TC-004",
+              "source_requirement_found": true,
+              "keyword_anchor_rate": 0.1667,
+              "unapproved_endpoints": []
+            }
+          ],
+          "evaluator": "deterministic_fallback",
+          "evaluator_version": "deterministic-v1"
+        }
+      },
+      "overall_score": 95.5,
+      "latency_ms": 5.43,
+      "revision_iterations": 0,
+      "failure_reason": null,
+      "judge_metadata": {
+        "provider": "demo",
+        "model": "gpt-4.1-mini",
+        "temperature": 0.1,
+        "prompt_version": "judge-v1",
+        "prompt_digest": "9d0b5d5d9615f00b8caea77e1c33b91c579f2743139e9fc5378af69d0dd0ae80",
+        "fallback_used": true,
+        "fallback_reason": "offline_demo"
+      },
+      "generated_result": {
+        "requirements": [
+          {
+            "requirement_id": "REQ-001",
+            "module": "溯源接口",
+            "description": "GET /demo-target/health",
+            "acceptance_criteria": [
+              "预期状态码：200",
+              "响应包含：{\"status\":\"ok\"}"
+            ]
+          },
+          {
+            "requirement_id": "REQ-002",
+            "module": "溯源接口",
+            "description": "POST /demo-target/echo",
+            "acceptance_criteria": [
+              "请求体：{\"message\":\"hello\"}",
+              "预期状态码：200",
+              "响应包含：{\"status\":\"ok\"}"
+            ]
+          }
+        ],
+        "test_cases": [
+          {
+            "case_id": "TC-001",
+            "module": "溯源接口",
+            "title": "验证GET /demo-target/health",
+            "priority": "P1",
+            "test_type": "正向",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入溯源接口相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“GET /demo-target/health”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "按照需求描述完成一次有效业务操作并提交",
+                "expected": "系统处理成功，页面结果与需求描述一致"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-001",
+            "rationale": "覆盖需求：GET /demo-target/health"
+          },
+          {
+            "case_id": "TC-002",
+            "module": "溯源接口",
+            "title": "验证POST /demo-target/echo",
+            "priority": "P1",
+            "test_type": "正向",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入溯源接口相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“POST /demo-target/echo”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "按照需求描述完成一次有效业务操作并提交",
+                "expected": "系统处理成功，页面结果与需求描述一致"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-002",
+            "rationale": "覆盖需求：POST /demo-target/echo"
+          },
+          {
+            "case_id": "TC-003",
+            "module": "溯源接口",
+            "title": "校验GET /demo-target/health",
+            "priority": "P2",
+            "test_type": "异常",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入溯源接口相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“GET /demo-target/health”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "缺少一个必填项或输入不符合格式的数据后提交",
+                "expected": "系统阻止提交并在对应字段附近给出明确校验提示"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-001",
+            "rationale": "覆盖需求：GET /demo-target/health"
+          },
+          {
+            "case_id": "TC-004",
+            "module": "溯源接口",
+            "title": "校验POST /demo-target/echo",
+            "priority": "P2",
+            "test_type": "异常",
+            "preconditions": [
+              "测试环境可访问",
+              "已进入溯源接口相关页面"
+            ],
+            "steps": [
+              {
+                "order": 1,
+                "action": "定位与“POST /demo-target/echo”对应的功能入口",
+                "expected": "页面展示与需求对应的操作入口和必要字段"
+              },
+              {
+                "order": 2,
+                "action": "缺少一个必填项或输入不符合格式的数据后提交",
+                "expected": "系统阻止提交并在对应字段附近给出明确校验提示"
+              },
+              {
+                "order": 3,
+                "action": "查看页面提示、数据状态和后续可见结果",
+                "expected": "页面反馈清晰，业务数据状态与本次操作结果一致"
+              }
+            ],
+            "source_requirement": "REQ-002",
+            "rationale": "覆盖需求：POST /demo-target/echo"
+          }
+        ],
+        "review": {
+          "score": 100,
+          "coverage_rate": 1.0,
+          "issues": [],
+          "suggestions": [
+            "当前用例结构完整，可在真实项目中补充具体测试数据和环境信息"
+          ]
+        },
+        "review_iterations": 0
+      }
+    }
+  ]
+}

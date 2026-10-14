@@ -1,0 +1,824 @@
+[
+  {
+    "file": "$REPO/alembic/env.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/alembic/versions/20260813_0001_create_business_tables.py",
+    "rule": "I001",
+    "line": 8,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/alembic/versions/20260813_0002_auth_roles.py",
+    "rule": "I001",
+    "line": 8,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/alembic/versions/20260813_0003_knowledge_source_text.py",
+    "rule": "I001",
+    "line": 8,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/alembic/versions/20260814_0004_knowledge_chunk_count.py",
+    "rule": "I001",
+    "line": 7,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/scripts/performance_baseline.py",
+    "rule": "EXE001",
+    "line": 1,
+    "message": "Shebang is present but file is not executable"
+  },
+  {
+    "file": "$REPO/scripts/performance_baseline.py",
+    "rule": "I001",
+    "line": 8,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/scripts/performance_baseline.py",
+    "rule": "UP035",
+    "line": 21,
+    "message": "Import from `collections.abc` instead: `Awaitable`, `Callable`"
+  },
+  {
+    "file": "$REPO/src/req2test/__init__.py",
+    "rule": "RUF022",
+    "line": 7,
+    "message": "`__all__` is not sorted"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 127,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 184,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 193,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 200,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 207,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 215,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "RUF100",
+    "line": 299,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "RUF100",
+    "line": 305,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 319,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 320,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 328,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 329,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 340,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 341,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 341,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 365,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 366,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 366,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 380,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 381,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 381,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 394,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 395,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 395,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 406,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 413,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 414,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 414,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 423,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 424,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 424,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 433,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 434,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 434,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 449,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 450,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 450,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 467,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 468,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 468,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 482,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 482,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 507,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 508,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 542,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 543,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 565,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 566,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 586,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 587,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/api.py",
+    "rule": "B008",
+    "line": 606,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/src/req2test/auth_api.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/auth_api.py",
+    "rule": "UP037",
+    "line": 47,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/cli/__main__.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/db/base.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/__init__.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/__init__.py",
+    "rule": "RUF022",
+    "line": 10,
+    "message": "`__all__` is not sorted"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/execution.py",
+    "rule": "UP037",
+    "line": 64,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/execution.py",
+    "rule": "UP037",
+    "line": 65,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/task.py",
+    "rule": "UP037",
+    "line": 75,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/task.py",
+    "rule": "UP037",
+    "line": 76,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/task.py",
+    "rule": "UP037",
+    "line": 79,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/test_case.py",
+    "rule": "UP037",
+    "line": 44,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/test_case.py",
+    "rule": "UP037",
+    "line": 45,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/user.py",
+    "rule": "UP037",
+    "line": 39,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/models/user.py",
+    "rule": "UP037",
+    "line": 40,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/db/repositories/users.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/db/services/task_persistence.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/db/session.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/db/session.py",
+    "rule": "BLE001",
+    "line": 56,
+    "message": "Do not catch blind exception: `Exception`"
+  },
+  {
+    "file": "$REPO/src/req2test/diagnostics/__init__.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/diagnostics/__init__.py",
+    "rule": "RUF022",
+    "line": 19,
+    "message": "`__all__` is not sorted"
+  },
+  {
+    "file": "$REPO/src/req2test/diagnostics/evidence.py",
+    "rule": "UP037",
+    "line": 52,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/diagnostics/evidence.py",
+    "rule": "UP037",
+    "line": 59,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/document_loader.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/enhanced_nodes.py",
+    "rule": "I001",
+    "line": 9,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/execution_models.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/graph.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/progress.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/prompts.py",
+    "rule": "FLY002",
+    "line": 134,
+    "message": "Consider f-string instead of string join"
+  },
+  {
+    "file": "$REPO/src/req2test/rag.py",
+    "rule": "UP035",
+    "line": 20,
+    "message": "Import from `collections.abc` instead: `Iterable`"
+  },
+  {
+    "file": "$REPO/src/req2test/rag.py",
+    "rule": "S110",
+    "line": 251,
+    "message": "`try`-`except`-`pass` detected, consider logging the exception"
+  },
+  {
+    "file": "$REPO/src/req2test/readiness.py",
+    "rule": "BLE001",
+    "line": 21,
+    "message": "Do not catch blind exception: `Exception`"
+  },
+  {
+    "file": "$REPO/src/req2test/retrieval.py",
+    "rule": "UP037",
+    "line": 57,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/security/dependencies.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/security/passwords.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/services/auth_service.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/services/knowledge_service.py",
+    "rule": "UP035",
+    "line": 13,
+    "message": "Import from `collections.abc` instead: `Callable`"
+  },
+  {
+    "file": "$REPO/src/req2test/services/knowledge_service.py",
+    "rule": "RUF100",
+    "line": 192,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/services/knowledge_service.py",
+    "rule": "RUF100",
+    "line": 213,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/services/knowledge_service.py",
+    "rule": "RUF100",
+    "line": 222,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/services/knowledge_service.py",
+    "rule": "RUF100",
+    "line": 265,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/settings.py",
+    "rule": "UP037",
+    "line": 39,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$REPO/src/req2test/task_store.py",
+    "rule": "RUF100",
+    "line": 105,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/task_store.py",
+    "rule": "RUF100",
+    "line": 118,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/tool_calling.py",
+    "rule": "I001",
+    "line": 9,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/tool_calling.py",
+    "rule": "TRY004",
+    "line": 188,
+    "message": "Prefer `TypeError` exception for invalid type"
+  },
+  {
+    "file": "$REPO/src/req2test/worker.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 173,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 348,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 468,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 485,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 502,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 518,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$REPO/tests/db/conftest.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_admin_console.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_authentication.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_authentication.py",
+    "rule": "B008",
+    "line": 184,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/tests/db/test_authentication.py",
+    "rule": "B008",
+    "line": 184,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$REPO/tests/db/test_knowledge_product.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_models.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_result_persistence.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_task_ownership.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_task_ownership.py",
+    "rule": "I001",
+    "line": 104,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_task_ownership.py",
+    "rule": "SIM117",
+    "line": 127,
+    "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+  },
+  {
+    "file": "$REPO/tests/db/test_task_product.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/db/test_worker_persistence.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/test_async_platform.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/test_demo_contracts.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/test_document_loader.py",
+    "rule": "UP012",
+    "line": 5,
+    "message": "Unnecessary UTF-8 `encoding` argument to `encode`"
+  },
+  {
+    "file": "$REPO/tests/test_execution_pipeline.py",
+    "rule": "RUF100",
+    "line": 17,
+    "message": "Unused `noqa` directive (non-enabled: `N802`)"
+  },
+  {
+    "file": "$REPO/tests/test_execution_pipeline.py",
+    "rule": "RUF100",
+    "line": 29,
+    "message": "Unused `noqa` directive (non-enabled: `A002`)"
+  },
+  {
+    "file": "$REPO/tests/test_readiness.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/test_tool_execution.py",
+    "rule": "RUF100",
+    "line": 20,
+    "message": "Unused `noqa` directive (non-enabled: `N802`)"
+  },
+  {
+    "file": "$REPO/tests/test_tool_execution.py",
+    "rule": "RUF100",
+    "line": 32,
+    "message": "Unused `noqa` directive (non-enabled: `A002`)"
+  },
+  {
+    "file": "$REPO/tests/test_unified_workbench.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$REPO/tests/test_unified_workbench.py",
+    "rule": "UP012",
+    "line": 124,
+    "message": "Unnecessary UTF-8 `encoding` argument to `encode`"
+  }
+]

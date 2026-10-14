@@ -1,0 +1,59 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__ test_cookie_mutations_reject_untrusted_origin[https://app.example.test:0] ___
+
+browser = (<starlette.testclient.TestClient object at 0x10e604ad0>, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiNGU0NTBkNS...3NjIzN2UzLWU3MGItNDc4YS1hZjE1LTM1MTM3ZWQ0MGE1NSJ9.A8BizBNDMvbMoJwsec7wIms14LkbUC8affdTMrUUUi8', <Mock id='4536158608'>)
+origin = 'https://app.example.test:0'
+
+    @pytest.mark.parametrize(
+        "origin",
+        [
+            None,
+            "null",
+            "https://evil.example.test",
+            "https://app.example.test.evil.test",
+            "http://app.example.test",
+            "https://app.example.test:444",
+            "https://app.example.test:0",
+            "https://app.example.test/path",
+        ],
+    )
+    def test_cookie_mutations_reject_untrusted_origin(browser, origin):
+        client, _, dispatch = browser
+        headers = {"Origin": origin} if origin else {}
+        response = client.post(
+            "/api/v1/tasks", json={"requirement_text": "synthetic local requirement"}, headers=headers
+        )
+>       assert response.status_code == 403
+E       assert 202 == 403
+E        +  where 202 = <Response [202 Accepted]>.status_code
+
+tests/test_security_csrf.py:50: AssertionError
+__________ test_celery_validation_error_does_not_echo_sensitive_input __________
+
+    def test_celery_validation_error_does_not_echo_sensitive_input():
+        from pydantic import ValidationError
+
+        from req2test.security.redaction import safe_task_error
+
+        with pytest.raises(ValidationError) as captured:
+            LLMSettings(api_key={"opaque": "SYNTHETIC_INVALID_KEY"})
+        error = safe_task_error(captured.value)
+>       assert "SYNTHETIC_INVALID_KEY" not in str(error)
+E       AssertionError: assert 'SYNTHETIC_INVALID_KEY' not in 'ValidationE.../string_type'
+E
+E         'SYNTHETIC_INVALID_KEY' is contained here:
+E           opaque': 'SYNTHETIC_INVALID_KEY'}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/string_type
+
+tests/test_security_redaction.py:308: AssertionError
+=============================== warnings summary ===============================
+../req2test-agent-release-check/.venv/lib/python3.11/site-packages/starlette/testclient.py:53
+  $VENV/lib/python3.11/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_security_csrf.py::test_cookie_mutations_reject_untrusted_origin[https://app.example.test:0]
+FAILED tests/test_security_redaction.py::test_celery_validation_error_does_not_echo_sensitive_input
+2 failed, 77 deselected, 1 warning in 0.63s

@@ -1,0 +1,68 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+____________ test_http_client_logs_redact_query_and_transport_debug ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d051950>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x10d01ba10>
+
+    def test_http_client_logs_redact_query_and_transport_debug(monkeypatch, caplog):
+        client_type = httpx.Client
+
+        def respond(_request):
+            logging.getLogger("httpcore.http11").debug(
+                "receive_response_headers.complete return_value=%r",
+                [(b"set-cookie", b"sid=SYNTHETIC_TRANSPORT")],
+            )
+            return httpx.Response(200, json={"status": "ok"})
+
+        monkeypatch.setattr(
+            httpx, "Client",
+            lambda **kwargs: client_type(transport=httpx.MockTransport(respond), **kwargs),
+        )
+        for name in ("httpx", "httpcore.http11"):
+            monkeypatch.setattr(logging.getLogger(name), "disabled", False)
+        with caplog.at_level(logging.DEBUG):
+            result = HttpApiTestTool("http://localhost").invoke(
+                HttpTestSpec(case_id="ONE", name="one", path="/ok", query={"token": "SYNTHETIC_QUERY_LOG"})
+            )
+        assert result.passed
+        assert "HTTP Request" in caplog.text
+>       assert "SYNTHETIC_QUERY_LOG" not in caplog.text
+E       assert 'SYNTHETIC_QUERY_LOG' not in 'DEBUG    ht....1 200 OK"\n'
+E
+E         'SYNTHETIC_QUERY_LOG' is contained here:
+E           /ok?token=SYNTHETIC_QUERY_LOG "HTTP/1.1 200 OK"
+E         ?           +++++++++++++++++++
+
+tests/test_security_redaction.py:269: AssertionError
+------------------------------ Captured log call -------------------------------
+DEBUG    httpcore.http11:test_security_redaction.py:251 receive_response_headers.complete return_value=[(b'set-cookie', b'sid=SYNTHETIC_TRANSPORT')]
+INFO     httpx:_client.py:1025 HTTP Request: GET http://localhost/ok?token=SYNTHETIC_QUERY_LOG "HTTP/1.1 200 OK"
+__________ test_missing_expected_text_does_not_echo_unlabelled_secret __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d16ff90>
+
+    def test_missing_expected_text_does_not_echo_unlabelled_secret(monkeypatch):
+        client_type = httpx.Client
+        monkeypatch.setattr(
+            httpx, "Client",
+            lambda **kwargs: client_type(
+                transport=httpx.MockTransport(lambda _: httpx.Response(200, text="ok")), **kwargs
+            ),
+        )
+        result = HttpApiTestTool("http://localhost").invoke(
+            HttpTestSpec(case_id="ONE", name="one", path="/ok", expected_text_contains=["SYNTHETIC_EXPECTED_SECRET"])
+        )
+        assert not result.passed
+>       assert "SYNTHETIC_EXPECTED_SECRET" not in result.model_dump_json()
+E       assert 'SYNTHETIC_EXPECTED_SECRET' not in '{"case_id":...error":null}'
+E
+E         'SYNTHETIC_EXPECTED_SECRET' is contained here:
+E           应正文缺少期望文本：SYNTHETIC_EXPECTED_SECRET"],"response_excerpt":"ok","response_content_type":"text/plain; charset=utf-8","validation_error":null,"timed_out":false,"error":null}
+E         ?           +++++++++++++++++++++++++
+
+tests/test_security_redaction.py:285: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_security_redaction.py::test_http_client_logs_redact_query_and_transport_debug
+FAILED tests/test_security_redaction.py::test_missing_expected_text_does_not_echo_unlabelled_secret
+2 failed, 39 deselected in 0.40s

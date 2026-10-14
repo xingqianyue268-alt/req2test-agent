@@ -1,0 +1,18 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_celery_failure_and_retry_metadata_do_not_emit_raw_secrets ________
+tests/test_security_redaction.py:227: in test_celery_failure_and_retry_metadata_do_not_emit_raw_secrets
+    assert 'SYNTHETIC_CELERY_ERROR' not in str(captured.value)
+E   assert 'SYNTHETIC_CELERY_ERROR' not in '{"token":"S...LERY_ERROR"}'
+E
+E     'SYNTHETIC_CELERY_ERROR' is contained here:
+E       {"token":"SYNTHETIC_CELERY_ERROR"}
+__ test_celery_publish_metadata_hides_credentials_without_changing_arguments ___
+tests/test_security_redaction.py:240: in test_celery_publish_metadata_hides_credentials_without_changing_arguments
+    assert options['args'] == args
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'args'
+=========================== short test summary info ============================
+FAILED tests/test_security_redaction.py::test_celery_failure_and_retry_metadata_do_not_emit_raw_secrets
+FAILED tests/test_security_redaction.py::test_celery_publish_metadata_hides_credentials_without_changing_arguments
+2 failed in 0.82s

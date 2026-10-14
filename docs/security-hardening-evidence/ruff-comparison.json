@@ -1,0 +1,24 @@
+{
+  "baseline": 139,
+  "final": 137,
+  "new": [],
+  "removed": [
+    [
+      [
+        "src/req2test/services/knowledge_service.py",
+        "I001",
+        "Import block is un-sorted or un-formatted"
+      ],
+      1
+    ],
+    [
+      [
+        "src/req2test/worker.py",
+        "RUF100",
+        "Unused `noqa` directive (unused: `BLE001`)"
+      ],
+      1
+    ]
+  ],
+  "comparison": "relative file + rule + message (line shifts ignored)"
+}
