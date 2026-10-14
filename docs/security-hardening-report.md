@@ -8,7 +8,7 @@
 - 整改分支：`feature/security-hardening`；独立工作区：`/Users/xing/Desktop/req2test-security-hardening`。
 - **远端实现 Commit SHA：`a665b157ae8e6503e22077eb141c2f46940b8c9f`**。本机验收实现 commit 为 `97b9d1cf9c90b73ec1c4b3cff7ce61b888545420`；因本机 Git 无推送凭据，使用已连接 GitHub 上传，两者 Git tree 均为 `51228bb551b6d557b4b8b0a01e001aa1863d0028`，源码逐字节一致。其后的提交只交付报告及测试证据，最终分支 SHA 以 PR head 和随附本地正式报告为准。
 - 原部署工作区 `/Users/xing/Desktop/req2test-agent-release-check` 仍为 `codex/render-free-neon`，HEAD `19c8f817f2d3164408a35d62f964607afa6167f5`；未跟踪的 `railway.json` 保留。没有 reset、clean、强制切换、强制推送或生产操作。
-- PR：创建后补充链接；不自动合并、不部署。
+- PR：[#5](https://github.com/xingqianyue268-alt/req2test-agent/pull/5)，已创建、待审查；未合并、未部署。
 
 本次首先恢复昨天已有的未提交实现、测试和执行日志，而非重新开发。Docker 原已关闭，昨天的临时容器已经消失；恢复 Docker 后仅新建带安全验证标签的三只临时容器，没有启动或修改其他历史部署栈。
 
