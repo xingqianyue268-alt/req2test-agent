@@ -15,6 +15,7 @@ from ...evaluation.judge import JUDGE_PROMPT_VERSION, judge_prompt_digest
 from ...evaluation.metrics import AGGREGATION_VERSION
 from ...evaluation.models import EvaluationRunReport, GoldenDataset
 from ...prompts import workflow_prompt_digest
+from ...security.redaction import redact_sensitive, redact_text
 from ..models import EvaluationComparisonORM, EvaluationRunORM
 from ..repositories import evaluations
 
@@ -99,15 +100,15 @@ class EvaluationPersistenceService:
                 run_id=run.id,
                 dataset_case_id=case.dataset_case_id,
                 metric_scores={
-                    name: metric.model_dump(mode="json")
+                    name: redact_sensitive(metric.model_dump(mode="json"))
                     for name, metric in case.metrics.items()
                 },
                 overall_score=Decimal(str(case.overall_score)),
                 latency_ms=Decimal(str(case.latency_ms)),
                 revision_iterations=case.revision_iterations,
-                failure_reason=case.failure_reason,
+                failure_reason=redact_text(case.failure_reason) if case.failure_reason else None,
                 judge_metadata=case.judge_metadata.model_dump(mode="json"),
-                generated_result=case.generated_result,
+                generated_result=redact_sensitive(case.generated_result),
             )
 
         run.status = report.status
@@ -117,7 +118,7 @@ class EvaluationPersistenceService:
         run.started_at = report.started_at
         run.ended_at = report.ended_at
         run.latency_ms = Decimal(str(report.latency_ms))
-        run.failure_reason = report.failure_reason
+        run.failure_reason = redact_text(report.failure_reason) if report.failure_reason else None
         session.flush()
         return run
 

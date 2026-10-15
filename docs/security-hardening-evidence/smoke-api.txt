@@ -1,0 +1,55 @@
+INFO:     Started server process [23964]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:53580 (Press CTRL+C to quit)
+INFO:     127.0.0.1:53626 - "GET /ready HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/auth/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:53626 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /workbench HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/tasks HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:53626 - "GET /api/v1/knowledge/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/knowledge/search HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/knowledge/documents HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:53626 - "GET /api/v1/admin/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/knowledge/documents HTTP/1.1" 201 Created
+INFO:     127.0.0.1:53626 - "GET /api/v1/knowledge/documents/43916efe-0e52-4b37-b5f8-d48e1eee9fe2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/knowledge/documents/43916efe-0e52-4b37-b5f8-d48e1eee9fe2/reindex HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/knowledge/rebuild HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/knowledge/search HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "DELETE /api/v1/knowledge/documents/43916efe-0e52-4b37-b5f8-d48e1eee9fe2 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53626 - "GET /api/v1/knowledge/documents/43916efe-0e52-4b37-b5f8-d48e1eee9fe2 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53626 - "POST /api/v1/tasks HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/65ab2dce-b845-4299-a0bb-81c8f1713e74 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/65ab2dce-b845-4299-a0bb-81c8f1713e74 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/65ab2dce-b845-4299-a0bb-81c8f1713e74 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53669 - "GET /demo-target/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53670 - "POST /demo-target/echo HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/65ab2dce-b845-4299-a0bb-81c8f1713e74 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53686 - "GET /demo-target/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53687 - "POST /demo-target/echo HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/65ab2dce-b845-4299-a0bb-81c8f1713e74 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/65ab2dce-b845-4299-a0bb-81c8f1713e74 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/65ab2dce-b845-4299-a0bb-81c8f1713e74/diagnostics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/tasks HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/39263fd2-ebe7-48f5-af31-3a80945313de HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53692 - "POST /demo-target/echo HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/39263fd2-ebe7-48f5-af31-3a80945313de HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53704 - "POST /demo-target/echo HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/39263fd2-ebe7-48f5-af31-3a80945313de HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/39263fd2-ebe7-48f5-af31-3a80945313de/diagnostics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53719 - "WebSocket /ws/tasks/65ab2dce-b845-4299-a0bb-81c8f1713e74" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53626 - "GET /api/v1/evaluations/datasets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/evaluations/runs HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:53626 - "GET /api/v1/evaluations/runs/e27b0814-5576-454e-a504-cd3e875db6de HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/evaluations/runs/e27b0814-5576-454e-a504-cd3e875db6de HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53721 - "POST /api/v1/tasks HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/da80ae31-28cb-4a43-97dd-511b1ea2ed31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/tasks/da80ae31-28cb-4a43-97dd-511b1ea2ed31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "POST /api/v1/auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53626 - "GET /api/v1/auth/me HTTP/1.1" 401 Unauthorized
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [23964]

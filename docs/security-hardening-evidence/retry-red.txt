@@ -1,0 +1,67 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_celery_retry_traceback_and_republished_metadata_are_safe _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1106d5810>
+
+    def test_celery_retry_traceback_and_republished_metadata_are_safe(monkeypatch):
+        import traceback
+
+        from celery.exceptions import Retry
+
+        from req2test import worker
+
+        def failure(*_args, **_kwargs):
+            raise ConnectionError('{"token":"SYNTHETIC_RETRY_SECRET"}')
+
+        options = {}
+
+        def retry(**kwargs):
+            options.update(kwargs)
+            raise Retry(exc=kwargs["exc"])
+
+        monkeypatch.setattr(worker, "_generate_test_cases_once", failure)
+        monkeypatch.setattr(worker, "_record_retry", lambda *a, **k: None)
+        monkeypatch.setattr(worker.generate_test_cases, "retry", retry)
+        with pytest.raises(Retry) as captured:
+            worker.generate_test_cases.run("local", "local", {}, {}, {})
+>       assert "SYNTHETIC_RETRY_SECRET" not in "".join(traceback.format_exception(captured.value))
+E       assert 'SYNTHETIC_RETRY_SECRET' not in 'Traceback (... "***"}\')\n'
+E
+E         'SYNTHETIC_RETRY_SECRET' is contained here:
+E           {"token":"SYNTHETIC_RETRY_SECRET"}')
+E           ConnectionError: {"token":"SYNTHETIC_RETRY_SECRET"}
+E
+E           During handling of the above exception, another exception occurred:
+E           ...
+E
+E         ...Full output truncated (9 lines hidden), use '-vv' to show
+
+tests/test_security_redaction.py:343: AssertionError
+____ test_celery_delivery_conflict_keeps_type_without_raw_exception_context ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1106d6550>
+
+    def test_celery_delivery_conflict_keeps_type_without_raw_exception_context(monkeypatch):
+        import traceback
+
+        from req2test import worker
+
+        def failure(*_args, **_kwargs):
+            raise worker.CeleryDeliveryConflict('{"token":"SYNTHETIC_CONFLICT"}')
+
+        monkeypatch.setattr(worker, "_generate_test_cases_once", failure)
+        with pytest.raises(worker.CeleryDeliveryConflict) as captured:
+            worker.generate_test_cases.run("local", "local", {}, {}, {})
+>       assert "SYNTHETIC_CONFLICT" not in "".join(traceback.format_exception(captured.value))
+E       assert 'SYNTHETIC_CONFLICT' not in 'Traceback (...CONFLICT"}\n'
+E
+E         'SYNTHETIC_CONFLICT' is contained here:
+E           {"token":"SYNTHETIC_CONFLICT"}')
+E           req2test.db.services.result_persistence.CeleryDeliveryConflict: {"token":"SYNTHETIC_CONFLICT"}
+
+tests/test_security_redaction.py:358: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_security_redaction.py::test_celery_retry_traceback_and_republished_metadata_are_safe
+FAILED tests/test_security_redaction.py::test_celery_delivery_conflict_keeps_type_without_raw_exception_context
+2 failed, 52 deselected in 0.47s

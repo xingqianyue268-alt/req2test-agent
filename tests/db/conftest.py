@@ -76,3 +76,9 @@ def db_session(schema_connection: Connection) -> Iterator[Session]:
     finally:
         session.close()
         transaction.rollback()
+
+
+@pytest.fixture(autouse=True)
+def trusted_test_browser_origin(monkeypatch):
+    """Cookie clients model a browser with an explicitly trusted test origin."""
+    monkeypatch.setenv("REQ2TEST_TRUSTED_ORIGINS", "http://testserver")

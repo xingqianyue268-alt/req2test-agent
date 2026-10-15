@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-import logging
 import uuid
 
 from ..config import GenerationConfig, LLMSettings
 from ..db.repositories import evaluations
 from ..db.services.evaluation_persistence import EvaluationPersistenceService
 from ..db.session import session_scope
+from ..security.redaction import safe_logger, safe_task_error
 from ..services.evaluation_service import EvaluationDatasetRegistry, current_knowledge_snapshot
 from ..worker import celery_app
 from .engine import evaluate_golden_dataset
 from .safety import safe_failure_reason
 
-logger = logging.getLogger(__name__)
+logger = safe_logger(__name__)
 
 
 @celery_app.task(name="req2test.evaluate")
@@ -64,7 +64,7 @@ def run_evaluation(
             "status": report.status,
             "overall_score": report.overall_score,
         }
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - redact before the Celery result backend
         reason = safe_failure_reason(exc, max_length=1000)
         try:
             with session_scope() as session:
@@ -72,4 +72,4 @@ def run_evaluation(
                 persistence.refresh_comparisons_for_run(session, parsed_run_id)
         except Exception:
             logger.exception("Could not persist failed evaluation run %s", run_id)
-        raise
+        raise safe_task_error(exc) from None

@@ -1,0 +1,252 @@
+[
+  {
+    "name": "original-baseline",
+    "exit_code": 0,
+    "seconds": 9.7,
+    "summary": [
+      "162 passed, 1 warning in 9.31s"
+    ],
+    "log_sha256": "275e5a3153781c9d6e1238d0d47aea5909a4d67932f8b5507611c2b72e59a5e8",
+    "command": "$VENV/bin/python -m pytest -q -p no:cacheprovider --ignore=tests/test_security_targets.py --ignore=tests/test_security_redaction.py --ignore=tests/test_security_csrf.py"
+  },
+  {
+    "name": "red",
+    "exit_code": 1,
+    "seconds": 4.92,
+    "summary": [
+      "98 failed, 12 passed, 1 warning in 4.59s"
+    ],
+    "log_sha256": "d7af9966830d810e300e84f86583092ddccedcb129c57e1d6d8b13528ead7ee7",
+    "command": "$VENV/bin/python -m pytest tests/test_security_targets.py tests/test_security_redaction.py tests/test_security_csrf.py -q -p no:cacheprovider --tb=short"
+  },
+  {
+    "name": "green-first",
+    "exit_code": 0,
+    "seconds": 8.66,
+    "summary": [
+      "110 passed, 1 warning in 8.37s"
+    ],
+    "log_sha256": "453e3d32874443fa174889dec343193218b0da7a023e54908068e2e371307c0b",
+    "command": "$VENV/bin/python -m pytest tests/test_security_targets.py tests/test_security_redaction.py tests/test_security_csrf.py -q -p no:cacheprovider --tb=short"
+  },
+  {
+    "name": "full-first",
+    "exit_code": 1,
+    "seconds": 16.63,
+    "summary": [
+      "16 failed, 256 passed, 1 warning in 16.27s"
+    ],
+    "log_sha256": "2ba4e1bb2b9ae71209e18f58c7b97a93a601013a5e25c0a9c3e2accd3961b58d",
+    "command": "$VENV/bin/python -m pytest -q -p no:cacheprovider --tb=short"
+  },
+  {
+    "name": "validation-red",
+    "exit_code": 1,
+    "seconds": 1.11,
+    "summary": [
+      "1 failed, 1 warning in 0.83s"
+    ],
+    "log_sha256": "3409fdbadf2022f9b049511a09cda3259303654f0eaae916ab85a0c75bd92fd8",
+    "command": "$VENV/bin/python -m pytest tests/test_security_csrf.py::test_validation_response_does_not_echo_password -q -p no:cacheprovider --tb=short"
+  },
+  {
+    "name": "celery-red",
+    "exit_code": 1,
+    "seconds": 1.11,
+    "summary": [
+      "2 failed in 0.82s"
+    ],
+    "log_sha256": "7d8de104b5b3f1ac9ebafe0717ebfa2fade59427782b43c5db1d646880e22f90",
+    "command": "$VENV/bin/python -m pytest tests/test_security_redaction.py::test_celery_failure_and_retry_metadata_do_not_emit_raw_secrets tests/test_security_redaction.py::test_celery_publish_metadata_hides_credentials_without_changing_arguments -q -p no:cacheprovider --tb=short"
+  },
+  {
+    "name": "full-second",
+    "exit_code": 1,
+    "seconds": 17.77,
+    "summary": [
+      "1 failed, 272 passed, 1 warning in 17.43s"
+    ],
+    "log_sha256": "ad6d70927d865f2ac41cbf505d9c897ab60628204280cb12f579e531eb43e901",
+    "command": "$VENV/bin/python -m pytest -q -p no:cacheprovider --tb=short"
+  },
+  {
+    "name": "full-third",
+    "exit_code": 0,
+    "seconds": 17.86,
+    "summary": [
+      "277 passed, 1 warning in 17.51s"
+    ],
+    "log_sha256": "83a133ef7994e39e2b16725d0e8b5d313300f5947e0157ed815c12fc017939b1",
+    "command": "$VENV/bin/python -m pytest -q -p no:cacheprovider --tb=short"
+  },
+  {
+    "name": "logging-red",
+    "exit_code": 1,
+    "seconds": 0.62,
+    "summary": [
+      "2 failed, 39 deselected in 0.40s"
+    ],
+    "log_sha256": "6b9a54caee7f2d31f121bc309d0663d6ebed478ab20f2e7f6128de2da469b997",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_redaction.py -k http_client_logs or missing_expected_text"
+  },
+  {
+    "name": "logging-green",
+    "exit_code": 0,
+    "seconds": 0.56,
+    "summary": [
+      "2 passed, 39 deselected in 0.37s"
+    ],
+    "log_sha256": "a68d8ea9659ac035c2b1ba3121d5f689bae2105b5ccdcf1b6a4629acdc67657f",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_redaction.py -k http_client_logs or missing_expected_text"
+  },
+  {
+    "name": "replay-red",
+    "exit_code": 1,
+    "seconds": 0.67,
+    "summary": [
+      "1 failed, 41 deselected in 0.43s"
+    ],
+    "log_sha256": "b85e991f1e6bc5962291a3ba20e5678f8a5c7b71b9d6a60077f26bace15a6497",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_redaction.py -k legacy_replay"
+  },
+  {
+    "name": "replay-green",
+    "exit_code": 0,
+    "seconds": 0.6,
+    "summary": [
+      "1 passed, 41 deselected in 0.40s"
+    ],
+    "log_sha256": "432d744c8439f1fe0d7af7e644a8e5377a0fe66ba5f79d297a871789987eaee4",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_redaction.py -k legacy_replay"
+  },
+  {
+    "name": "knowledge-red",
+    "exit_code": 1,
+    "seconds": 0.73,
+    "summary": [
+      "8 failed, 1 passed, 42 deselected in 0.49s"
+    ],
+    "log_sha256": "6656eb15ce3f990065c91328f0ddcc89c65f8c6826a722db741597a6c7fe9dc8",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_redaction.py -k _safe_error"
+  },
+  {
+    "name": "edge-red",
+    "exit_code": 1,
+    "seconds": 0.89,
+    "summary": [
+      "2 failed, 77 deselected, 1 warning in 0.63s"
+    ],
+    "log_sha256": "5bcb647bcba1e50288de6763bcfce26356f1527ef63354ee1d1808b7654f1c9b",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_csrf.py tests/test_security_redaction.py -k sensitive_input or :0"
+  },
+  {
+    "name": "remaining-green",
+    "exit_code": 0,
+    "seconds": 1.66,
+    "summary": [
+      "83 passed, 1 warning in 1.01s"
+    ],
+    "log_sha256": "85ae55c0a01931f979e122f0ae0f7bb3e4c50bed82c1458b8bf6db5903fac99a",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_csrf.py tests/test_security_redaction.py tests/db/test_knowledge_product.py"
+  },
+  {
+    "name": "full-acceptance",
+    "exit_code": 0,
+    "seconds": 17.93,
+    "summary": [
+      "291 passed, 1 warning in 17.50s"
+    ],
+    "log_sha256": "3b76ea19fef2de8ac0212270f317aefc55c0be07af3ec088319fcab80387c464",
+    "command": "$VENV/bin/python -m pytest -q --junitxml=$EVIDENCE/pytest-acceptance.xml"
+  },
+  {
+    "name": "retry-red",
+    "exit_code": 1,
+    "seconds": 0.71,
+    "summary": [
+      "2 failed, 52 deselected in 0.47s"
+    ],
+    "log_sha256": "a6994ce8f42637c2545e325bc38666dad468be440b3352e4d0dac30cdab9ec10",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_redaction.py -k retry_traceback or delivery_conflict_keeps"
+  },
+  {
+    "name": "retry-green",
+    "exit_code": 1,
+    "seconds": 1.38,
+    "summary": [
+      "1 failed, 63 passed in 0.78s"
+    ],
+    "log_sha256": "1e04f0702158a322697a420aaf32c3b0a4ca18b873a0589bf38be5c4ee5ac6db",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_redaction.py tests/db/test_worker_persistence.py"
+  },
+  {
+    "name": "final-regression",
+    "exit_code": 1,
+    "seconds": 18.99,
+    "summary": [
+      "1 failed, 292 passed, 1 warning in 18.58s"
+    ],
+    "log_sha256": "b6bcca2461085bacb993e4cb32a444efb7f54dbd732c98a39a2d5b33d68540d2",
+    "command": "$VENV/bin/python -m pytest -q --junitxml=$EVIDENCE/final-regression.xml"
+  },
+  {
+    "name": "retry-green-final",
+    "exit_code": 0,
+    "seconds": 1.37,
+    "summary": [
+      "64 passed in 0.73s"
+    ],
+    "log_sha256": "1d91c47a6295745ceb77022138acead7a6cb58c78d095e4984f7db7bd48e0109",
+    "command": "$VENV/bin/python -m pytest -q tests/test_security_redaction.py tests/db/test_worker_persistence.py"
+  },
+  {
+    "name": "acceptance-complete",
+    "exit_code": 0,
+    "seconds": 18.88,
+    "summary": [
+      "293 passed, 1 warning in 18.45s"
+    ],
+    "log_sha256": "db61487e13394ea51b75982caebb330e45c0fcf35b8bad7467d4a41db1e0ffe6",
+    "command": "$VENV/bin/python -m pytest -q --junitxml=$EVIDENCE/acceptance-complete.xml"
+  },
+  {
+    "name": "smoke-local",
+    "exit_code": 1,
+    "seconds": 40.24,
+    "summary": [],
+    "log_sha256": "8ad8c7ce08a1375529f9c0b90df7d4209dfe9d5b2d0fa1d10873edd14dedb988",
+    "command": "$VENV/bin/python $EVIDENCE/smoke_local.py"
+  },
+  {
+    "name": "smoke-resumed",
+    "exit_code": 0,
+    "seconds": 7.55,
+    "summary": [],
+    "log_sha256": "4a304c7308342a1de648e33ffc58f4a91eb7e409c387db0665cb826fa0c48bce",
+    "command": "$VENV/bin/python $EVIDENCE/smoke_local.py"
+  },
+  {
+    "name": "smoke-acceptance",
+    "exit_code": 0,
+    "seconds": 7.27,
+    "summary": [],
+    "log_sha256": "0fff576f84479e387b49872687d7cf7e2a06d7c2618a6b5d426fe9b56fb7a44f",
+    "command": "$VENV/bin/python scripts/smoke_security.py --output-dir $EVIDENCE/acceptance-smoke"
+  },
+  {
+    "name": "smoke-complete",
+    "exit_code": 0,
+    "seconds": 7.5,
+    "summary": [],
+    "log_sha256": "e8eda5c6b1d90c89b947bf28132561ac364e0b99f36f3eeee1adbbcf9f3b5de2",
+    "command": "$VENV/bin/python scripts/smoke_security.py --output-dir $EVIDENCE/complete-smoke"
+  },
+  {
+    "name": "evaluation-final",
+    "exit_code": 0,
+    "seconds": 0.77,
+    "summary": [],
+    "log_sha256": "06387e50e3e926bd698f86e858c729904453eea99486b26fda3cdb60ec070ac6",
+    "command": "$VENV/bin/python scripts/run_eval.py --dataset evals/golden_demo.jsonl --mode demo --min-score 80 --output $EVIDENCE/evaluation-final-report.json"
+  }
+]

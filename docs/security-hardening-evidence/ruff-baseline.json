@@ -1,0 +1,836 @@
+[
+  {
+    "file": "$BASELINE/alembic/env.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/alembic/versions/20260813_0001_create_business_tables.py",
+    "rule": "I001",
+    "line": 8,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/alembic/versions/20260813_0002_auth_roles.py",
+    "rule": "I001",
+    "line": 8,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/alembic/versions/20260813_0003_knowledge_source_text.py",
+    "rule": "I001",
+    "line": 8,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/alembic/versions/20260814_0004_knowledge_chunk_count.py",
+    "rule": "I001",
+    "line": 7,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/scripts/performance_baseline.py",
+    "rule": "EXE001",
+    "line": 1,
+    "message": "Shebang is present but file is not executable"
+  },
+  {
+    "file": "$BASELINE/scripts/performance_baseline.py",
+    "rule": "I001",
+    "line": 8,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/scripts/performance_baseline.py",
+    "rule": "UP035",
+    "line": 21,
+    "message": "Import from `collections.abc` instead: `Awaitable`, `Callable`"
+  },
+  {
+    "file": "$BASELINE/src/req2test/__init__.py",
+    "rule": "RUF022",
+    "line": 7,
+    "message": "`__all__` is not sorted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 114,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 171,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 180,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 187,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 194,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 202,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "RUF100",
+    "line": 286,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "RUF100",
+    "line": 292,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 306,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 307,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 315,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 316,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 327,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 328,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 328,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 352,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 353,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 353,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 367,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 368,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 368,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 381,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 382,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 382,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 393,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 400,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 401,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 401,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 410,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 411,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 411,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 420,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 421,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 421,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 436,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 437,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 437,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 454,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 455,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 455,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 469,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 469,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 494,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 495,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 529,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 530,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 552,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 553,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 573,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 574,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/api.py",
+    "rule": "B008",
+    "line": 593,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/src/req2test/auth_api.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/auth_api.py",
+    "rule": "UP037",
+    "line": 47,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/cli/__main__.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/base.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/__init__.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/__init__.py",
+    "rule": "RUF022",
+    "line": 10,
+    "message": "`__all__` is not sorted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/execution.py",
+    "rule": "UP037",
+    "line": 64,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/execution.py",
+    "rule": "UP037",
+    "line": 65,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/task.py",
+    "rule": "UP037",
+    "line": 75,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/task.py",
+    "rule": "UP037",
+    "line": 76,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/task.py",
+    "rule": "UP037",
+    "line": 79,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/test_case.py",
+    "rule": "UP037",
+    "line": 44,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/test_case.py",
+    "rule": "UP037",
+    "line": 45,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/user.py",
+    "rule": "UP037",
+    "line": 39,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/models/user.py",
+    "rule": "UP037",
+    "line": 40,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/repositories/users.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/services/task_persistence.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/session.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/db/session.py",
+    "rule": "BLE001",
+    "line": 56,
+    "message": "Do not catch blind exception: `Exception`"
+  },
+  {
+    "file": "$BASELINE/src/req2test/diagnostics/__init__.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/diagnostics/__init__.py",
+    "rule": "RUF022",
+    "line": 19,
+    "message": "`__all__` is not sorted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/diagnostics/evidence.py",
+    "rule": "UP037",
+    "line": 51,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/diagnostics/evidence.py",
+    "rule": "UP037",
+    "line": 58,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/document_loader.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/enhanced_nodes.py",
+    "rule": "I001",
+    "line": 9,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/execution_models.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/graph.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/progress.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/prompts.py",
+    "rule": "FLY002",
+    "line": 134,
+    "message": "Consider f-string instead of string join"
+  },
+  {
+    "file": "$BASELINE/src/req2test/rag.py",
+    "rule": "UP035",
+    "line": 20,
+    "message": "Import from `collections.abc` instead: `Iterable`"
+  },
+  {
+    "file": "$BASELINE/src/req2test/rag.py",
+    "rule": "S110",
+    "line": 251,
+    "message": "`try`-`except`-`pass` detected, consider logging the exception"
+  },
+  {
+    "file": "$BASELINE/src/req2test/readiness.py",
+    "rule": "BLE001",
+    "line": 21,
+    "message": "Do not catch blind exception: `Exception`"
+  },
+  {
+    "file": "$BASELINE/src/req2test/retrieval.py",
+    "rule": "UP037",
+    "line": 57,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/security/dependencies.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/security/passwords.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/services/auth_service.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/services/knowledge_service.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/services/knowledge_service.py",
+    "rule": "UP035",
+    "line": 13,
+    "message": "Import from `collections.abc` instead: `Callable`"
+  },
+  {
+    "file": "$BASELINE/src/req2test/services/knowledge_service.py",
+    "rule": "RUF100",
+    "line": 192,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/services/knowledge_service.py",
+    "rule": "RUF100",
+    "line": 213,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/services/knowledge_service.py",
+    "rule": "RUF100",
+    "line": 222,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/services/knowledge_service.py",
+    "rule": "RUF100",
+    "line": 265,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/settings.py",
+    "rule": "UP037",
+    "line": 39,
+    "message": "Remove quotes from type annotation"
+  },
+  {
+    "file": "$BASELINE/src/req2test/task_store.py",
+    "rule": "RUF100",
+    "line": 103,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/task_store.py",
+    "rule": "RUF100",
+    "line": 116,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/tool_calling.py",
+    "rule": "I001",
+    "line": 9,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/tool_calling.py",
+    "rule": "TRY004",
+    "line": 186,
+    "message": "Prefer `TypeError` exception for invalid type"
+  },
+  {
+    "file": "$BASELINE/src/req2test/worker.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 171,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 346,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 466,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 483,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 500,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 516,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/src/req2test/worker.py",
+    "rule": "RUF100",
+    "line": 542,
+    "message": "Unused `noqa` directive (unused: `BLE001`)"
+  },
+  {
+    "file": "$BASELINE/tests/db/conftest.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_admin_console.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_authentication.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_authentication.py",
+    "rule": "B008",
+    "line": 184,
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_authentication.py",
+    "rule": "B008",
+    "line": 184,
+    "message": "Do not perform function call `require_roles` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_knowledge_product.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_models.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_result_persistence.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_task_ownership.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_task_ownership.py",
+    "rule": "I001",
+    "line": 104,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_task_ownership.py",
+    "rule": "SIM117",
+    "line": 127,
+    "message": "Use a single `with` statement with multiple contexts instead of nested `with` statements"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_task_product.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/db/test_worker_persistence.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/test_async_platform.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/test_demo_contracts.py",
+    "rule": "I001",
+    "line": 3,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/test_document_loader.py",
+    "rule": "UP012",
+    "line": 5,
+    "message": "Unnecessary UTF-8 `encoding` argument to `encode`"
+  },
+  {
+    "file": "$BASELINE/tests/test_execution_pipeline.py",
+    "rule": "RUF100",
+    "line": 17,
+    "message": "Unused `noqa` directive (non-enabled: `N802`)"
+  },
+  {
+    "file": "$BASELINE/tests/test_execution_pipeline.py",
+    "rule": "RUF100",
+    "line": 29,
+    "message": "Unused `noqa` directive (non-enabled: `A002`)"
+  },
+  {
+    "file": "$BASELINE/tests/test_readiness.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/test_tool_execution.py",
+    "rule": "RUF100",
+    "line": 20,
+    "message": "Unused `noqa` directive (non-enabled: `N802`)"
+  },
+  {
+    "file": "$BASELINE/tests/test_tool_execution.py",
+    "rule": "RUF100",
+    "line": 32,
+    "message": "Unused `noqa` directive (non-enabled: `A002`)"
+  },
+  {
+    "file": "$BASELINE/tests/test_unified_workbench.py",
+    "rule": "I001",
+    "line": 1,
+    "message": "Import block is un-sorted or un-formatted"
+  },
+  {
+    "file": "$BASELINE/tests/test_unified_workbench.py",
+    "rule": "UP012",
+    "line": 124,
+    "message": "Unnecessary UTF-8 `encoding` argument to `encode`"
+  }
+]

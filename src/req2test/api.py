@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -45,21 +47,32 @@ from .services.knowledge_service import (
 )
 from .services.admin_service import AdminService, LastActiveAdminError, user_dto
 from .security.tokens import InvalidAccessToken, decode_access_token
+from .security.csrf import CookieOriginMiddleware
+from .security.redaction import redact_sensitive, redact_text
 from .settings import get_settings
 from .task_store import task_store
 from .worker import generate_test_cases
 from .evaluation_api import router as evaluation_router
 
 app = FastAPI(title="Req2Test Agent API", version="0.6.0")
+app.add_middleware(CookieOriginMiddleware)
 app.include_router(auth_router)
 app.include_router(evaluation_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def sanitized_validation_error(_request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"detail": redact_sensitive(jsonable_encoder(exc.errors()))},
+    )
 
 
 def _publish_task(task_args: list[Any], eager: bool) -> str:
     result = (
         generate_test_cases.apply(args=task_args)
         if eager
-        else generate_test_cases.delay(*task_args)
+        else generate_test_cases.apply_async(args=task_args, argsrepr="<redacted task inputs>")
     )
     return str(result.id or task_args[0])
 
@@ -290,7 +303,7 @@ def parse_document(request: DocumentParseRequest) -> dict[str, Any]:
     try:
         text = load_document_bytes(content, suffix)
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=redact_text(str(exc))) from exc
     return {
         "filename": request.filename,
         "suffix": suffix,
@@ -336,13 +349,13 @@ def upload_knowledge_document(
             kind=request.kind,
         )
     except DuplicateKnowledgeDocument as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=redact_text(str(exc))) from exc
     except OverflowError as exc:
-        raise HTTPException(status_code=413, detail=str(exc)) from exc
+        raise HTTPException(status_code=413, detail=redact_text(str(exc))) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=redact_text(str(exc))) from exc
     except KnowledgeIndexError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        raise HTTPException(status_code=502, detail=redact_text(str(exc))) from exc
     return document_dto(document, include_content=True)
 
 
@@ -358,7 +371,7 @@ def delete_knowledge_document(
     try:
         knowledge_service.delete(db, document)
     except KnowledgeDeleteError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        raise HTTPException(status_code=502, detail=redact_text(str(exc))) from exc
 
 
 @app.post("/api/v1/knowledge/documents/{document_id}/reindex")
@@ -373,7 +386,7 @@ def reindex_knowledge_document(
     try:
         return document_dto(knowledge_service.reindex(db, document), include_content=True)
     except KnowledgeIndexError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        raise HTTPException(status_code=502, detail=redact_text(str(exc))) from exc
 
 
 @app.post("/api/v1/knowledge/rebuild")
@@ -384,7 +397,7 @@ def rebuild_knowledge(
     try:
         return knowledge_service.rebuild(db)
     except KnowledgeIndexError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        raise HTTPException(status_code=502, detail=redact_text(str(exc))) from exc
 
 
 @app.post("/api/v1/knowledge/search")
@@ -423,7 +436,7 @@ def admin_update_user_status(
     try:
         user = admin_service.set_status(db, user_id=user_id, is_active=request.is_active)
     except LastActiveAdminError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=redact_text(str(exc))) from exc
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user_dto(user)
@@ -439,7 +452,7 @@ def admin_update_user_role(
     try:
         user = admin_service.set_role(db, user_id=user_id, role=request.role)
     except LastActiveAdminError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise HTTPException(status_code=409, detail=redact_text(str(exc))) from exc
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user_dto(user)
@@ -507,7 +520,7 @@ def create_task(
             user_id=current_user.id if current_user else None,
         )
     except (DatabasePersistenceError, LiveProjectionUnavailable, TaskDispatchError) as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise HTTPException(status_code=503, detail=redact_text(str(exc))) from exc
 
     task_id = str(task.id)
 

@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import re
 import uuid
 from copy import deepcopy
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from datetime import datetime
 from math import ceil
 from typing import Any
@@ -14,21 +13,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ...task_store import TaskStore, TaskStoreUnavailable
+from ...security.redaction import redact_sensitive, redact_text
 from ..models import TaskORM
 from ..repositories import tasks as task_repository
 
 
 TERMINAL_STATUSES = {"completed", "failed"}
-SENSITIVE_KEY_PARTS = {
-    "api_key",
-    "authorization",
-    "cookie",
-    "credential",
-    "password",
-    "private_key",
-    "secret",
-    "token",
-}
+
 
 
 class TaskPersistenceError(RuntimeError):
@@ -47,34 +38,9 @@ class TaskDispatchError(TaskPersistenceError):
     pass
 
 
-def _normalized_key(value: Any) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", str(value).strip().lower()).strip("_")
-
-
-def _is_sensitive_key(key: Any) -> bool:
-    normalized = _normalized_key(key)
-    if normalized in SENSITIVE_KEY_PARTS:
-        return True
-    if "api_key" in normalized or "private_key" in normalized:
-        return True
-    parts = set(normalized.split("_"))
-    return bool(
-        parts & {"authorization", "cookie", "credential", "password", "secret", "token"}
-    )
-
-
 def sanitize_config(value: Any) -> Any:
-    """Recursively omit credential-bearing keys before PostgreSQL persistence."""
-
-    if isinstance(value, Mapping):
-        return {
-            str(key): sanitize_config(item)
-            for key, item in value.items()
-            if not _is_sensitive_key(key)
-        }
-    if isinstance(value, (list, tuple)):
-        return [sanitize_config(item) for item in value]
-    return value
+    """Omit sensitive keys and redact embedded text before storing configuration."""
+    return redact_sensitive(value, omit_keys=True)
 
 
 def generate_task_title(requirement_text: str, explicit_title: str | None = None) -> str:
@@ -90,14 +56,7 @@ def generate_task_title(requirement_text: str, explicit_title: str | None = None
 
 def safe_error_summary(error: BaseException) -> str:
     summary = str(error).replace("\n", " ").strip() or error.__class__.__name__
-    summary = re.sub(r"://[^/@\s]+:[^/@\s]+@", "://***:***@", summary)
-    summary = re.sub(
-        r"(?i)(api[_-]?key|authorization|cookie|credential|password|"
-        r"private[_-]?(?:credential|key)|secret|token)\s*[=:]\s*[^\s,;]+",
-        r"\1=***",
-        summary,
-    )
-    return summary[:500]
+    return redact_text(summary)[:500]
 
 
 def task_to_projection(task: TaskORM) -> dict[str, Any]:
@@ -109,7 +68,7 @@ def task_to_projection(task: TaskORM) -> dict[str, Any]:
         "completed": "任务已完成",
     }
     reliability = (task.result_summary or {}).get("task_reliability") or {}
-    return {
+    return redact_sensitive({
         "task_id": str(task.id),
         "trace_id": str(task.id),
         "status": task.status,
@@ -128,7 +87,7 @@ def task_to_projection(task: TaskORM) -> dict[str, Any]:
             "source": "api",
             "execution_enabled": bool(task.execution_config.get("enabled", False)),
         },
-    }
+    })
 
 
 def task_to_list_item(task: TaskORM, *, include_user: bool = False) -> dict[str, Any]:
@@ -137,7 +96,7 @@ def task_to_list_item(task: TaskORM, *, include_user: bool = False) -> dict[str,
     item = {
         "id": str(task.id),
         "task_id": str(task.id),
-        "title": task.title,
+        "title": redact_text(task.title),
         "status": task.status,
         "stage": task.stage,
         "progress": task.progress,
@@ -155,7 +114,7 @@ def task_to_list_item(task: TaskORM, *, include_user: bool = False) -> dict[str,
             "failure_category_counts": summary.get("failure_category_counts") or {},
             "retry_count": int(reliability.get("retry_count") or 0),
             "dead_lettered": bool(reliability.get("dead_lettered", False)),
-            "final_failure_reason": reliability.get("final_failure_reason"),
+            "final_failure_reason": redact_sensitive(reliability.get("final_failure_reason")),
         },
     }
     if include_user:
@@ -176,7 +135,7 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
         "trace_id": payload.get("trace_id") or str(task.id),
         "task": {
             "id": str(task.id),
-            "title": task.title,
+            "title": redact_text(task.title),
             "requirement_text": task.requirement_text,
             "status": task.status,
             "stage": task.stage,
@@ -189,7 +148,7 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
                 "retry_count": int(reliability.get("retry_count") or 0),
                 "max_retries": int(reliability.get("max_retries") or 3),
                 "dead_lettered": bool(reliability.get("dead_lettered", False)),
-                "final_failure_reason": reliability.get("final_failure_reason"),
+                "final_failure_reason": redact_sensitive(reliability.get("final_failure_reason")),
             },
         },
         "requirements": payload.get("requirements") or [],
@@ -222,7 +181,7 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
     }
     # Preserve the response envelope used by existing polling and Workbench clients.
     detail["result"] = public_payload or None
-    return detail
+    return redact_sensitive(detail)
 
 
 Publisher = Callable[[list[Any], bool], str]
@@ -251,8 +210,8 @@ class TaskPersistenceService:
                 session,
                 id=task_id,
                 user_id=user_id,
-                title=generate_task_title(requirement_text, title),
-                requirement_text=requirement_text,
+                title=redact_text(generate_task_title(requirement_text, title)),
+                requirement_text=redact_text(requirement_text),
                 status="queued",
                 stage="queued",
                 progress=0,
@@ -407,7 +366,7 @@ class TaskPersistenceService:
         payload = task.result_payload or state.get("result") or {}
         execution = payload.get("execution") or {}
         analysis = execution.get("failure_analysis_v2") or {}
-        return {
+        return redact_sensitive({
             "trace_id": payload.get("trace_id") or str(task.id),
             "summary": analysis.get("summary") or {},
             "diagnoses": analysis.get("diagnoses") or [],
@@ -415,7 +374,7 @@ class TaskPersistenceService:
             "evidence_collection_overhead_ms": execution.get(
                 "evidence_collection_overhead_ms", 0.0
             ),
-        }
+        })
 
     def list_task_states(
         self,

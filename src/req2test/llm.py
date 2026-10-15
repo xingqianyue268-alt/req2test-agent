@@ -7,6 +7,7 @@ import re
 from typing import Any
 
 from .config import LLMSettings
+from .security.redaction import protect_http_logs, redact_text
 
 
 def build_chat_model(settings: LLMSettings):
@@ -15,6 +16,7 @@ def build_chat_model(settings: LLMSettings):
 
     from langchain_openai import ChatOpenAI
 
+    protect_http_logs()
     api_key = settings.api_key or "ollama"
     return ChatOpenAI(
         model=settings.model,
@@ -74,6 +76,6 @@ def invoke_json(model, system_prompt: str, user_prompt: str) -> Any:
     from langchain_core.messages import HumanMessage, SystemMessage
 
     response = model.invoke(
-        [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)]
+        [SystemMessage(content=redact_text(system_prompt)), HumanMessage(content=redact_text(user_prompt))]
     )
     return extract_json(_normalise_content(response.content))

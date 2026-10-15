@@ -1,0 +1,724 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.F.FFFF.FFFFF.FFFFFFFF.FFFFFFFF. [ 65%]
+FFFFFFFFFFFFFFFFFFFF.FFFFF....FFFFFFF.                                   [100%]
+=================================== FAILURES ===================================
+________ test_redirects_are_observed_without_following[other-301-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 301
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/301/other'...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+_______ test_redirects_are_observed_without_following[other-301-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=137.58, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+________ test_redirects_are_observed_without_following[other-302-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 302
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/302/other'...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+_______ test_redirects_are_observed_without_following[other-302-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=127.95, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+________ test_redirects_are_observed_without_following[other-303-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 303
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/303/other'...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+_______ test_redirects_are_observed_without_following[other-303-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=125.05, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+________ test_redirects_are_observed_without_following[other-307-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 307
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/307/other'...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+_______ test_redirects_are_observed_without_following[other-307-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=131.04, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+________ test_redirects_are_observed_without_following[other-308-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 308
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/308/other'...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+_______ test_redirects_are_observed_without_following[other-308-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=131.59, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[same-301-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 301
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/301/same',...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+________ test_redirects_are_observed_without_following[same-301-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=125.51, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[same-302-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 302
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/302/same',...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+________ test_redirects_are_observed_without_following[same-302-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=134.8, passed_count=0, failed_count=1, error_count=0, std...:test_generated_http_case[REDIRECT]\n1 failed in 0.06s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[same-303-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 303
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/303/same',...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+________ test_redirects_are_observed_without_following[same-303-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=138.93, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[same-307-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 307
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/307/same',...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+________ test_redirects_are_observed_without_following[same-307-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=140.96, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[same-308-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 308
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/308/same',...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+________ test_redirects_are_observed_without_following[same-308-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=135.32, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_______ test_redirects_are_observed_without_following[relative-301-http] _______
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 301
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/301/relati...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+______ test_redirects_are_observed_without_following[relative-301-pytest] ______
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=129.45, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_______ test_redirects_are_observed_without_following[relative-302-http] _______
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 302
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/302/relati...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+______ test_redirects_are_observed_without_following[relative-302-pytest] ______
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=140.08, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_______ test_redirects_are_observed_without_following[relative-303-http] _______
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 303
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/303/relati...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+______ test_redirects_are_observed_without_following[relative-303-pytest] ______
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=135.4, passed_count=0, failed_count=1, error_count=0, std...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_______ test_redirects_are_observed_without_following[relative-307-http] _______
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 307
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/307/relati...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+______ test_redirects_are_observed_without_following[relative-307-pytest] ______
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=134.58, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_______ test_redirects_are_observed_without_following[relative-308-http] _______
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   assert 200 == 308
+E    +  where 200 = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/308/relati...'], response_excerpt='{"status":"ok"}', response_content_type=None, validation_error=None, timed_out=False, error=None).status_code
+______ test_redirects_are_observed_without_following[relative-308-pytest] ______
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=135.82, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.05s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[loop-301-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   AssertionError: assert None == 301
+E    +  where None = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/301/loop',...ntent_type=None, validation_error=None, timed_out=False, error='TooManyRedirects: Exceeded maximum allowed redirects.').status_code
+________ test_redirects_are_observed_without_following[loop-301-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=166.31, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.09s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[loop-302-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   AssertionError: assert None == 302
+E    +  where None = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/302/loop',...ntent_type=None, validation_error=None, timed_out=False, error='TooManyRedirects: Exceeded maximum allowed redirects.').status_code
+________ test_redirects_are_observed_without_following[loop-302-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=170.84, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.08s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[loop-303-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   AssertionError: assert None == 303
+E    +  where None = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/303/loop',...ntent_type=None, validation_error=None, timed_out=False, error='TooManyRedirects: Exceeded maximum allowed redirects.').status_code
+________ test_redirects_are_observed_without_following[loop-303-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=202.05, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.10s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[loop-307-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   AssertionError: assert None == 307
+E    +  where None = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/307/loop',...ntent_type=None, validation_error=None, timed_out=False, error='TooManyRedirects: Exceeded maximum allowed redirects.').status_code
+________ test_redirects_are_observed_without_following[loop-307-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=158.73, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.08s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+_________ test_redirects_are_observed_without_following[loop-308-http] _________
+tests/test_security_targets.py:66: in test_redirects_are_observed_without_following
+    assert result.status_code == code
+E   AssertionError: assert None == 308
+E    +  where None = HttpExecutionResult(case_id='REDIRECT', name='redirect', method='GET', url='http://localhost:53918/redirect/308/loop',...ntent_type=None, validation_error=None, timed_out=False, error='TooManyRedirects: Exceeded maximum allowed redirects.').status_code
+________ test_redirects_are_observed_without_following[loop-308-pytest] ________
+tests/test_security_targets.py:69: in test_redirects_are_observed_without_following
+    assert result.passed
+E   AssertionError: assert False
+E    +  where False = PytestExecutionResult(passed=False, exit_code=1, duration_ms=157.17, passed_count=0, failed_count=1, error_count=0, st...:test_generated_http_case[REDIRECT]\n1 failed in 0.08s\n', stderr='', generated_test_file='test_req2test_generated.py').passed
+____________ test_common_entry_rejects_before_dispatch[False-True] _____________
+tests/test_security_targets.py:81: in test_common_entry_rejects_before_dispatch
+    execute_with_tools('', workflow, LLMSettings(), config)
+src/req2test/tool_calling.py:391: in execute_with_tools
+    report.pytest_result = PytestRunnerTool(config.pytest_timeout_seconds).invoke(
+src/req2test/pytest_runner.py:130: in invoke
+    combined = f"{completed.stdout}\n{completed.stderr}"
+                  ^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'stdout'
+_______ test_direct_runner_rejects_before_subprocess[http://127.0.0.1:1] _______
+tests/test_security_targets.py:90: in test_direct_runner_rejects_before_subprocess
+    PytestRunnerTool().invoke([HttpTestSpec(case_id='ONE', name='one', path='/')], base)
+src/req2test/pytest_runner.py:130: in invoke
+    combined = f"{completed.stdout}\n{completed.stderr}"
+                  ^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'stdout'
+___ test_direct_runner_rejects_before_subprocess[http://user:pass@localhost] ___
+tests/test_security_targets.py:90: in test_direct_runner_rejects_before_subprocess
+    PytestRunnerTool().invoke([HttpTestSpec(case_id='ONE', name='one', path='/')], base)
+src/req2test/pytest_runner.py:130: in invoke
+    combined = f"{completed.stdout}\n{completed.stderr}"
+                  ^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'stdout'
+_________ test_direct_runner_rejects_before_subprocess[file:///tmp/x] __________
+tests/test_security_targets.py:90: in test_direct_runner_rejects_before_subprocess
+    PytestRunnerTool().invoke([HttpTestSpec(case_id='ONE', name='one', path='/')], base)
+src/req2test/pytest_runner.py:130: in invoke
+    combined = f"{completed.stdout}\n{completed.stderr}"
+                  ^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'stdout'
+_____________ test_rendered_module_also_revalidates_current_policy _____________
+tests/test_security_targets.py:103: in test_rendered_module_also_revalidates_current_policy
+    namespace['test_generated_http_case'](spec.model_dump())
+<generated>:31: in test_generated_http_case
+    ???
+E   TypeError: 'NoneType' object does not support the context manager protocol
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"token":"SYNTHETIC_TOKEN"}-SYNTHETIC_TOKEN] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_TOKEN' not in '{"token":"S...ETIC_TOKEN"}'
+E
+E     'SYNTHETIC_TOKEN' is contained here:
+E       {"token":"SYNTHETIC_TOKEN"}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_result-{'access_token': 'SYNTHETIC_ACCESS'}-SYNTHETIC_ACCESS] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_ACCESS' not in "{'access_to...TIC_ACCESS'}"
+E
+E     'SYNTHETIC_ACCESS' is contained here:
+E       {'access_token': 'SYNTHETIC_ACCESS'}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"Authorization":"Basic SYNTHETIC_BASIC"}-SYNTHETIC_BASIC] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_BASIC' not in '{"Authoriza...ETIC_BASIC"}'
+E
+E     'SYNTHETIC_BASIC' is contained here:
+E       {"Authorization":"Basic SYNTHETIC_BASIC"}
+E     ?                         +++++++++++++++
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_result-Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER-SYNTHETIC_OTHER] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   AssertionError: assert 'SYNTHETIC_OTHER' not in 'Cookie=***;...THETIC_OTHER'
+E
+E     'SYNTHETIC_OTHER' is contained here:
+E       Cookie=***; other=SYNTHETIC_OTHER
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"nested":{"apiKey":"SYNTHETIC_KEY"}}-SYNTHETIC_KEY] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_KEY' not in '{"nested":{...HETIC_KEY"}}'
+E
+E     'SYNTHETIC_KEY' is contained here:
+E       {"nested":{"apiKey":"SYNTHETIC_KEY"}}
+E     ?                      +++++++++++++
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"email":"synthetic-person@example.test","phone":"13800000000"}-synthetic-person@example.test] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'synthetic-p...example.test' not in '{"email":"s...3800000000"}'
+E
+E     'synthetic-person@example.test' is contained here:
+E       {"email":"synthetic-person@example.test","phone":"13800000000"}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"password":"SYNTHETIC_ESCAPED\\"SECRET"}-SYNTHETIC_ESCAPED] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_ESCAPED' not in '{"password"...D\\"SECRET"}'
+E
+E     'SYNTHETIC_ESCAPED' is contained here:
+E       {"password":"SYNTHETIC_ESCAPED\"SECRET"}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}-SYNTHETIC_VALIDATION] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_VALIDATION' not in '{"detail":[...LIDATION"}]}'
+E
+E     'SYNTHETIC_VALIDATION' is contained here:
+E       ,"input":"SYNTHETIC_VALIDATION"}]}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"token":"SYNTHETIC_TOKEN"}-SYNTHETIC_TOKEN] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_TOKEN' not in '{"token":"S...ETIC_TOKEN"}'
+E
+E     'SYNTHETIC_TOKEN' is contained here:
+E       {"token":"SYNTHETIC_TOKEN"}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{'access_token': 'SYNTHETIC_ACCESS'}-SYNTHETIC_ACCESS] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_ACCESS' not in "{'access_to...TIC_ACCESS'}"
+E
+E     'SYNTHETIC_ACCESS' is contained here:
+E       {'access_token': 'SYNTHETIC_ACCESS'}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"Authorization":"Basic SYNTHETIC_BASIC"}-SYNTHETIC_BASIC] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_BASIC' not in '{"Authoriza...ETIC_BASIC"}'
+E
+E     'SYNTHETIC_BASIC' is contained here:
+E       {"Authorization":"Basic SYNTHETIC_BASIC"}
+E     ?                         +++++++++++++++
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER-SYNTHETIC_OTHER] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   AssertionError: assert 'SYNTHETIC_OTHER' not in 'Cookie=***;...THETIC_OTHER'
+E
+E     'SYNTHETIC_OTHER' is contained here:
+E       Cookie=***; other=SYNTHETIC_OTHER
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"nested":{"apiKey":"SYNTHETIC_KEY"}}-SYNTHETIC_KEY] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_KEY' not in '{"nested":{...HETIC_KEY"}}'
+E
+E     'SYNTHETIC_KEY' is contained here:
+E       {"nested":{"apiKey":"SYNTHETIC_KEY"}}
+E     ?                      +++++++++++++
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"email":"synthetic-person@example.test","phone":"13800000000"}-synthetic-person@example.test] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'synthetic-p...example.test' not in '{"email":"s...3800000000"}'
+E
+E     'synthetic-person@example.test' is contained here:
+E       {"email":"synthetic-person@example.test","phone":"13800000000"}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"password":"SYNTHETIC_ESCAPED\\"SECRET"}-SYNTHETIC_ESCAPED] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_ESCAPED' not in '{"password"...D\\"SECRET"}'
+E
+E     'SYNTHETIC_ESCAPED' is contained here:
+E       {"password":"SYNTHETIC_ESCAPED\"SECRET"}
+_ test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}-SYNTHETIC_VALIDATION] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_VALIDATION' not in '{"detail":[...LIDATION"}]}'
+E
+E     'SYNTHETIC_VALIDATION' is contained here:
+E       ,"input":"SYNTHETIC_VALIDATION"}]}
+_ test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"token":"SYNTHETIC_TOKEN"}-SYNTHETIC_TOKEN] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_TOKEN' not in '{"token":"S...ETIC_TOKEN"}'
+E
+E     'SYNTHETIC_TOKEN' is contained here:
+E       {"token":"SYNTHETIC_TOKEN"}
+_ test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{'access_token': 'SYNTHETIC_ACCESS'}-SYNTHETIC_ACCESS] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_ACCESS' not in "{'access_to...TIC_ACCESS'}"
+E
+E     'SYNTHETIC_ACCESS' is contained here:
+E       {'access_token': 'SYNTHETIC_ACCESS'}
+_ test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"Authorization":"Basic SYNTHETIC_BASIC"}-SYNTHETIC_BASIC] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_BASIC' not in '{"Authoriza...ETIC_BASIC"}'
+E
+E     'SYNTHETIC_BASIC' is contained here:
+E       {"Authorization":"Basic SYNTHETIC_BASIC"}
+E     ?                         +++++++++++++++
+_ test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER-SYNTHETIC_OTHER] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   AssertionError: assert 'SYNTHETIC_OTHER' not in 'Cookie=***;...THETIC_OTHER'
+E
+E     'SYNTHETIC_OTHER' is contained here:
+E       Cookie=***; other=SYNTHETIC_OTHER
+_ test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"nested":{"apiKey":"SYNTHETIC_KEY"}}-SYNTHETIC_KEY] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_KEY' not in '{"nested":{...HETIC_KEY"}}'
+E
+E     'SYNTHETIC_KEY' is contained here:
+E       {"nested":{"apiKey":"SYNTHETIC_KEY"}}
+E     ?                      +++++++++++++
+_ test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"email":"synthetic-person@example.test","phone":"13800000000"}-synthetic-person@example.test] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'synthetic-p...example.test' not in '{"email":"s...3800000000"}'
+E
+E     'synthetic-person@example.test' is contained here:
+E       {"email":"synthetic-person@example.test","phone":"13800000000"}
+_ test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"password":"SYNTHETIC_ESCAPED\\"SECRET"}-SYNTHETIC_ESCAPED] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_ESCAPED' not in '{"password"...D\\"SECRET"}'
+E
+E     'SYNTHETIC_ESCAPED' is contained here:
+E       {"password":"SYNTHETIC_ESCAPED\"SECRET"}
+_ test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}-SYNTHETIC_VALIDATION] _
+tests/test_security_redaction.py:40: in test_all_existing_sanitizers_share_secret_handling
+    assert secret not in str(cleaned)
+E   assert 'SYNTHETIC_VALIDATION' not in '{"detail":[...LIDATION"}]}'
+E
+E     'SYNTHETIC_VALIDATION' is contained here:
+E       ,"input":"SYNTHETIC_VALIDATION"}]}
+______ test_http_assertions_use_original_values_but_reports_are_redacted _______
+tests/test_security_redaction.py:52: in test_http_assertions_use_original_values_but_reports_are_redacted
+    assert 'SYNTHETIC_RESPONSE' not in result.model_dump_json()
+E   assert 'SYNTHETIC_RESPONSE' not in '{"case_id":...error":null}'
+E
+E     'SYNTHETIC_RESPONSE' is contained here:
+E       token\":\"SYNTHETIC_RESPONSE\",\"status\":\"ok\"}","response_content_type":"application/json","validation_error":null,"timed_out":false,"error":null}
+E     ?           ++++++++++++++++++
+_________ test_http_errors_and_pytest_output_redact_before_truncation __________
+tests/test_security_redaction.py:62: in test_http_errors_and_pytest_output_redact_before_truncation
+    assert 'SYNTHETIC_OUTPUT' not in result.stdout
+E   assert 'SYNTHETIC_OUTPUT' not in 'xxxxxxxxxxx..."}\n1 failed'
+E
+E     'SYNTHETIC_OUTPUT' is contained here:
+E       {"token":"SYNTHETIC_OUTPUT"}
+E       1 failed
+_____________________ test_timeout_output_is_also_redacted _____________________
+tests/test_security_redaction.py:73: in test_timeout_output_is_also_redacted
+    assert 'SYNTHETIC_TIMEOUT' not in result.stdout
+E   assert 'SYNTHETIC_TIMEOUT' not in '{"token":"S...IC_TIMEOUT"}'
+E
+E     'SYNTHETIC_TIMEOUT' is contained here:
+E       {"token":"SYNTHETIC_TIMEOUT"}
+______ test_persistence_evidence_and_live_projection_do_not_retain_secret ______
+tests/test_security_redaction.py:82: in test_persistence_evidence_and_live_projection_do_not_retain_secret
+    assert 'SYNTHETIC_OUTPUT' not in json.dumps(bound_result_payload(payload))
+E   assert 'SYNTHETIC_OUTPUT' not in '{"execution...:\\"ok\\"}"}'
+E
+E     'SYNTHETIC_OUTPUT' is contained here:
+E     ? ----------------------------------------------------------------------------------------------------------------------------
+E       token\":\"SYNTHETIC_OUTPUT\",\"status\":\"ok\"}", "response_content_type": null, "validation_error": null, "timed_out": false, "error": "{\"token\":\"SYNTHETIC_OUTPUT\",\"status\":\"ok\"}"}], "diagnostic_evidence": [{"evidence_id": "ea3b2177-4178-4a91-a809-2989db15e650", "trace_id": "local", "task_id": "local", "celery_task_id": null, "case_id": "ONE", "execution_id": "ONE", "stage": "http_execution", "evidence_type":...
+E
+E     ...Full output truncated (2 lines hidden), use '-vv' to show
+__________ test_llm_outbound_messages_redact_requirement_and_evidence __________
+tests/test_security_redaction.py:99: in test_llm_outbound_messages_redact_requirement_and_evidence
+    assert 'SYNTHETIC_SYSTEM' not in messages[0].content
+E   AssertionError: assert 'SYNTHETIC_SYSTEM' not in 'token=SYNTHETIC_SYSTEM'
+E
+E     'SYNTHETIC_SYSTEM' is contained here:
+E       token=SYNTHETIC_SYSTEM
+_______ test_failure_analysis_payload_is_safe_even_for_alternate_adapter _______
+tests/test_security_redaction.py:109: in test_failure_analysis_payload_is_safe_even_for_alternate_adapter
+    assert captured and 'SYNTHETIC_FAILURE' not in captured[0] and 'SYNTHETIC_URL' not in captured[0]
+E   assert (['[\n  {\n    "case_id": "ONE",\n    "method": "GET",\n    "url_path": "/?token=SYNTHETIC_URL",\n    "status_code": nu...ed_status": 200,\n    "failures": [\n      "{\\"token\\":\\"SYNTHETIC_FAILURE\\"}"\n    ],\n    "error": null\n  }\n]'] and 'SYNTHETIC_FAILURE' not in '[\n  {\n   ...null\n  }\n]'
+E
+E     'SYNTHETIC_FAILURE' is contained here:
+E       token\":\"SYNTHETIC_FAILURE\"}"
+E           ],
+E           "error": null
+E         }
+E       ])
+______ test_exports_redact_fields_without_mutating_workflow[to_markdown] _______
+tests/test_security_redaction.py:121: in test_exports_redact_fields_without_mutating_workflow
+    assert 'SYNTHETIC_TITLE' not in output and 'SYNTHETIC_EXPORT' not in output
+E   AssertionError: assert ('SYNTHETIC_TITLE' not in '# Req2Test ...tatus=ok |\n'
+E
+E     'SYNTHETIC_TITLE' is contained here:
+E       ONE token=SYNTHETIC_TITLE
+E
+E       - 模块：local
+E       - 优先级：P1
+E       - 类型：正向...
+E
+E     ...Full output truncated (6 lines hidden), use '-vv' to show)
+______ test_exports_redact_fields_without_mutating_workflow[to_csv_bytes] ______
+tests/test_security_redaction.py:121: in test_exports_redact_fields_without_mutating_workflow
+    assert 'SYNTHETIC_TITLE' not in output and 'SYNTHETIC_EXPORT' not in output
+E   assert ('SYNTHETIC_TITLE' not in '用例编号,模块,用例名...ok,REQ-1\r\n'
+E
+E     'SYNTHETIC_TITLE' is contained here:
+E       cal,token=SYNTHETIC_TITLE,P1,正向,,1,"{""password"":""SYNTHETIC_EXPORT""}",status=ok,REQ-1
+E     ?           +++++++++++++++)
+______ test_exports_redact_fields_without_mutating_workflow[to_json_text] ______
+tests/test_security_redaction.py:121: in test_exports_redact_fields_without_mutating_workflow
+    assert 'SYNTHETIC_TITLE' not in output and 'SYNTHETIC_EXPORT' not in output
+E   assert ('SYNTHETIC_TITLE' not in '{\n  "requi...tions": 0\n}'
+E
+E     'SYNTHETIC_TITLE' is contained here:
+E       ": "token=SYNTHETIC_TITLE",
+E             "priority": "P1",
+E             "test_type": "正向",
+E             "preconditions": [],
+E             "steps": [...
+E
+E     ...Full output truncated (20 lines hidden), use '-vv' to show)
+_______________ test_worker_exception_logs_do_not_retain_secrets _______________
+tests/test_security_redaction.py:132: in test_worker_exception_logs_do_not_retain_secrets
+    assert 'SYNTHETIC_EXCEPTION' not in caplog.text
+E   assert 'SYNTHETIC_EXCEPTION' not in 'ERROR    re...XCEPTION"}\n'
+E
+E     'SYNTHETIC_EXCEPTION' is contained here:
+E       {"token":"SYNTHETIC_EXCEPTION"}')
+E       RuntimeError: {"token":"SYNTHETIC_EXCEPTION"}
+------------------------------ Captured log call -------------------------------
+ERROR    req2test.worker:test_security_redaction.py:131 failure payload={'Authorization': 'Basic SYNTHETIC_LOG'}
+Traceback (most recent call last):
+  File "$REPO/tests/test_security_redaction.py", line 129, in test_worker_exception_logs_do_not_retain_secrets
+    raise RuntimeError('{"token":"SYNTHETIC_EXCEPTION"}')
+RuntimeError: {"token":"SYNTHETIC_EXCEPTION"}
+_____________ test_cookie_mutations_reject_untrusted_origin[None] ______________
+tests/test_security_csrf.py:35: in test_cookie_mutations_reject_untrusted_origin
+    assert response.status_code == 403
+E   assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+_____________ test_cookie_mutations_reject_untrusted_origin[null] ______________
+tests/test_security_csrf.py:35: in test_cookie_mutations_reject_untrusted_origin
+    assert response.status_code == 403
+E   assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+___ test_cookie_mutations_reject_untrusted_origin[https://evil.example.test] ___
+tests/test_security_csrf.py:35: in test_cookie_mutations_reject_untrusted_origin
+    assert response.status_code == 403
+E   assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+_ test_cookie_mutations_reject_untrusted_origin[https://app.example.test.evil.test] _
+tests/test_security_csrf.py:35: in test_cookie_mutations_reject_untrusted_origin
+    assert response.status_code == 403
+E   assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+____ test_cookie_mutations_reject_untrusted_origin[http://app.example.test] ____
+tests/test_security_csrf.py:35: in test_cookie_mutations_reject_untrusted_origin
+    assert response.status_code == 403
+E   assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+_ test_cookie_mutations_reject_untrusted_origin[https://app.example.test:444] __
+tests/test_security_csrf.py:35: in test_cookie_mutations_reject_untrusted_origin
+    assert response.status_code == 403
+E   assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+_ test_cookie_mutations_reject_untrusted_origin[https://app.example.test/path] _
+tests/test_security_csrf.py:35: in test_cookie_mutations_reject_untrusted_origin
+    assert response.status_code == 403
+E   assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+______ test_malformed_auth_header_does_not_bypass_cookie_guard[Basic abc] ______
+tests/test_security_csrf.py:52: in test_malformed_auth_header_does_not_bypass_cookie_guard
+    assert client.post('/api/v1/tasks', json={'requirement_text': 'local'}, headers={'Authorization': auth}).status_code == 403
+E   AssertionError: assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+E    +    where <Response [202 Accepted]> = post('/api/v1/tasks', json={'requirement_text': 'local'}, headers={'Authorization': 'Basic abc'})
+E    +      where post = <starlette.testclient.TestClient object at 0x111264c90>.post
+_______ test_malformed_auth_header_does_not_bypass_cookie_guard[Bearer ] _______
+tests/test_security_csrf.py:52: in test_malformed_auth_header_does_not_bypass_cookie_guard
+    assert client.post('/api/v1/tasks', json={'requirement_text': 'local'}, headers={'Authorization': auth}).status_code == 403
+E   AssertionError: assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+E    +    where <Response [202 Accepted]> = post('/api/v1/tasks', json={'requirement_text': 'local'}, headers={'Authorization': 'Bearer '})
+E    +      where post = <starlette.testclient.TestClient object at 0x110efa690>.post
+_______ test_malformed_auth_header_does_not_bypass_cookie_guard[Bearer] ________
+tests/test_security_csrf.py:52: in test_malformed_auth_header_does_not_bypass_cookie_guard
+    assert client.post('/api/v1/tasks', json={'requirement_text': 'local'}, headers={'Authorization': auth}).status_code == 403
+E   AssertionError: assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+E    +    where <Response [202 Accepted]> = post('/api/v1/tasks', json={'requirement_text': 'local'}, headers={'Authorization': 'Bearer'})
+E    +      where post = <starlette.testclient.TestClient object at 0x11116f990>.post
+_ test_guard_covers_mutating_routes_before_side_effects[post-/api/v1/auth/logout] _
+tests/test_security_csrf.py:64: in test_guard_covers_mutating_routes_before_side_effects
+    assert client.request(method, path, headers={'Origin':'https://evil.example.test'}, json={}).status_code == 403
+E   AssertionError: assert 200 == 403
+E    +  where 200 = <Response [200 OK]>.status_code
+E    +    where <Response [200 OK]> = request('post', '/api/v1/auth/logout', headers={'Origin': 'https://evil.example.test'}, json={})
+E    +      where request = <starlette.testclient.TestClient object at 0x111109d90>.request
+_ test_guard_covers_mutating_routes_before_side_effects[post-/api/v1/auth/login] _
+tests/test_security_csrf.py:64: in test_guard_covers_mutating_routes_before_side_effects
+    assert client.request(method, path, headers={'Origin':'https://evil.example.test'}, json={}).status_code == 403
+E   AssertionError: assert 422 == 403
+E    +  where 422 = <Response [422 Unprocessable Content]>.status_code
+E    +    where <Response [422 Unprocessable Content]> = request('post', '/api/v1/auth/login', headers={'Origin': 'https://evil.example.test'}, json={})
+E    +      where request = <starlette.testclient.TestClient object at 0x111237f10>.request
+_ test_guard_covers_mutating_routes_before_side_effects[post-/api/v1/evaluations/runs] _
+tests/test_security_csrf.py:64: in test_guard_covers_mutating_routes_before_side_effects
+    assert client.request(method, path, headers={'Origin':'https://evil.example.test'}, json={}).status_code == 403
+E   AssertionError: assert 422 == 403
+E    +  where 422 = <Response [422 Unprocessable Content]>.status_code
+E    +    where <Response [422 Unprocessable Content]> = request('post', '/api/v1/evaluations/runs', headers={'Origin': 'https://evil.example.test'}, json={})
+E    +      where request = <starlette.testclient.TestClient object at 0x111123710>.request
+_ test_guard_covers_mutating_routes_before_side_effects[post-/api/v1/evaluations/comparisons] _
+tests/test_security_csrf.py:64: in test_guard_covers_mutating_routes_before_side_effects
+    assert client.request(method, path, headers={'Origin':'https://evil.example.test'}, json={}).status_code == 403
+E   AssertionError: assert 422 == 403
+E    +  where 422 = <Response [422 Unprocessable Content]>.status_code
+E    +    where <Response [422 Unprocessable Content]> = request('post', '/api/v1/evaluations/comparisons', headers={'Origin': 'https://evil.example.test'}, json={})
+E    +      where request = <starlette.testclient.TestClient object at 0x1110c0790>.request
+_ test_login_cannot_set_cookie_from_untrusted_origin_even_without_existing_cookie _
+tests/test_security_csrf.py:71: in test_login_cannot_set_cookie_from_untrusted_origin_even_without_existing_cookie
+    assert response.status_code == 403
+E   assert 422 == 403
+E    +  where 422 = <Response [422 Unprocessable Content]>.status_code
+_____________ test_host_and_forwarded_headers_do_not_define_trust ______________
+tests/test_security_csrf.py:81: in test_host_and_forwarded_headers_do_not_define_trust
+    assert response.status_code == 403
+E   assert 202 == 403
+E    +  where 202 = <Response [202 Accepted]>.status_code
+_____________ test_cookie_websocket_rejects_untrusted_origin[None] _____________
+tests/test_security_csrf.py:90: in test_cookie_websocket_rejects_untrusted_origin
+    with pytest.raises(WebSocketDisconnect) as error:
+E   Failed: DID NOT RAISE WebSocketDisconnect
+_____________ test_cookie_websocket_rejects_untrusted_origin[null] _____________
+tests/test_security_csrf.py:90: in test_cookie_websocket_rejects_untrusted_origin
+    with pytest.raises(WebSocketDisconnect) as error:
+E   Failed: DID NOT RAISE WebSocketDisconnect
+__ test_cookie_websocket_rejects_untrusted_origin[https://evil.example.test] ___
+tests/test_security_csrf.py:90: in test_cookie_websocket_rejects_untrusted_origin
+    with pytest.raises(WebSocketDisconnect) as error:
+E   Failed: DID NOT RAISE WebSocketDisconnect
+=============================== warnings summary ===============================
+../req2test-agent-release-check/.venv/lib/python3.11/site-packages/starlette/testclient.py:53
+  $VENV/lib/python3.11/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-301-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-301-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-302-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-302-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-303-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-303-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-307-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-307-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-308-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[other-308-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-301-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-301-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-302-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-302-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-303-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-303-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-307-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-307-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-308-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[same-308-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-301-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-301-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-302-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-302-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-303-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-303-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-307-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-307-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-308-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[relative-308-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-301-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-301-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-302-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-302-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-303-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-303-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-307-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-307-pytest]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-308-http]
+FAILED tests/test_security_targets.py::test_redirects_are_observed_without_following[loop-308-pytest]
+FAILED tests/test_security_targets.py::test_common_entry_rejects_before_dispatch[False-True]
+FAILED tests/test_security_targets.py::test_direct_runner_rejects_before_subprocess[http://127.0.0.1:1]
+FAILED tests/test_security_targets.py::test_direct_runner_rejects_before_subprocess[http://user:pass@localhost]
+FAILED tests/test_security_targets.py::test_direct_runner_rejects_before_subprocess[file:///tmp/x]
+FAILED tests/test_security_targets.py::test_rendered_module_also_revalidates_current_policy
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"token":"SYNTHETIC_TOKEN"}-SYNTHETIC_TOKEN]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_result-{'access_token': 'SYNTHETIC_ACCESS'}-SYNTHETIC_ACCESS]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"Authorization":"Basic SYNTHETIC_BASIC"}-SYNTHETIC_BASIC]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_result-Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER-SYNTHETIC_OTHER]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"nested":{"apiKey":"SYNTHETIC_KEY"}}-SYNTHETIC_KEY]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"email":"synthetic-person@example.test","phone":"13800000000"}-synthetic-person@example.test]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"password":"SYNTHETIC_ESCAPED\\"SECRET"}-SYNTHETIC_ESCAPED]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_result-{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}-SYNTHETIC_VALIDATION]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"token":"SYNTHETIC_TOKEN"}-SYNTHETIC_TOKEN]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{'access_token': 'SYNTHETIC_ACCESS'}-SYNTHETIC_ACCESS]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"Authorization":"Basic SYNTHETIC_BASIC"}-SYNTHETIC_BASIC]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER-SYNTHETIC_OTHER]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"nested":{"apiKey":"SYNTHETIC_KEY"}}-SYNTHETIC_KEY]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"email":"synthetic-person@example.test","phone":"13800000000"}-synthetic-person@example.test]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"password":"SYNTHETIC_ESCAPED\\"SECRET"}-SYNTHETIC_ESCAPED]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[sanitize_evidence-{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}-SYNTHETIC_VALIDATION]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"token":"SYNTHETIC_TOKEN"}-SYNTHETIC_TOKEN]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{'access_token': 'SYNTHETIC_ACCESS'}-SYNTHETIC_ACCESS]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"Authorization":"Basic SYNTHETIC_BASIC"}-SYNTHETIC_BASIC]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-Cookie: sid=SYNTHETIC_COOKIE; other=SYNTHETIC_OTHER-SYNTHETIC_OTHER]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"nested":{"apiKey":"SYNTHETIC_KEY"}}-SYNTHETIC_KEY]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"email":"synthetic-person@example.test","phone":"13800000000"}-synthetic-person@example.test]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"password":"SYNTHETIC_ESCAPED\\"SECRET"}-SYNTHETIC_ESCAPED]
+FAILED tests/test_security_redaction.py::test_all_existing_sanitizers_share_secret_handling[safe_failure_reason-{"detail":[{"loc":["body","password"],"input":"SYNTHETIC_VALIDATION"}]}-SYNTHETIC_VALIDATION]
+FAILED tests/test_security_redaction.py::test_http_assertions_use_original_values_but_reports_are_redacted
+FAILED tests/test_security_redaction.py::test_http_errors_and_pytest_output_redact_before_truncation
+FAILED tests/test_security_redaction.py::test_timeout_output_is_also_redacted
+FAILED tests/test_security_redaction.py::test_persistence_evidence_and_live_projection_do_not_retain_secret
+FAILED tests/test_security_redaction.py::test_llm_outbound_messages_redact_requirement_and_evidence
+FAILED tests/test_security_redaction.py::test_failure_analysis_payload_is_safe_even_for_alternate_adapter
+FAILED tests/test_security_redaction.py::test_exports_redact_fields_without_mutating_workflow[to_markdown]
+FAILED tests/test_security_redaction.py::test_exports_redact_fields_without_mutating_workflow[to_csv_bytes]
+FAILED tests/test_security_redaction.py::test_exports_redact_fields_without_mutating_workflow[to_json_text]
+FAILED tests/test_security_redaction.py::test_worker_exception_logs_do_not_retain_secrets
+FAILED tests/test_security_csrf.py::test_cookie_mutations_reject_untrusted_origin[None]
+FAILED tests/test_security_csrf.py::test_cookie_mutations_reject_untrusted_origin[null]
+FAILED tests/test_security_csrf.py::test_cookie_mutations_reject_untrusted_origin[https://evil.example.test]
+FAILED tests/test_security_csrf.py::test_cookie_mutations_reject_untrusted_origin[https://app.example.test.evil.test]
+FAILED tests/test_security_csrf.py::test_cookie_mutations_reject_untrusted_origin[http://app.example.test]
+FAILED tests/test_security_csrf.py::test_cookie_mutations_reject_untrusted_origin[https://app.example.test:444]
+FAILED tests/test_security_csrf.py::test_cookie_mutations_reject_untrusted_origin[https://app.example.test/path]
+FAILED tests/test_security_csrf.py::test_malformed_auth_header_does_not_bypass_cookie_guard[Basic abc]
+FAILED tests/test_security_csrf.py::test_malformed_auth_header_does_not_bypass_cookie_guard[Bearer ]
+FAILED tests/test_security_csrf.py::test_malformed_auth_header_does_not_bypass_cookie_guard[Bearer]
+FAILED tests/test_security_csrf.py::test_guard_covers_mutating_routes_before_side_effects[post-/api/v1/auth/logout]
+FAILED tests/test_security_csrf.py::test_guard_covers_mutating_routes_before_side_effects[post-/api/v1/auth/login]
+FAILED tests/test_security_csrf.py::test_guard_covers_mutating_routes_before_side_effects[post-/api/v1/evaluations/runs]
+FAILED tests/test_security_csrf.py::test_guard_covers_mutating_routes_before_side_effects[post-/api/v1/evaluations/comparisons]
+FAILED tests/test_security_csrf.py::test_login_cannot_set_cookie_from_untrusted_origin_even_without_existing_cookie
+FAILED tests/test_security_csrf.py::test_host_and_forwarded_headers_do_not_define_trust
+FAILED tests/test_security_csrf.py::test_cookie_websocket_rejects_untrusted_origin[None]
+FAILED tests/test_security_csrf.py::test_cookie_websocket_rejects_untrusted_origin[null]
+FAILED tests/test_security_csrf.py::test_cookie_websocket_rejects_untrusted_origin[https://evil.example.test]
+98 failed, 12 passed, 1 warning in 4.59s

@@ -41,7 +41,7 @@ def _client(db_session, monkeypatch):
     monkeypatch.setattr(api_module, "task_persistence", service)
     monkeypatch.setattr(api_module, "task_store", store)
     monkeypatch.setattr(api_module, "get_settings", lambda: _settings())
-    return TestClient(api_module.app), store
+    return TestClient(api_module.app, headers={"Origin": "http://testserver"}), store
 
 
 def _create_user(db_session, email, role="user"):

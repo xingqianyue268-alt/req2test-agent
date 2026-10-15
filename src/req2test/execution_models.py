@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_serializer
+
+from .security.redaction import redact_sensitive
 
 
 HttpMethod = Literal["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
@@ -66,7 +68,18 @@ class ExecutionConfig(BaseModel):
         return value
 
 
-class HttpExecutionResult(BaseModel):
+class _PublicOutput(BaseModel):
+    @field_validator("*", mode="after")
+    @classmethod
+    def redact_output_field(cls, value: Any) -> Any:
+        return redact_sensitive(value)
+
+    @model_serializer(mode="wrap")
+    def redact_output(self, handler):
+        return redact_sensitive(handler(self))
+
+
+class HttpExecutionResult(_PublicOutput):
     case_id: str
     name: str
     method: str
@@ -83,7 +96,7 @@ class HttpExecutionResult(BaseModel):
     error: str | None = None
 
 
-class PytestExecutionResult(BaseModel):
+class PytestExecutionResult(_PublicOutput):
     passed: bool
     exit_code: int
     duration_ms: float
@@ -95,7 +108,7 @@ class PytestExecutionResult(BaseModel):
     generated_test_file: str | None = None
 
 
-class FailureAnalysis(BaseModel):
+class FailureAnalysis(_PublicOutput):
     case_id: str
     category: Literal[
         "connectivity",
@@ -112,13 +125,13 @@ class FailureAnalysis(BaseModel):
     suggestion: str = ""
 
 
-class ToolInvocation(BaseModel):
+class ToolInvocation(_PublicOutput):
     tool_name: Literal["http_api_test", "pytest_runner"]
     case_id: str
     arguments: dict[str, Any] = Field(default_factory=dict)
 
 
-class ExecutionReport(BaseModel):
+class ExecutionReport(_PublicOutput):
     enabled: bool = True
     planner_mode: str = "deterministic"
     executable_cases: list[HttpTestSpec] = Field(default_factory=list)

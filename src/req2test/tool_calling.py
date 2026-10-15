@@ -28,6 +28,8 @@ from .diagnostics.classifier import classify_failures
 from .llm import build_chat_model, invoke_json
 from .models import WorkflowResult
 from .pytest_runner import PytestRunnerTool
+from .security.execution import validate_execution_target
+from .security.redaction import redact_sensitive, redact_text
 
 
 _PLANNER_SYSTEM = """你是软件测试执行规划智能体。你的任务是把需求中明确出现的 HTTP API 信息转换为可执行测试规格。
@@ -191,7 +193,7 @@ def plan_executable_tests(
             warnings.append("执行规划模型输出了需求中未明确出现的接口，已自动丢弃。")
         return filtered[: config.max_executable_cases], "llm_tool_planner", warnings
     except Exception as exc:  # noqa: BLE001
-        warnings.append(f"LLM 执行规划失败，已回退到显式接口解析：{exc}")
+        warnings.append(f"LLM 执行规划失败，已回退到显式接口解析：{redact_text(str(exc))}")
         return fallback_specs, "deterministic_fallback", warnings
 
 
@@ -304,7 +306,7 @@ def analyse_failures(
         payload = invoke_json(
             model,
             _FAILURE_SYSTEM,
-            json.dumps(safe_payload, ensure_ascii=False, indent=2),
+            json.dumps(redact_sensitive(safe_payload), ensure_ascii=False, indent=2),
         )
         analyses = [FailureAnalysis.model_validate(item) for item in payload]
         known_ids = {result.case_id for result in failed}
@@ -312,7 +314,7 @@ def analyse_failures(
         if analyses:
             return analyses, []
     except Exception as exc:  # noqa: BLE001
-        return heuristic, [f"LLM 失败归因不可用，已使用规则归因：{exc}"]
+        return heuristic, [f"LLM 失败归因不可用，已使用规则归因：{redact_text(str(exc))}"]
     return heuristic, ["LLM 失败归因没有返回有效结果，已使用规则归因。"]
 
 
@@ -340,6 +342,9 @@ def execute_with_tools(
         report.warnings.append("已开启执行阶段，但未提供 base_url，因此跳过真实接口执行。")
         report.summary = {"status": "skipped", "reason": "missing_base_url"}
         return report
+
+    if config.run_http_tool or config.run_pytest:
+        validate_execution_target(config.base_url)
 
     specs, planner_mode, warnings = plan_executable_tests(
         requirement_text,

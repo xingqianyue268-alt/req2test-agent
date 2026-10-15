@@ -1,0 +1,73 @@
+{
+  "implementation_commit": "97b9d1cf9c90b73ec1c4b3cff7ce61b888545420",
+  "groups": {
+    "all": {
+      "passed": 293,
+      "failed": 0,
+      "skipped": 0,
+      "error": 0
+    },
+    "original": {
+      "passed": 162,
+      "failed": 0,
+      "skipped": 0,
+      "error": 0
+    },
+    "postgres_integration": {
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "error": 0
+    },
+    "new_security": {
+      "passed": 131,
+      "failed": 0,
+      "skipped": 0,
+      "error": 0
+    }
+  },
+  "by_file": {
+    "tests.db.test_admin_console": 5,
+    "tests.db.test_api_task_persistence": 4,
+    "tests.db.test_authentication": 7,
+    "tests.db.test_database_session": 3,
+    "tests.db.test_evaluation_api": 3,
+    "tests.db.test_evaluation_persistence": 2,
+    "tests.db.test_evaluation_worker": 2,
+    "tests.db.test_knowledge_product": 4,
+    "tests.db.test_knowledge_seed": 3,
+    "tests.db.test_migrations": 2,
+    "tests.db.test_models": 5,
+    "tests.db.test_result_persistence": 12,
+    "tests.db.test_security_boundaries": 2,
+    "tests.db.test_task_ownership": 3,
+    "tests.db.test_task_persistence": 7,
+    "tests.db.test_task_product": 5,
+    "tests.db.test_task_repository": 1,
+    "tests.db.test_worker_persistence": 10,
+    "tests.evaluation.test_cli": 4,
+    "tests.evaluation.test_comparison": 2,
+    "tests.evaluation.test_dataset": 6,
+    "tests.evaluation.test_engine": 3,
+    "tests.evaluation.test_judge": 4,
+    "tests.evaluation.test_metrics": 4,
+    "tests.evaluation.test_safety": 1,
+    "tests.test_async_platform": 3,
+    "tests.test_demo_contracts": 7,
+    "tests.test_document_loader": 1,
+    "tests.test_execution_pipeline": 1,
+    "tests.test_failure_classifier": 13,
+    "tests.test_failure_evidence": 12,
+    "tests.test_metrics": 1,
+    "tests.test_rag": 2,
+    "tests.test_readiness": 4,
+    "tests.test_retrieval": 1,
+    "tests.test_security_csrf": 27,
+    "tests.test_security_redaction": 54,
+    "tests.test_security_targets": 48,
+    "tests.test_tool_execution": 7,
+    "tests.test_unified_workbench": 7,
+    "tests.test_workflow_demo": 1
+  },
+  "postgres_integration_is_subset": true
+}

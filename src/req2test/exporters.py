@@ -6,9 +6,11 @@ import csv
 import io
 
 from .models import WorkflowResult
+from .security.redaction import redact_sensitive
 
 
 def to_markdown(result: WorkflowResult) -> str:
+    result = WorkflowResult.model_validate(redact_sensitive(result.model_dump()))
     lines = [
         "# Req2Test Agent 测试用例",
         "",
@@ -42,6 +44,7 @@ def to_markdown(result: WorkflowResult) -> str:
 
 
 def to_csv_bytes(result: WorkflowResult) -> bytes:
+    result = WorkflowResult.model_validate(redact_sensitive(result.model_dump()))
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(
@@ -78,4 +81,5 @@ def to_csv_bytes(result: WorkflowResult) -> bytes:
 
 
 def to_json_text(result: WorkflowResult) -> str:
+    result = WorkflowResult.model_validate(redact_sensitive(result.model_dump()))
     return result.model_dump_json(indent=2)

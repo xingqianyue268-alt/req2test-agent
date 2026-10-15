@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import logging
 import os
 import time
 
 from celery import Celery
+from celery.exceptions import Retry
 from sqlalchemy.exc import SQLAlchemyError
 
 from .config import GenerationConfig, LLMSettings
@@ -23,7 +23,9 @@ from .progress import run_workflow_with_progress
 from .task_store import TaskStoreUnavailable, task_store
 from .tool_calling import execute_with_tools
 
-logger = logging.getLogger(__name__)
+from .security.redaction import redact_sensitive, safe_logger, safe_task_error
+
+logger = safe_logger(__name__)
 result_persistence = ResultPersistenceService()
 
 
@@ -529,7 +531,7 @@ def generate_test_cases(
     """Run once, retry only transient infrastructure failures, and finalize exhaustion."""
 
     try:
-        return _generate_test_cases_once(
+        result = _generate_test_cases_once(
             self,
             task_id,
             requirement_text,
@@ -537,11 +539,12 @@ def generate_test_cases(
             generation_config,
             execution_config,
         )
-    except CeleryDeliveryConflict:
-        raise
+        return redact_sensitive(result)
+    except CeleryDeliveryConflict as exc:
+        raise CeleryDeliveryConflict(str(safe_task_error(exc))) from None
     except Exception as exc:  # noqa: BLE001
         if not _is_transient_infrastructure_error(exc):
-            raise
+            raise safe_task_error(exc) from None
         current_retry = int(getattr(self.request, "retries", 0) or 0)
         if current_retry < MAX_TASK_RETRIES:
             countdown = _retry_countdown(current_retry)
@@ -551,10 +554,17 @@ def generate_test_cases(
                 retry_count=current_retry + 1,
                 countdown_seconds=countdown,
             )
-            raise self.retry(
-                exc=exc,
-                countdown=countdown,
-                max_retries=MAX_TASK_RETRIES,
-            )
+            try:
+                raise self.retry(
+                    exc=safe_task_error(exc),
+                    countdown=countdown,
+                    max_retries=MAX_TASK_RETRIES,
+                    argsrepr="<redacted task inputs>",
+                )
+            except Retry as retry:
+                # Celery stores the Retry traceback as well as its sanitized exc.
+                raise retry from None
+            except Exception as retry_error:  # noqa: BLE001 - sanitize publish/direct-call errors
+                raise safe_task_error(retry_error) from None
         _record_dead_letter(task_id, exc, retry_count=current_retry)
-        raise
+        raise safe_task_error(exc) from None

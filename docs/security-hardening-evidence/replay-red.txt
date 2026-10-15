@@ -1,0 +1,22 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________ test_celery_legacy_replay_result_is_sanitized _________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10cd26f10>
+
+    def test_celery_legacy_replay_result_is_sanitized(monkeypatch):
+        from req2test import worker
+
+        raw = {"result": {"password": "SYNTHETIC_LEGACY_RESULT"}}
+        monkeypatch.setattr(worker, "_generate_test_cases_once", lambda *_: raw)
+        result = worker.generate_test_cases.run("local", "local", {}, {}, {})
+>       assert "SYNTHETIC_LEGACY_RESULT" not in json.dumps(result)
+E       assert 'SYNTHETIC_LEGACY_RESULT' not in '{"result": ...CY_RESULT"}}'
+E
+E         'SYNTHETIC_LEGACY_RESULT' is contained here:
+E           {"result": {"password": "SYNTHETIC_LEGACY_RESULT"}}
+
+tests/test_security_redaction.py:294: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_security_redaction.py::test_celery_legacy_replay_result_is_sanitized
+1 failed, 41 deselected in 0.43s

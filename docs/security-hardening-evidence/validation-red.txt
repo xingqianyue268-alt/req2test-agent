@@ -1,0 +1,19 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________ test_validation_response_does_not_echo_password ________________
+tests/test_security_csrf.py:108: in test_validation_response_does_not_echo_password
+    assert 'p0short' not in response.text
+E   assert 'p0short' not in '{"detail":[...ength":8}}]}'
+E
+E     'p0short' is contained here:
+E       ,"input":"p0short","ctx":{"min_length":8}}]}
+E     ?           +++++++
+=============================== warnings summary ===============================
+../req2test-agent-release-check/.venv/lib/python3.11/site-packages/starlette/testclient.py:53
+  $VENV/lib/python3.11/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_security_csrf.py::test_validation_response_does_not_echo_password
+1 failed, 1 warning in 0.83s

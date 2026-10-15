@@ -1,0 +1,52 @@
+{
+  "ready": {
+    "ready": true,
+    "checks": {
+      "database": "ok",
+      "redis": "ok",
+      "rabbitmq": "ok"
+    }
+  },
+  "browser_login": true,
+  "untrusted_cookie_mutation": 403,
+  "knowledge_search": true,
+  "knowledge_real_chroma_crud_reindex_rebuild": true,
+  "admin_rbac": true,
+  "pass": {
+    "status": "completed",
+    "pytest_passed": true,
+    "http_pass_rate": 1.0,
+    "tool_call_count": 3,
+    "total_http_cases": 2,
+    "failed_http_cases": 0,
+    "passed_http_cases": 2,
+    "failure_analysis_count": 0,
+    "failure_category_counts": {},
+    "primary_failure_category": null
+  },
+  "failure_422": {
+    "status": "completed",
+    "pytest_passed": false,
+    "http_pass_rate": 0.0,
+    "tool_call_count": 2,
+    "total_http_cases": 1,
+    "failed_http_cases": 1,
+    "passed_http_cases": 0,
+    "failure_analysis_count": 1,
+    "failure_category_counts": {
+      "assertion_failure": 1,
+      "contract_mismatch": 1
+    },
+    "primary_failure_category": "contract_mismatch"
+  },
+  "websocket": true,
+  "evaluation": {
+    "status": "completed",
+    "score": 98.45
+  },
+  "bearer_api": true,
+  "logout": true,
+  "postgres_redaction": true,
+  "seconds": 7.32,
+  "worker_log_redaction": true
+}

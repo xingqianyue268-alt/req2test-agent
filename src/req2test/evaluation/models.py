@@ -6,7 +6,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
+
+from ..security.redaction import redact_sensitive
 
 EvaluationMetricName = Literal[
     "requirement_coverage",
@@ -155,6 +157,10 @@ class EvaluationCaseReport(StrictEvaluationModel):
 
 
 class EvaluationRunReport(StrictEvaluationModel):
+    @model_serializer(mode="wrap")
+    def redact_output(self, handler):
+        return redact_sensitive(handler(self))
+
     dataset_name: str
     dataset_version: str
     dataset_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
