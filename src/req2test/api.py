@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, Field
@@ -36,6 +36,9 @@ from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
 from .openapi_import import ContractPlan, compile_plan, decode_upload, parse_document as parse_openapi_document
 from .contracts_ui import render_contracts_html
+from .datasets_ui import render_datasets_html
+from .data_driven import DataDrivenPlan, compile_data_plan
+from .junit_report import to_junit_xml
 from .readiness import rabbitmq_is_ready, redis_is_ready
 from .db.models import UserORM
 from .db.repositories import users as user_repository
@@ -66,7 +69,7 @@ app.include_router(evaluation_router)
 async def sanitized_validation_error(_request: Request, exc: RequestValidationError):
     errors = exc.errors()
     for error in errors:
-        if _request.url.path.startswith("/api/v1/contracts/") or "openapi_contract" in error.get("loc", ()):
+        if _request.url.path.startswith("/api/v1/contracts/") or "openapi_contract" in error.get("loc", ()) or "data_driven" in error.get("loc", ()) or _request.url.path.startswith("/api/v1/datasets/"):
             # Encoded documents and arbitrary override values can contain test credentials.
             error.pop("input", None)
             error.pop("ctx", None)
@@ -99,6 +102,7 @@ class TaskCreateRequest(BaseModel):
     generation_config: GenerationConfig = Field(default_factory=GenerationConfig)
     execution_config: ExecutionConfig = Field(default_factory=ExecutionConfig)
     openapi_contract: ContractPlan | None = None
+    data_driven: DataDrivenPlan | None = None
 
 
 class DocumentParseRequest(BaseModel):
@@ -533,12 +537,36 @@ def preview_contract(request: ContractPlan, _user: Annotated[UserORM, Depends(ge
         raise HTTPException(status_code=422, detail=redact_text(str(exc))) from None
 
 
+@app.get("/datasets", response_class=HTMLResponse)
+def datasets_page(request: Request, db: Annotated[Session, Depends(get_db)]):
+    if not _web_user(request, db):
+        return _login_redirect(request)
+    return render_datasets_html()
+
+
+@app.post("/api/v1/datasets/preview")
+def preview_dataset(request: DataDrivenPlan, _user: Annotated[UserORM, Depends(get_current_user)]):
+    try:
+        return redact_sensitive(compile_data_plan(request).model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=redact_text(str(exc))) from None
+
+
 @app.post("/api/v1/tasks", status_code=202)
 def create_task(
     request: TaskCreateRequest,
     db: Session = Depends(get_db),
     current_user: UserORM | None = Depends(task_actor),
 ) -> dict[str, str]:
+    if request.data_driven is not None:
+        if current_user is None:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        if request.openapi_contract is not None or "execution_config" in request.model_fields_set:
+            raise HTTPException(status_code=422, detail="数据驱动任务只能使用一种执行计划输入")
+        try:
+            request.execution_config = compile_data_plan(request.data_driven)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=redact_text(str(exc))) from None
     if request.openapi_contract is not None:
         if current_user is None:
             raise HTTPException(status_code=401, detail="Authentication required")
@@ -619,6 +647,18 @@ def get_task(
     if state is None:
         raise HTTPException(status_code=404, detail="任务不存在")
     return state
+
+
+@app.get("/api/v1/tasks/{task_id}/reports/junit.xml")
+def task_junit_report(task_id: str, db: Annotated[Session, Depends(get_db)],
+                      current_user: Annotated[UserORM | None, Depends(task_actor)]):
+    detail = get_task(task_id, db, current_user)
+    execution = detail.get("execution")
+    if not execution or detail.get("task", {}).get("status") not in {"completed", "failed"}:
+        raise HTTPException(status_code=409, detail="尚无最终执行结果")
+    content = to_junit_xml(execution, truncated=bool((detail.get("raw_payload") or {}).get("truncated")))
+    return Response(content=content, media_type="application/xml",
+                    headers={"Content-Disposition": 'attachment; filename="req2test-junit.xml"'})
 
 
 @app.get("/api/v1/tasks/{task_id}/diagnostics")

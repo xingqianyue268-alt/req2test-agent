@@ -4,12 +4,61 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_serializer
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from .security.redaction import redact_sensitive
 
 
 HttpMethod = Literal["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
+
+
+class JsonAssertion(BaseModel):
+    """A bounded JSON Pointer assertion, never executable expressions."""
+
+    model_config = ConfigDict(extra="forbid")
+    path: str = Field(default="", max_length=500)
+    op: Literal["exists", "type", "eq", "ne", "length", "min", "max"]
+    expected: Any = None
+
+    @field_validator("path")
+    @classmethod
+    def validate_pointer(cls, value: str) -> str:
+        import re
+
+        if value and (not value.startswith("/") or re.search(r"~(?![01])", value)):
+            raise ValueError("断言路径必须使用 JSON Pointer，如 /data/items/0/name")
+        return value
+
+    @model_validator(mode="after")
+    def validate_expected(self):
+        value = self.expected
+        if self.op == "type" and value not in (
+            "object",
+            "array",
+            "string",
+            "integer",
+            "number",
+            "boolean",
+            "null",
+        ):
+            raise ValueError("type 断言需要 JSON 类型名称")
+        if self.op == "exists" and value is not None and not isinstance(value, bool):
+            raise ValueError("exists 断言需要布尔值")
+        if self.op == "length" and (type(value) is not int or value < 0):
+            raise ValueError("length 断言需要非负整数")
+        if self.op in {"min", "max"}:
+            import math
+
+            if type(value) not in (int, float) or not math.isfinite(value):
+                raise ValueError("边界断言需要有限数值")
+        return self
 
 
 class HttpTestSpec(BaseModel):
@@ -19,6 +68,9 @@ class HttpTestSpec(BaseModel):
     name: str
     method: HttpMethod = "GET"
     path: str
+    data_id: str | None = None
+    source: str | None = None
+    assertions: list[JsonAssertion] = Field(default_factory=list, max_length=50)
     headers: dict[str, str] = Field(default_factory=dict)
     query: dict[str, Any] = Field(default_factory=dict)
     json_body: Any | None = None
@@ -59,6 +111,8 @@ class ExecutionConfig(BaseModel):
     run_pytest: bool = True
     use_llm_planner: bool = True
     use_llm_failure_analysis: bool = True
+    mock_isolation: bool = False
+    mock_seed: list[dict[str, Any]] = Field(default_factory=list, max_length=20)
     api_specs: list[HttpTestSpec] = Field(default_factory=list)
 
     @field_validator("base_url")
@@ -81,6 +135,16 @@ class _PublicOutput(BaseModel):
         return redact_sensitive(handler(self))
 
 
+class AssertionOutcome(_PublicOutput):
+    assertion_id: str
+    kind: str
+    path: str = ""
+    passed: bool
+    expected: Any = None
+    actual: Any = None
+    message: str = ""
+
+
 class HttpExecutionResult(_PublicOutput):
     case_id: str
     name: str
@@ -91,6 +155,12 @@ class HttpExecutionResult(_PublicOutput):
     expected_status: int
     duration_ms: float | None = None
     failures: list[str] = Field(default_factory=list)
+    data_id: str | None = None
+    source: str | None = None
+    executor: str = "http"
+    execution_mode: str = "live"
+    request: dict[str, Any] = Field(default_factory=dict)
+    assertions: list[AssertionOutcome] = Field(default_factory=list)
     response_excerpt: str = ""
     response_content_type: str | None = None
     validation_error: str | None = None
@@ -108,6 +178,7 @@ class PytestExecutionResult(_PublicOutput):
     stdout: str = ""
     stderr: str = ""
     generated_test_file: str | None = None
+    case_results: list[HttpExecutionResult] = Field(default_factory=list)
 
 
 class FailureAnalysis(_PublicOutput):
@@ -145,6 +216,7 @@ class ExecutionReport(_PublicOutput):
     warnings: list[str] = Field(default_factory=list)
     trace_id: str | None = None
     diagnostic_evidence: list[dict[str, Any]] = Field(default_factory=list)
+    lifecycle: dict[str, Any] = Field(default_factory=dict)
     evidence_collection_overhead_ms: float = 0.0
     failure_analysis_v2: dict[str, Any] = Field(default_factory=dict)
 

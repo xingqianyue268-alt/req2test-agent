@@ -55,10 +55,7 @@ def _workflow_context(result: WorkflowResult) -> str:
             "case_id": case.case_id,
             "title": case.title,
             "source_requirement": case.source_requirement,
-            "steps": [
-                {"action": step.action, "expected": step.expected}
-                for step in case.steps
-            ],
+            "steps": [{"action": step.action, "expected": step.expected} for step in case.steps],
         }
         for case in result.test_cases[:12]
     ]
@@ -226,7 +223,7 @@ def analyse_failures(
     return heuristic, ["LLM 失败归因没有返回有效结果，已使用规则归因。"]
 
 
-def execute_with_tools(
+def _execute_with_tools(
     requirement_text: str,
     workflow_result: WorkflowResult,
     llm_settings: LLMSettings,
@@ -306,11 +303,16 @@ def execute_with_tools(
             base_url=config.base_url,
             request_timeout_seconds=config.request_timeout_seconds,
             verify_tls=config.verify_tls,
+            # A stateful collection is replayed as a whole so reads retain their
+            # original position between writes, rather than observing final state.
+            replay_results={item.case_id: item.model_dump() for item in report.http_results}
+            if any(item.method not in {"GET", "HEAD", "OPTIONS"} for item in specs)
+            else None,
         )
         collector.collect_pytest(report.pytest_result)
 
     analyses, analysis_warnings = analyse_failures(
-        report.http_results,
+        report.http_results or (report.pytest_result.case_results if report.pytest_result else []),
         llm_settings,
         config,
     )
@@ -329,6 +331,10 @@ def execute_with_tools(
         "pytest_passed": report.pytest_result.passed if report.pytest_result else None,
         "tool_call_count": len(report.tool_calls),
         "failure_analysis_count": len(report.failure_analysis),
+        "pytest_replayed_cases": sum(
+            item.execution_mode == "replayed_http_result"
+            for item in (report.pytest_result.case_results if report.pytest_result else [])
+        ),
     }
     report.diagnostic_evidence.extend(collector.dump())
     analysis_v2 = classify_failures(
@@ -343,4 +349,48 @@ def execute_with_tools(
         }
     )
     report.evidence_collection_overhead_ms = collector.overhead_ms()
+    return report
+
+
+def execute_with_tools(
+    requirement_text,
+    workflow_result,
+    llm_settings,
+    config,
+    trace_context=None,
+    initial_evidence=None,
+):
+    """Execute once; cleanup belongs to the parent even if pytest times out."""
+    from .mock_lifecycle import MockLifecycle, MockLifecycleError
+
+    if not config.mock_isolation or not config.enabled:
+        return _execute_with_tools(
+            requirement_text, workflow_result, llm_settings, config, trace_context, initial_evidence
+        )
+    if not config.api_specs:
+        raise MockLifecycleError("本地隔离执行需要显式 api_specs")
+    lifecycle = MockLifecycle(config.base_url, config.mock_seed)
+    report = ExecutionReport(enabled=True, summary={"status": "error"})
+    try:
+        lifecycle.prepare()
+        isolated = config.model_copy(deep=True)
+        for spec in isolated.api_specs:
+            spec.headers = {k: v for k, v in spec.headers.items() if k.lower() != "x-req2test-run"}
+            spec.headers["X-Req2Test-Run"] = lifecycle.run_id
+        report = _execute_with_tools(
+            requirement_text,
+            workflow_result,
+            llm_settings,
+            isolated,
+            trace_context,
+            initial_evidence,
+        )
+    except MockLifecycleError:
+        report.warnings.append("Mock 前置数据准备失败；请检查本地隔离服务")
+    finally:
+        lifecycle.cleanup()
+        report.lifecycle = lifecycle.state
+        if lifecycle.state.get("setup") != "passed" or lifecycle.state.get("cleanup") != "passed":
+            report.summary["status"] = "error"
+            report.warnings.append(lifecycle.state.get("error", "Mock 隔离流程未完整通过"))
     return report

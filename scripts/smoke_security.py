@@ -18,7 +18,10 @@ from sqlalchemy import create_engine, text
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--output-dir", type=pathlib.Path, required=True)
 parser.add_argument("--openapi", action="store_true", help="Include P1-A contracts using req2test_p1a_test")
+parser.add_argument("--data-driven", action="store_true", help="Include P1-B datasets using req2test_p1b_test")
 args = parser.parse_args()
+if args.data_driven:
+    args.openapi = True
 out = args.output_dir.resolve()
 out.mkdir(parents=True, exist_ok=True)
 source = pathlib.Path(__file__).resolve().parents[1]
@@ -28,7 +31,7 @@ if env.get("REQ2TEST_ENV") != "test":
 for key in ("DATABASE_URL", "REDIS_URL", "CELERY_BROKER_URL", "CELERY_RESULT_BACKEND"):
     if urlsplit(env.get(key, "")).hostname not in {"localhost", "127.0.0.1", "::1"}:
         raise SystemExit(f"{key} must point at a disposable loopback service")
-expected_database = "req2test_p1a_test" if args.openapi else "req2test_security_test"
+expected_database = "req2test_p1b_test" if args.data_driven else "req2test_p1a_test" if args.openapi else "req2test_security_test"
 if urlsplit(env["DATABASE_URL"]).path != "/" + expected_database:
     raise SystemExit(f"Only the dedicated {expected_database} database is allowed")
 with socket.socket() as sock:
@@ -37,6 +40,8 @@ with socket.socket() as sock:
 origin = f"http://127.0.0.1:{port}"
 env["REQ2TEST_TRUSTED_ORIGINS"] = origin
 env["AUTH_COOKIE_SECURE"] = "false"
+if args.data_driven:
+    env["REQ2TEST_ENABLE_MOCK_LIFECYCLE"] = "true"
 env["REQ2TEST_CHROMA_DIR"] = str(out / "smoke-chroma")
 processes = []
 handles = []
@@ -251,6 +256,51 @@ try:
             assert "synthetic-demo-token" not in json.dumps(completed)
             assert any(r["status_code"] == 422 and r["passed"] for r in completed["execution"]["http_results"])
             results["openapi_import_to_worker"] = {"selected_operations": len(selected), **summary}
+
+        if args.data_driven:
+            import xml.etree.ElementTree as ET
+            rows = json.loads((source / "examples/data/login.json").read_text())
+            rows.insert(2, {"id": "intentional-failure", "json_body": {}, "expected_status": 200})
+            plan = {"base_url": mock_origin,
+                    "template": {"case_id": "LOGIN", "name": "login", "method": "POST", "path": "/login"},
+                    "dataset": {"filename": "login.json", "content_base64": base64.b64encode(json.dumps(rows).encode()).decode()}}
+            assert client.get("/datasets").status_code == 200
+            preview = client.post("/api/v1/datasets/preview", json=plan)
+            assert preview.status_code == 200, preview.text
+            submitted = client.post("/api/v1/tasks", json={"requirement_text": "Synthetic data-driven login", "data_driven": plan})
+            assert submitted.status_code == 202, submitted.text
+            data_id = submitted.json()["task_id"]
+            completed = wait_for(lambda: task_finished(data_id), "Data-driven task", timeout=60)
+            summary = completed["execution"]["summary"]
+            assert summary["total_http_cases"] == 5 and summary["failed_http_cases"] == 1, summary
+            assert summary["pytest_replayed_cases"] == 5 and not summary["pytest_passed"], summary
+            xml_response = client.get(f"/api/v1/tasks/{data_id}/reports/junit.xml")
+            assert xml_response.status_code == 200, xml_response.text
+            root = ET.fromstring(xml_response.text)
+            assert root.attrib["tests"] == "10" and root.attrib["failures"] == "2", root.attrib
+            assert root.attrib["errors"] == "0" and root.attrib["skipped"] == "0"
+            assert "incorrect" not in xml_response.text
+            (out / "data-driven-junit.xml").write_text(xml_response.text)
+            results["data_driven_worker"] = summary
+            results["data_driven_junit"] = root.attrib
+            product = {"name": "repeatable", "price": 1, "metadata": {"active": True, "tags": ["demo"]}}
+            plan["template"] = {"case_id": "PRODUCT", "name": "create", "method": "POST", "path": "/isolated/products", "expected_status": 201, "assertions": [{"path": "/writes", "op": "eq", "expected": 1}]}
+            plan["dataset"] = {"filename": "product.json", "content_base64": base64.b64encode(json.dumps([{"id": "create", "json_body": product}]).encode()).decode()}
+            plan["mock_isolation"] = True
+            lifecycle_ids = []
+            for _ in range(2):
+                submitted = client.post("/api/v1/tasks", json={"requirement_text": "Synthetic isolated product", "data_driven": plan})
+                assert submitted.status_code == 202, submitted.text
+                product_id = submitted.json()["task_id"]
+                completed = wait_for(lambda product_id=product_id: task_finished(product_id), "Isolated product", timeout=60)
+                execution = completed["execution"]
+                assert execution["summary"]["failed_http_cases"] == 0 and execution["summary"]["pytest_passed"], execution["summary"]
+                assert execution["lifecycle"]["cleanup"] == "passed", execution["lifecycle"]
+                run_id = execution["lifecycle"]["run_id"]
+                lifecycle_ids.append(run_id)
+                assert httpx.get(mock_origin + "/isolated/products", headers={"X-Req2Test-Run": run_id}).status_code == 404
+            assert len(set(lifecycle_ids)) == 2
+            results["isolated_worker_repeats"] = {"runs": 2, "unique_namespaces": 2, "cleanup": "passed"}
 
         from websockets.sync.client import connect
 

@@ -5,7 +5,7 @@ def render_contracts_html():
     return """<!doctype html><html lang="zh-CN"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>接口契约 · Req2Test</title>
 <style>body{font:16px system-ui;color:#243348;background:#f4f6f8;max-width:1000px;margin:32px auto;padding:0 20px}main{background:white;padding:24px;border-radius:12px}label{display:block;margin:16px 0 6px}input[type=text],textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #adb9c9;border-radius:5px}button{padding:10px 16px;margin:12px 8px 12px 0;cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f8;padding:16px}small{color:#526477}#operations label{border-bottom:1px solid #eee;padding:8px}</style>
-<nav><a href="/workbench">工作台</a> · <a href="/tasks">测试任务</a></nav>
+<nav><a href="/workbench">工作台</a> · <a href="/tasks">测试任务</a> · <a href="/datasets">数据驱动测试</a></nav>
 <h1>OpenAPI 接口测试</h1><main>
 <p>上传只解析文件。选择接口、配置已授权目标并预览后，再主动执行。测试可能写入目标数据，请使用测试环境。</p>
 <label for="file">OpenAPI 3.0 / 3.1 JSON 或 YAML（最多 1 MiB）</label>
@@ -18,7 +18,7 @@ def render_contracts_html():
 <small>支持 path、query、headers、json_body、expected_status、expected_json_contains。例如 {"GET /users/{id}": {"path": {"id": 1}}}。样例仅为起点，不保证目标业务接受。</small>
 <label><input id="validation" type="checkbox" checked>生成缺失字段、类型错误等校验用例（契约需声明 400 / 422）</label>
 <label><input id="http" type="checkbox" checked>HTTP Tool</label><label><input id="pytest" type="checkbox" checked>Pytest Runner</label>
-<p><small>同时选择两个执行器会发送两轮请求；创建、删除等接口应使用可重复执行的测试数据。</small></p>
+<p><small>双执行器模式下，含写请求的集合只发送一轮请求，Pytest 复核该轮记录；纯读取集合仍分别执行。</small></p>
 <button id="preview">预览测试规格</button><button id="execute" disabled>创建并执行任务</button>
 <p id="status" role="status" aria-live="polite"></p><pre id="output"></pre></main>
 <script>

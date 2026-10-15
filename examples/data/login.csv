@@ -1,0 +1,5 @@
+id,json_body,expected_status,assertions
+valid,"{""username"": ""demo"", ""password"": ""demo""}",200,"[{""path"": ""/access_token"", ""op"": ""type"", ""expected"": ""string""}]"
+bad-password,"{""username"": ""demo"", ""password"": ""incorrect""}",401,
+missing,{},422,
+wrong-type,"{""username"": 17, ""password"": ""demo""}",422,

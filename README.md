@@ -494,3 +494,40 @@ python scripts/smoke_openapi.py --output-dir /tmp/req2test-p1a-smoke
 ```
 
 新增的显式依赖只有 PyYAML（安全 YAML 解析）和 jsonschema（两个执行器共用标准 JSON Schema 断言）；它们在原有依赖树中已存在，现明确声明，避免依赖偶然传递安装。原有 `json_body=None` 保持「无请求体」兼容性；新规格用 `json_body_present=true` 表示明确的 JSON `null`。
+
+### P1-B：数据驱动测试、隔离与 JUnit
+
+登录后从 `/contracts` 进入「数据驱动测试」(`/datasets`)；也可使用
+`POST /api/v1/datasets/preview` 和现有 `POST /api/v1/tasks` 的 `data_driven` 参数。
+上传只解析数据，预览不请求目标，明确创建任务后才执行。
+
+- 接口模板复用 `HttpTestSpec`；JSON 数组或 CSV 每行有唯一 `id`，可覆盖
+  `json_body`、`query`、`headers`、`expected_status`、`assertions` 等字段。
+  单文件最多 1 MiB、20 行；CSV 结构化单元格为 JSON，空单元格继承模板。
+  可直接上传 `examples/data/login.json` 或 `login.csv`，配合
+  `python -m uvicorn examples.mock_api:app --host 127.0.0.1 --port 8081`。
+- 结构化断言使用 JSON Pointer，例如
+  `{"path":"/data/items/0/count","op":"min","expected":1}`。
+  支持 `exists/type/eq/ne/length/min/max`，同时保留状态码、JSON 包含、文本与本地 Schema 断言。
+  预期的 4xx/5xx 可以通过；多个失败断言逐项记录。不会执行用户表达式或远程 Schema。
+- OpenAPI `ContractPlan.datasets` 可按 `POST /login` 等接口标识提供数据文件，
+  替代该接口自动样例；行级状态码选择对应响应 Schema，显式 Schema 覆盖优先。
+- 双工具模式：**含写请求的整个集合由 HTTP 实际执行一次，Pytest 复核已记录结果**，
+  标为 `replayed_http_result`，不宣称第二轮独立网络验证；这样读取也保留在写入之间的原始观察时点。
+  纯读取集合仍分别执行。单独 Pytest 会真实请求。不会自动重试 HTTP 业务请求。
+- 自动准备/清理仅支持专用本地 Mock 协议，必须同时设置 `REQ2TEST_ENV=test`、
+  `REQ2TEST_ENABLE_MOCK_LIFECYCLE=true`，目标为字面量 loopback 根地址。
+  `mock_isolation=true` 为每次执行创建唯一空间，可用 `mock_seed` 准备虚构商品；
+  `/isolated/products` 支持创建/查询/修改/删除。父进程在断言失败、请求超时或 Pytest 超时后仍尝试清理。
+  清理未确认会进入报告错误，不清理外部业务系统。进程被强制杀死时无法保证 finally 执行，Mock 空间 10 分钟过期。
+- `GET /api/v1/tasks/{task_id}/reports/junit.xml` 复用任务所有权检查，任务完成/失败后导出。
+  页面保留 Markdown/CSV/JSON 并增加 JUnit。JUnit 区分失败断言、运行错误、跳过和证据缺失；
+  双执行器的 testcase 数是两组执行器结果之和，不是网络请求数；回放耗时为 0。
+- CI 先验证 PostgreSQL，再生成 `artifacts/pytest.xml`；门禁拒绝缺失报告、失败、错误和跳过。
+  `always()` 归档 JUnit、测试日志、环境/统计 JSON 与可用的 Demo 评测日志，保留 14 天。
+  依赖安装或 Runner 完全不可用时，产物上传本身也可能不可用，不能视为验收通过。
+
+隔离环境冒烟：`python scripts/smoke_data_driven.py --output-dir /tmp/req2test-p1b-smoke`。
+仅允许专用 `req2test_p1b_test` 数据库和 loopback PostgreSQL/Redis/RabbitMQ；无生产操作。
+现有 Worker 持久化重试复用缓存结果，但进程崩溃/消息重投下不承诺外部业务 exactly-once；
+外部写请求应使用业务方提供的幂等键或隔离环境，不自动注入未经契约支持的幂等机制。
