@@ -149,9 +149,13 @@ def redact_sensitive(value: Any, *, omit_keys: bool = False) -> Any:
         sensitive_input = isinstance(location, (list, tuple)) and any(
             is_sensitive_key(str(part)) for part in location
         )
+        pointer = value.get("path")
+        sensitive_assertion = isinstance(pointer, str) and ("op" in value or "kind" in value) and any(
+            is_sensitive_key(part.replace("~1", "/").replace("~0", "~")) for part in pointer.split("/")
+        )
         result = {}
         for key, item in value.items():
-            sensitive = is_sensitive_key(str(key)) or (sensitive_input and key in {"input", "ctx"})
+            sensitive = is_sensitive_key(str(key)) or (sensitive_input and key in {"input", "ctx"}) or (sensitive_assertion and key in {"expected", "actual"})
             if sensitive and omit_keys:
                 continue
             result[str(key)] = (

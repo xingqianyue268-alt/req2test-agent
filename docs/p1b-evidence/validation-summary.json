@@ -1,0 +1,137 @@
+{
+  "baseline_tests": 369,
+  "added_tests": 51,
+  "local": {
+    "passed": 420,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0,
+    "database_directory": 90
+  },
+  "ruff": {
+    "baseline": 137,
+    "current": 137,
+    "new": 0
+  },
+  "parent_commit": "affcfcacda6f2813cfdbb01050bfbd47d730aa9b",
+  "branch": "feature/data-driven-testing",
+  "base": "feature/api-testing-enhancement",
+  "dependencies": [
+    6,
+    5
+  ],
+  "smoke": {
+    "ready": {
+      "ready": true,
+      "checks": {
+        "database": "ok",
+        "redis": "ok",
+        "rabbitmq": "ok"
+      }
+    },
+    "browser_login": true,
+    "untrusted_cookie_mutation": 403,
+    "knowledge_search": true,
+    "knowledge_real_chroma_crud_reindex_rebuild": true,
+    "admin_rbac": true,
+    "pass": {
+      "status": "completed",
+      "pytest_passed": true,
+      "http_pass_rate": 1.0,
+      "tool_call_count": 3,
+      "total_http_cases": 2,
+      "failed_http_cases": 0,
+      "passed_http_cases": 2,
+      "pytest_replayed_cases": 2,
+      "failure_analysis_count": 0,
+      "failure_category_counts": {},
+      "primary_failure_category": null
+    },
+    "failure_422": {
+      "status": "completed",
+      "pytest_passed": false,
+      "http_pass_rate": 0.0,
+      "tool_call_count": 2,
+      "total_http_cases": 1,
+      "failed_http_cases": 1,
+      "passed_http_cases": 0,
+      "pytest_replayed_cases": 1,
+      "failure_analysis_count": 1,
+      "failure_category_counts": {
+        "assertion_failure": 1,
+        "contract_mismatch": 1
+      },
+      "primary_failure_category": "contract_mismatch"
+    },
+    "openapi_import_to_worker": {
+      "selected_operations": 5,
+      "status": "completed",
+      "pytest_passed": true,
+      "http_pass_rate": 1.0,
+      "tool_call_count": 18,
+      "total_http_cases": 17,
+      "failed_http_cases": 0,
+      "passed_http_cases": 17,
+      "pytest_replayed_cases": 17,
+      "failure_analysis_count": 0,
+      "failure_category_counts": {},
+      "primary_failure_category": null
+    },
+    "data_driven_worker": {
+      "status": "completed",
+      "pytest_passed": false,
+      "http_pass_rate": 0.8,
+      "tool_call_count": 6,
+      "total_http_cases": 5,
+      "failed_http_cases": 1,
+      "passed_http_cases": 4,
+      "pytest_replayed_cases": 5,
+      "failure_analysis_count": 1,
+      "failure_category_counts": {
+        "assertion_failure": 1,
+        "contract_mismatch": 1
+      },
+      "primary_failure_category": "contract_mismatch"
+    },
+    "data_driven_junit": {
+      "tests": "10",
+      "failures": "2",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.021430"
+    },
+    "isolated_worker_repeats": {
+      "runs": 2,
+      "unique_namespaces": 2,
+      "cleanup": "passed"
+    },
+    "websocket": true,
+    "evaluation": {
+      "status": "completed",
+      "score": 98.45
+    },
+    "bearer_api": true,
+    "logout": true,
+    "postgres_redaction": true,
+    "seconds": 9.85,
+    "worker_log_redaction": true
+  },
+  "browser": {
+    "url": "http://127.0.0.1:59824/tasks/40ba0c19-6e8a-481d-9908-52929512a425",
+    "file": "examples/data/login.csv",
+    "preview_rows": 4,
+    "http_passed": 4,
+    "http_failed": 0,
+    "pytest_passed": 4,
+    "pytest_failed": 0,
+    "observed_statuses": [
+      200,
+      401,
+      422,
+      422
+    ],
+    "junit_button_clicked": true,
+    "note": "Page refreshed once after completion; actual XML separately parsed in API/worker smoke. Synthetic local account; no production."
+  },
+  "ci": "Pending: branch not published yet"
+}

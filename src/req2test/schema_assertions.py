@@ -26,6 +26,9 @@ def schema_failures(payload, schema):
         raise ValueError("响应 Schema 无效") from None
     # Error messages contain neither actual nor expected values (credentials may be present).
     return [
-        "响应 JSON 不符合 Schema：" + str(error.validator)
+        "响应 JSON 不符合 Schema："
+        + str(error.validator)
+        + "，路径 /"
+        + "/".join(str(part).replace("~", "~0").replace("/", "~1") for part in error.absolute_path)
         for error in Draft202012Validator(schema).iter_errors(payload)
     ][:20]

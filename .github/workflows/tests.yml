@@ -42,12 +42,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
 
+      - name: Verify test database
+        run: python scripts/ci_test_gate.py --preflight --output artifacts/environment.json
+
       - name: Run tests
-        run: pytest -q
+        shell: bash
+        run: |
+          set -o pipefail
+          pytest -q --junitxml=artifacts/pytest.xml 2>&1 | tee artifacts/pytest.log
+
+      - name: Enforce complete regression
+        if: always()
+        run: python scripts/ci_test_gate.py
 
       - name: Run deterministic evaluation gate
-        run: >-
-          python scripts/run_eval.py
-          --dataset evals/golden_demo.jsonl
-          --mode demo
-          --min-score 80
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/run_eval.py --dataset evals/golden_demo.jsonl --mode demo --min-score 80 2>&1 | tee artifacts/evaluation.log
+
+      - name: Retain test evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14

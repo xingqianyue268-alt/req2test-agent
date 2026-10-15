@@ -20,6 +20,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError
 from pydantic import BaseModel, ConfigDict, Field
 
+from .data_driven import DatasetUpload, expand_dataset
 from .execution_models import ExecutionConfig, HttpTestSpec
 from .security.execution import validate_execution_target
 
@@ -71,6 +72,7 @@ class ContractPlan(BaseModel):
     base_url: str
     headers: dict[str, str] = Field(default_factory=dict)
     overrides: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    datasets: dict[str, DatasetUpload] = Field(default_factory=dict)
     include_validation: bool = True
     run_http_tool: bool = True
     run_pytest: bool = True
@@ -494,6 +496,19 @@ def _compile_plan(plan: ContractPlan, target: str) -> ExecutionConfig:
             expected_json_contains=overrides.get("expected_json_contains", {}),
             expected_json_schema=op["responses"][str(code)]["schema"],
         )
+        if key in plan.datasets:
+            specs.extend(
+                expand_dataset(
+                    positive,
+                    plan.datasets[key],
+                    response_schemas={
+                        status: response["schema"] for status, response in op["responses"].items()
+                    },
+                )
+            )
+            if len(specs) > 20:
+                raise ContractImportError("生成用例超过单任务 20 条限制")
+            continue
         specs.append(positive)
         error_code = next((c for c in (422, 400) if str(c) in op["responses"]), None)
         if plan.include_validation and error_code:

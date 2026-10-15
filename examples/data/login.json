@@ -1,0 +1,6 @@
+[
+  {"id":"valid","json_body":{"username":"demo","password":"demo"},"expected_status":200,"assertions":[{"path":"/access_token","op":"type","expected":"string"}]},
+  {"id":"bad-password","json_body":{"username":"demo","password":"incorrect"},"expected_status":401},
+  {"id":"missing","json_body":{},"expected_status":422},
+  {"id":"wrong-type","json_body":{"username":17,"password":"demo"},"expected_status":422}
+]

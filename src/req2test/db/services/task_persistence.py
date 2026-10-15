@@ -161,6 +161,7 @@ def task_to_detail(task: TaskORM, state: dict[str, Any]) -> dict[str, Any]:
             "executable_cases": execution.get("executable_cases") or [],
             "http_results": execution.get("http_results") or [],
             "pytest_result": execution.get("pytest_result"),
+            "lifecycle": execution.get("lifecycle") or {},
         },
         "failure_analysis": execution.get("failure_analysis") or [],
         "failure_analysis_v2": execution.get("failure_analysis_v2") or {
