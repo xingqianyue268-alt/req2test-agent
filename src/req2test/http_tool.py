@@ -6,7 +6,8 @@ import json
 import time
 from typing import Any
 
-from .execution_models import HttpExecutionResult, HttpTestSpec
+from .execution_models import HttpExecutionResult, HttpTestSpec, request_body_kwargs
+from .schema_assertions import schema_failures
 from .security.execution import validate_execution_target
 from .security.redaction import protect_http_logs, redact_text
 
@@ -72,9 +73,9 @@ class HttpApiTestTool:
                 response = client.request(
                     spec.method,
                     url,
-                    headers=spec.headers,
+                    headers=({"Content-Type": "application/json", **spec.headers} if spec.json_body_present else spec.headers),
                     params=spec.query,
-                    json=spec.json_body,
+                    **request_body_kwargs(spec.json_body, spec.json_body_present),
                 )
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
             status_code = response.status_code
@@ -90,18 +91,24 @@ class HttpApiTestTool:
             # reaches the route but the body/query does not satisfy the declared
             # contract. Preserve that evidence so failure attribution can classify
             # it as a contract/test-data problem rather than a generic assertion.
-            if response.status_code == 422:
+            if response.status_code == 422 and spec.expected_status != 422:
                 failures.append(
                     "请求数据校验未通过：可能缺少必填请求体/参数，或字段类型不符合接口契约"
                 )
 
-            if spec.expected_json_contains:
+            if spec.expected_json_contains or spec.expected_json_schema is not None:
                 try:
                     payload = response.json()
                 except (json.JSONDecodeError, ValueError):
                     failures.append("响应不是有效 JSON，无法执行 JSON 包含断言")
                 else:
-                    failures.extend(_json_contains(payload, spec.expected_json_contains))
+                    if spec.expected_json_contains:
+                        failures.extend(_json_contains(payload, spec.expected_json_contains))
+                    if spec.expected_json_schema is not None:
+                        try:
+                            failures.extend(schema_failures(payload, spec.expected_json_schema))
+                        except ValueError:
+                            failures.append("响应 Schema 无效或包含禁止的引用")
 
             for expected_text in spec.expected_text_contains:
                 if expected_text not in response.text:

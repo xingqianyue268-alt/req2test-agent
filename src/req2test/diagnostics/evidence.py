@@ -220,7 +220,7 @@ class EvidenceCollector:
                 severity=EvidenceSeverity.ERROR,
                 context=context,
             )
-        if result.status_code == 422 and result.validation_error:
+        if result.status_code == 422 and result.expected_status != 422 and result.validation_error:
             self.add(
                 EvidenceType.VALIDATION,
                 stage="http_validation",

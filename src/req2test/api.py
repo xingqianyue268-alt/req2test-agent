@@ -8,7 +8,7 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -34,6 +34,8 @@ from .knowledge_ui import render_knowledge_html
 from .admin_ui import render_admin_html, render_admin_forbidden_html
 from .document_loader import SUPPORTED_SUFFIXES, load_document_bytes
 from .execution_models import ExecutionConfig
+from .openapi_import import ContractPlan, compile_plan, decode_upload, parse_document as parse_openapi_document
+from .contracts_ui import render_contracts_html
 from .readiness import rabbitmq_is_ready, redis_is_ready
 from .db.models import UserORM
 from .db.repositories import users as user_repository
@@ -62,9 +64,15 @@ app.include_router(evaluation_router)
 
 @app.exception_handler(RequestValidationError)
 async def sanitized_validation_error(_request: Request, exc: RequestValidationError):
+    errors = exc.errors()
+    for error in errors:
+        if _request.url.path.startswith("/api/v1/contracts/") or "openapi_contract" in error.get("loc", ()):
+            # Encoded documents and arbitrary override values can contain test credentials.
+            error.pop("input", None)
+            error.pop("ctx", None)
     return JSONResponse(
         status_code=422,
-        content={"detail": redact_sensitive(jsonable_encoder(exc.errors()))},
+        content={"detail": redact_sensitive(jsonable_encoder(errors))},
     )
 
 
@@ -90,6 +98,7 @@ class TaskCreateRequest(BaseModel):
     llm_settings: LLMSettings = Field(default_factory=LLMSettings)
     generation_config: GenerationConfig = Field(default_factory=GenerationConfig)
     execution_config: ExecutionConfig = Field(default_factory=ExecutionConfig)
+    openapi_contract: ContractPlan | None = None
 
 
 class DocumentParseRequest(BaseModel):
@@ -501,12 +510,44 @@ def admin_system(_admin: UserORM = Depends(require_roles("admin"))):
     }
 
 
+@app.get("/contracts", response_class=HTMLResponse)
+def contracts_page(request: Request, db: Annotated[Session, Depends(get_db)]):
+    if not _web_user(request, db):
+        return _login_redirect(request)
+    return render_contracts_html()
+
+
+@app.post("/api/v1/contracts/import")
+def import_contract(request: DocumentParseRequest, _user: Annotated[UserORM, Depends(get_current_user)]):
+    try:
+        return redact_sensitive(parse_openapi_document(request.filename, decode_upload(request.content_base64)))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=redact_text(str(exc))) from None
+
+
+@app.post("/api/v1/contracts/preview")
+def preview_contract(request: ContractPlan, _user: Annotated[UserORM, Depends(get_current_user)]):
+    try:
+        return redact_sensitive(compile_plan(request).model_dump())
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(status_code=422, detail=redact_text(str(exc))) from None
+
+
 @app.post("/api/v1/tasks", status_code=202)
 def create_task(
     request: TaskCreateRequest,
     db: Session = Depends(get_db),
     current_user: UserORM | None = Depends(task_actor),
 ) -> dict[str, str]:
+    if request.openapi_contract is not None:
+        if current_user is None:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        if "execution_config" in request.model_fields_set:
+            raise HTTPException(status_code=422, detail="OpenAPI 任务不能同时提供 execution_config")
+        try:
+            request.execution_config = compile_plan(request.openapi_contract)
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(status_code=422, detail=redact_text(str(exc))) from None
     eager = os.getenv("REQ2TEST_EAGER_TASKS", "false").lower() in {"1", "true", "yes"}
     try:
         task = task_persistence.create_and_dispatch(

@@ -456,3 +456,41 @@ Judge 需要可用的 OpenAI-compatible/Ollama endpoint，CI 只验证完全离�
 ## License
 
 MIT
+
+## P1-A：从 OpenAPI 到真实接口测试
+
+登录后打开 `/contracts`（工作台导航中的「接口契约」）：上传 JSON/YAML → 勾选接口 → 填写已授权的测试环境地址和认证请求头 → 预览脱敏规格 → 明确创建任务。上传、解析和预览均不请求文档中的 `servers`；只有创建任务后才通过现有 Worker 执行。
+
+本阶段支持 OpenAPI **3.0.x / 3.1.x 的明确子集**：路径与方法，简单 path/query/header 参数，JSON 请求体，明确状态码响应，嵌套对象/数组、必填、类型、枚举、常见长度/数值约束，以及 `#/components/…` 本地引用。HTTP Tool 和 Pytest 使用相同的响应 JSON Schema 校验器。预期 422 且实际 422 为通过；非预期 422 保留失败归因。
+
+- `oneOf/allOf/anyOf`、循环或外部引用、`format/pattern`、复杂参数序列化、multipart、OAuth 自动取令牌、OpenAPI 3.2 暂不自动执行。不可支持的接口会展示原因，不静默生成不完整测试。
+- 单文件最多 1 MiB / 200 个接口，单任务最多 20 条用例。校验用例仅在契约明确声明 400/422 时生成，包括缺失必填 JSON 字段、错误字段类型、缺失必填 query 参数；不推断未声明的错误响应。
+- 示例数据只是起点。需要已有资源 ID、登录信息或特殊业务数据时，通过覆盖值提供。两个执行器同时启用会发送两轮请求，写操作应在可重复执行的测试环境运行。
+- 继续遵守 P0 主机白名单、禁止自动重定向、统一脱敏和 Cookie Origin 防护。目标 URL 必须明确提供；认证只供执行使用，不在浏览器存储，也不将原始上传文档送往 LLM。
+
+启动虚构的本地 API（无需连接外部服务）：
+
+```bash
+uvicorn examples.mock_api:app --host 127.0.0.1 --port 8081
+```
+
+上传 `examples/openapi/synthetic-shop.json` 或 `.yaml`，目标填写 `http://127.0.0.1:8081`。公共请求头填写 `{"Authorization":"Bearer synthetic-demo-token"}`。示例登录为虚构的 `demo` / `demo`；接口覆盖值可填：
+
+```json
+{"GET /users/{user_id}": {"path": {"user_id": 1}, "expected_json_contains": {"id": 1}}}
+```
+
+选择全部 5 个接口时生成 17 条测试，覆盖登录、用户查询、商品列表、嵌套商品创建和参数校验。JSON/YAML 文件明确简化了 FastAPI 自动契约中错误位置的组合类型，以展示本阶段支持范围；并不声称所有框架自动契约都可无条件导入。
+
+API 客户端可以调用 `POST /api/v1/contracts/import`（`filename`、`content_base64`），再调用 `POST /api/v1/contracts/preview`（另加 `selected_operations`、`base_url`、`headers`、`overrides`）。确认后将同一计划放在既有 `POST /api/v1/tasks` 的 `openapi_contract` 字段中，并提供 `requirement_text`；不能同时提供 `execution_config`。接口要求登录，Bearer 调用兼容。
+
+复现测试：
+
+```bash
+pytest -q
+python scripts/run_eval.py --dataset evals/golden_demo.jsonl --mode demo --min-score 80
+# 仅在隔离的本地 PostgreSQL(req2test_p1a_test)、Redis、RabbitMQ 环境中：
+python scripts/smoke_openapi.py --output-dir /tmp/req2test-p1a-smoke
+```
+
+新增的显式依赖只有 PyYAML（安全 YAML 解析）和 jsonschema（两个执行器共用标准 JSON Schema 断言）；它们在原有依赖树中已存在，现明确声明，避免依赖偶然传递安装。原有 `json_body=None` 保持「无请求体」兼容性；新规格用 `json_body_present=true` 表示明确的 JSON `null`。

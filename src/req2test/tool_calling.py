@@ -14,6 +14,7 @@ import time
 from typing import Any
 
 from .config import LLMSettings
+from .contract_parser import extract_explicit_http_specs
 from .execution_models import (
     ExecutionConfig,
     ExecutionReport,
@@ -46,99 +47,6 @@ _FAILURE_SYSTEM = """你是软件测试失败归因智能体。根据真实 HTTP
 只能基于输入证据，不要虚构服务端日志或内部实现。
 category 只能是 connectivity, timeout, authentication, route_or_test_data, server_error, contract_mismatch, assertion_failure, unknown。
 输出 JSON 数组，每项字段：case_id,category,probable_cause,evidence,suggestion。"""
-
-_HTTP_PATTERN = re.compile(
-    r"\b(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(/[A-Za-z0-9_./?=&%{}:\-]+)",
-    flags=re.IGNORECASE,
-)
-_CONTRACT_DETAIL_PATTERN = re.compile(
-    r"^(?:预期状态码|期望状态码|状态码|status|响应包含|期望响应|expected_json|"
-    r"请求体|body|json|请求头|headers?|查询参数|query)\s*[:：=]",
-    flags=re.IGNORECASE,
-)
-
-
-def _extract_json_object_after(label: str, text: str) -> Any | None:
-    marker = re.search(rf"{label}\s*[:：]\s*(\{{.*?\}}|\[.*?\])(?:\s|$)", text, flags=re.IGNORECASE)
-    if not marker:
-        return None
-    try:
-        return json.loads(marker.group(1))
-    except json.JSONDecodeError:
-        return None
-
-
-def _collect_contract_block(lines: list[str], start: int) -> tuple[str, int]:
-    """Collect one endpoint line plus contiguous explicit contract-detail lines."""
-
-    block = [lines[start].strip()]
-    cursor = start + 1
-    while cursor < len(lines):
-        detail = lines[cursor].strip()
-        if not detail or detail.startswith("#") or _HTTP_PATTERN.search(detail):
-            break
-        if not _CONTRACT_DETAIL_PATTERN.match(detail):
-            break
-        block.append(detail)
-        cursor += 1
-    return " ".join(block), cursor
-
-
-def extract_explicit_http_specs(requirement_text: str, limit: int = 6) -> list[HttpTestSpec]:
-    """Extract only endpoints explicitly written in the requirement text.
-
-    Contract details may be placed on the endpoint line or on following lines,
-    for example status code, JSON request body and expected JSON subset.
-    """
-
-    specs: list[HttpTestSpec] = []
-    lines = requirement_text.splitlines()
-    index = 0
-    while index < len(lines):
-        line = lines[index].strip()
-        if not line:
-            index += 1
-            continue
-        match = _HTTP_PATTERN.search(line)
-        if not match:
-            index += 1
-            continue
-
-        method = match.group(1).upper()
-        path = match.group(2).rstrip("，。；;)")
-        contract_text, next_index = _collect_contract_block(lines, index)
-
-        expected_status = 200
-        status_match = re.search(
-            r"(?:status|状态码|期望状态码|预期状态码|返回码|返回|期望)\s*[:：=]?\s*(\d{3})",
-            contract_text,
-            flags=re.IGNORECASE,
-        )
-        if status_match:
-            expected_status = int(status_match.group(1))
-
-        json_body = _extract_json_object_after(r"(?:请求体|body|json)", contract_text)
-        expected_json = _extract_json_object_after(
-            r"(?:响应包含|expected_json|期望响应)", contract_text
-        )
-        if not isinstance(expected_json, dict):
-            expected_json = {}
-
-        specs.append(
-            HttpTestSpec(
-                case_id=f"API-{len(specs) + 1:03d}",
-                name=f"{method} {path}",
-                method=method,
-                path=path,
-                json_body=json_body,
-                expected_status=expected_status,
-                expected_json_contains=expected_json,
-            )
-        )
-        if len(specs) >= limit:
-            break
-        index = max(next_index, index + 1)
-    return specs
 
 
 def _workflow_context(result: WorkflowResult) -> str:
